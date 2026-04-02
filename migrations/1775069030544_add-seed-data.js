@@ -58,9 +58,9 @@ export const up = (pgm) => {
     pgm.sql(`
         INSERT INTO employees (id, nip, name, email, phone, birth_date, marital_status, gender, children_count, join_date, position, department, type, birth_place_id, status)
         VALUES
-        (1, 2024001, 'superadmin', 'superadmin@company.com', '08123456789', '1990-05-20', 'Married', 'Male', 2, '2020-01-15', 'Manager', 'HRD', 'Tetap', 3328150, true),
-        (2, 2024002, 'Siti Nurhaliza', 'siti@company.com', '08234567890', '1995-08-15', 'Single', 'Female', 0, '2021-03-10', 'Staf', 'HRD', 'Tetap', 3328150, true),
-        (3, 2024003, 'Ahmad Rahman', 'ahmad@company.com', '08345678901', '1998-03-25', 'Single', 'Male', 0, '2024-01-10', 'Staf', 'HRD', 'Kontrak', 3328150, true);
+        (1, 2024001121, 'superadmin', 'superadmin@company.com', '08123456789', '1990-05-20', 'Married', 'Male', 2, '2020-01-15', 'Manager', 'HRD', 'Tetap', 1101, true),
+        (2, 2024002221, 'Siti Nurhaliza', 'siti@company.com', '08234567890', '1995-08-15', 'Single', 'Female', 0, '2021-03-10', 'Staf', 'HRD', 'Tetap', 1101, true),
+        (3, 2024003312, 'Ahmad Rahman', 'ahmad@company.com', '08345678901', '1998-03-25', 'Single', 'Male', 0, '2024-01-10', 'Staf', 'HRD', 'Kontrak', 1101, true);
     `);
 
     // Insert Employee Addresses

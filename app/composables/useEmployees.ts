@@ -2,264 +2,258 @@ import { ref, computed } from 'vue'
 
 export interface Employee {
     id: number
-    nip: string
-    nama: string
-    jabatan: string
-    tanggalMasuk: string
-    masaKerja: number
+    nip: number
+    name: string
     email: string
-    noHp: string
-    tempatLahir: string
-    alamatKecamatan: string
-    alamatKabupaten: string
-    alamatProvinsi: string
-    alamatLengkap: string
-    tanggalLahir: string
-    statusKawin: string
-    jumlahAnak: number
-    departemen: string
-    usia: number
-    pendidikan: Array<{ tingkat: string; sekolah: string; tahunLulus: string }>
-    statusAktif: boolean
-    foto?: string
+    phone: string
+    birth_date: string
+    birth_place_id: number
+    birthCityName?: string
+    marital_status: string
+    gender: string
+    children_count: number
+    join_date: string
+    position: string
+    department: string
+    status: boolean
+    type: string
+    district_id?: number
+    districtName?: string
+    regencyName?: string
+    provinceName?: string
+    full_address?: string
+    educations?: any[]
+    created_at: string
+    updated_at: string
 }
 
-// Dummy data
-const dummyEmployees: Employee[] = [
-    {
-        id: 1,
-        nip: '2024001',
-        nama: 'Budi Santoso',
-        jabatan: 'Manager',
-        tanggalMasuk: '2020-01-15',
-        masaKerja: 4,
-        email: 'budi@company.com',
-        noHp: '+6282218458888',
-        tempatLahir: 'Jakarta',
-        alamatKecamatan: 'Kramat Jati',
-        alamatKabupaten: 'Jakarta Timur',
-        alamatProvinsi: 'DKI Jakarta',
-        alamatLengkap: 'Jl. Merpati No 123, Jakarta',
-        tanggalLahir: '1990-05-20',
-        statusKawin: 'kawin',
-        jumlahAnak: 2,
-        departemen: 'HRD',
-        usia: 34,
-        pendidikan: [
-            { tingkat: 'S1', sekolah: 'Universitas Indonesia', tahunLulus: '2012' }
-        ],
-        statusAktif: true
-    },
-    {
-        id: 2,
-        nip: '2024002',
-        nama: 'Siti Nur Syamsi',
-        jabatan: 'Staf',
-        tanggalMasuk: '2021-03-10',
-        masaKerja: 3,
-        email: 'siti@company.com',
-        noHp: '+6281234567890',
-        tempatLahir: 'Bandung',
-        alamatKecamatan: 'Andir',
-        alamatKabupaten: 'Bandung',
-        alamatProvinsi: 'Jawa Barat',
-        alamatLengkap: 'Jl. Sukajadi No 456, Bandung',
-        tanggalLahir: '1995-08-15',
-        statusKawin: 'tidak kawin',
-        jumlahAnak: 0,
-        departemen: 'Marketing',
-        usia: 29,
-        pendidikan: [
-            { tingkat: 'S1', sekolah: 'ITB', tahunLulus: '2017' }
-        ],
-        statusAktif: true
-    },
-    {
-        id: 3,
-        nip: '2024003',
-        nama: 'Rinto Harahap',
-        jabatan: 'Magang',
-        tanggalMasuk: '2024-01-20',
-        masaKerja: 0,
-        email: 'rinto@company.com',
-        noHp: '+6285555666777',
-        tempatLahir: 'Medan',
-        alamatKecamatan: 'Medan Baru',
-        alamatKabupaten: 'Medan',
-        alamatProvinsi: 'Sumatera Utara',
-        alamatLengkap: 'Jl. Gatot Subroto No 789, Medan',
-        tanggalLahir: '2003-02-10',
-        statusKawin: 'tidak kawin',
-        jumlahAnak: 0,
-        departemen: 'Production',
-        usia: 21,
-        pendidikan: [
-            { tingkat: 'D3', sekolah: 'Politeknik Negeri Medan', tahunLulus: '2023' }
-        ],
-        statusAktif: true
-    }
-]
-
 export const useEmployees = () => {
-    const employees = ref<Employee[]>(dummyEmployees)
+    const employees = ref<Employee[]>([])
     const loading = ref(false)
+    const error = ref<string | null>(null)
     const currentPage = ref(1)
     const itemsPerPage = ref(10)
+    const totalEmployees = ref(0)
     const searchQuery = ref('')
-    const selectedJabatan = ref<string[]>([])
-    const masaKerjaOperator = ref('>')
-    const masaKerjaValue = ref<number | null>(null)
-    const sortBy = ref<keyof Employee>('tanggalMasuk')
-    const sortOrder = ref<'asc' | 'desc'>('desc')
+    const selectedDepartment = ref<string>('')
+    const selectedStatus = ref<boolean | null>(null)
     const selectedEmployees = ref<number[]>([])
+    const $axios = useNuxtApp().$axios
 
-    // Filtering dan searching
-    const filteredEmployees = computed(() => {
-        let result = [...employees.value]
+    const sortColumn = ref<string>('join_date')
+    const sortDirection = ref<'asc' | 'desc'>('desc')
+    const selectedPositions = ref<string[]>([])
+    const tenureOperator = ref<string>('>')
+    const tenureValue = ref<number | null>(null)
 
-        // Search
-        if (searchQuery.value) {
-            const q = searchQuery.value.toLowerCase()
-            result = result.filter(emp =>
-                emp.nama.toLowerCase().includes(q) ||
-                emp.nip.toLowerCase().includes(q) ||
-                emp.jabatan.toLowerCase().includes(q)
-            )
-        }
+    // Fetch employees from API
+    const fetchEmployees = async () => {
+        try {
+            loading.value = true
+            error.value = null
 
-        // Filter jabatan
-        if (selectedJabatan.value.length > 0) {
-            result = result.filter(emp => selectedJabatan.value.includes(emp.jabatan))
-        }
+            const offset = (currentPage.value - 1) * itemsPerPage.value
 
-        // Filter masa kerja
-        if (masaKerjaValue.value !== null) {
-            result = result.filter(emp => {
-                if (masaKerjaOperator.value === '>') return emp.masaKerja > masaKerjaValue.value!
-                if (masaKerjaOperator.value === '<') return emp.masaKerja < masaKerjaValue.value!
-                if (masaKerjaOperator.value === '=') return emp.masaKerja === masaKerjaValue.value!
-                return true
+            const response = await $axios.get('/api/employees', {
+                params: {
+                    limit: itemsPerPage.value,
+                    offset,
+                    search: searchQuery.value || undefined,
+                    department: selectedDepartment.value || undefined,
+                    status: selectedStatus.value !== null ? selectedStatus.value : undefined,
+                    sortColumn: sortColumn.value || undefined,
+                    sortDirection: sortDirection.value || undefined,
+                    positions: selectedPositions.value.length > 0 ? selectedPositions.value.join(',') : undefined,
+                    tenureOperator: tenureOperator.value || undefined,
+                    tenureValue: tenureValue.value !== null ? tenureValue.value : undefined,
+                },
             })
+
+            employees.value = response.data.employees
+            totalEmployees.value = response.data.pagination.total
+        } catch (err: any) {
+            error.value = err.message || 'Failed to fetch employees'
+            console.error('Error fetching employees:', err)
+        } finally {
+            loading.value = false
         }
+    }
 
-        return result
-    })
+    // Get single employee
+    const getEmployee = async (id: number) => {
+        try {
+            loading.value = true
+            error.value = null
 
-    // Sorting
-    const sortedEmployees = computed(() => {
-        const result = [...filteredEmployees.value]
-        result.sort((a, b) => {
-            const aVal = a[sortBy.value]
-            const bVal = b[sortBy.value]
+            const response = await $axios.get(`/api/employees/${id}`)
+            return response.data
+        } catch (err: any) {
+            error.value = err.message || 'Failed to fetch employee'
+            console.error('Error fetching employee:', err)
+            return null
+        } finally {
+            loading.value = false
+        }
+    }
 
-            if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortOrder.value === 'asc' ? aVal - bVal : bVal - aVal
+    // Create employee
+    const addEmployee = async (data: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) => {
+        try {
+            loading.value = true
+            error.value = null
+
+            const response = await $axios.post('/api/employees', data)
+            employees.value.push(response.data)
+            return response.data
+        } catch (err: any) {
+            error.value = err.message || 'Failed to create employee'
+            console.error('Error creating employee:', err)
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
+    // Update employee
+    const updateEmployee = async (id: number, data: Partial<Omit<Employee, 'id' | 'created_at' | 'updated_at'>>) => {
+        try {
+            loading.value = true
+            error.value = null
+
+            const response = await $axios.put(`/api/employees/${id}`, data)
+
+            const index = employees.value.findIndex(emp => emp.id === id)
+            if (index !== -1) {
+                employees.value[index] = response.data
             }
 
-            const aStr = String(aVal).toLowerCase()
-            const bStr = String(bVal).toLowerCase()
-            return sortOrder.value === 'asc'
-                ? aStr.localeCompare(bStr)
-                : bStr.localeCompare(aStr)
-        })
-        return result
-    })
-
-    // Pagination
-    const paginatedEmployees = computed(() => {
-        const start = (currentPage.value - 1) * itemsPerPage.value
-        const end = start + itemsPerPage.value
-        return sortedEmployees.value.slice(start, end)
-    })
-
-    const totalPages = computed(() =>
-        Math.ceil(sortedEmployees.value.length / itemsPerPage.value)
-    )
-
-    const totalEmployees = computed(() => sortedEmployees.value.length)
-
-    // Methods
-    const getEmployee = (id: number) => {
-        return employees.value.find(emp => emp.id === id)
-    }
-
-    const addEmployee = (data: Omit<Employee, 'id'>) => {
-        const newId = Math.max(...employees.value.map(e => e.id), 0) + 1
-        const newEmployee: Employee = {
-            id: newId,
-            ...data
+            return response.data
+        } catch (err: any) {
+            error.value = err.message || 'Failed to update employee'
+            console.error('Error updating employee:', err)
+            throw err
+        } finally {
+            loading.value = false
         }
-        employees.value.push(newEmployee)
-        return newEmployee
     }
 
-    const updateEmployee = (id: number, data: Partial<Employee>) => {
-        const index = employees.value.findIndex(emp => emp.id === id)
-        if (index !== -1 && employees.value[index]) {
-            employees.value[index] = { ...employees.value[index], ...data }
-            return employees.value[index]
-        }
-        return null
-    }
+    // Delete employee
+    const deleteEmployee = async (id: number) => {
+        try {
+            loading.value = true
+            error.value = null
 
-    const deleteEmployee = (id: number) => {
-        const index = employees.value.findIndex(emp => emp.id === id)
-        if (index !== -1) {
-            employees.value.splice(index, 1)
+            await $axios.delete(`/api/employees/${id}`)
+
+            employees.value = employees.value.filter(emp => emp.id !== id)
+            selectedEmployees.value = selectedEmployees.value.filter(empId => empId !== id)
             return true
+        } catch (err: any) {
+            error.value = err.message || 'Failed to delete employee'
+            console.error('Error deleting employee:', err)
+            throw err
+        } finally {
+            loading.value = false
         }
-        return false
     }
 
-    const deleteSelectedEmployees = () => {
-        employees.value = employees.value.filter(emp => !selectedEmployees.value.includes(emp.id))
-        selectedEmployees.value = []
+    // Bulk delete employees
+    const deleteSelectedEmployees = async () => {
+        if (selectedEmployees.value.length === 0) return
+
+        try {
+            loading.value = true
+            error.value = null
+
+            await $axios.post('/api/employees/bulk-delete', {
+                ids: selectedEmployees.value,
+            })
+
+            employees.value = employees.value.filter(emp => !selectedEmployees.value.includes(emp.id))
+            selectedEmployees.value = []
+            return true
+        } catch (err: any) {
+            error.value = err.message || 'Failed to delete employees'
+            console.error('Error deleting employees:', err)
+            throw err
+        } finally {
+            loading.value = false
+        }
     }
 
-    const updateStatusBulk = (status: boolean) => {
-        selectedEmployees.value.forEach(id => {
-            const emp = employees.value.find(e => e.id === id)
-            if (emp) emp.statusAktif = status
-        })
-        selectedEmployees.value = []
+    // Bulk update status
+    const updateStatusBulk = async (status: boolean) => {
+        if (selectedEmployees.value.length === 0) return
+
+        try {
+            loading.value = true
+            error.value = null
+
+            await $axios.post('/api/employees/bulk-status', {
+                ids: selectedEmployees.value,
+                status,
+            })
+
+            selectedEmployees.value.forEach(id => {
+                const emp = employees.value.find(e => e.id === id)
+                if (emp) emp.status = status
+            })
+
+            selectedEmployees.value = []
+            return true
+        } catch (err: any) {
+            error.value = err.message || 'Failed to update status'
+            console.error('Error updating status:', err)
+            throw err
+        } finally {
+            loading.value = false
+        }
     }
 
+    // Toggle select all
     const toggleSelectAll = () => {
-        if (selectedEmployees.value.length === paginatedEmployees.value.length) {
+        if (selectedEmployees.value.length === employees.value.length) {
             selectedEmployees.value = []
         } else {
-            selectedEmployees.value = paginatedEmployees.value.map(emp => emp.id)
+            selectedEmployees.value = employees.value.map(emp => emp.id)
         }
     }
 
+    // Reset filters
     const resetFilters = () => {
         searchQuery.value = ''
-        selectedJabatan.value = []
-        masaKerjaValue.value = null
-        masaKerjaOperator.value = '>'
+        selectedDepartment.value = ''
+        selectedStatus.value = null
+        selectedPositions.value = []
+        tenureOperator.value = '>'
+        tenureValue.value = null
         currentPage.value = 1
     }
 
+    // Pagination computed
+    const totalPages = computed(() => Math.ceil(totalEmployees.value / itemsPerPage.value))
+
     return {
         // State
-        employees,
-        loading,
+        employees: readonly(employees),
+        loading: readonly(loading),
+        error: readonly(error),
         currentPage,
         itemsPerPage,
+        totalEmployees: readonly(totalEmployees),
         searchQuery,
-        selectedJabatan,
-        masaKerjaOperator,
-        masaKerjaValue,
-        sortBy,
-        sortOrder,
+        selectedDepartment,
+        selectedStatus,
         selectedEmployees,
+        sortColumn,
+        sortDirection,
+        selectedPositions,
+        tenureOperator,
+        tenureValue,
         // Computed
-        filteredEmployees,
-        sortedEmployees,
-        paginatedEmployees,
         totalPages,
-        totalEmployees,
         // Methods
+        fetchEmployees,
         getEmployee,
         addEmployee,
         updateEmployee,
@@ -267,6 +261,6 @@ export const useEmployees = () => {
         deleteSelectedEmployees,
         updateStatusBulk,
         toggleSelectAll,
-        resetFilters
+        resetFilters,
     }
 }

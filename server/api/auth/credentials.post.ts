@@ -1,13 +1,8 @@
-/**
- * Credentials Login Endpoint
- * Handles username/password authentication
- * POST /api/auth/credentials
- */
-
 import { HttpError } from '~~/server/errors/HttpError'
 import { handleError } from '~~/server/utils/handleError'
 import { login } from '~~/server/services/auth.service'
 import { loginSchema } from '~~/server/model/user.model'
+import { sendSuccess } from '~~/server/utils/response'
 import z from 'zod'
 
 export default handleError(async (event) => {
@@ -17,5 +12,6 @@ export default handleError(async (event) => {
         throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body', z.treeifyError(parsed.error).properties)
     }
 
-    return await login(event, parsed.data)
+    const data = await login(event, parsed.data)
+    return sendSuccess(event, data, 'Login berhasil')
 })

@@ -3,6 +3,7 @@
  * Represents refresh tokens for authentication
  */
 
+import { JwtPayload } from 'jsonwebtoken'
 import z from 'zod'
 
 export const refreshTokenModel = z.object({
@@ -37,8 +38,9 @@ export const updateRefreshTokenSchema = z.object({
 
 export type UpdateRefreshTokenInput = z.infer<typeof updateRefreshTokenSchema>
 
-export interface TokenPayload {
+export interface TokenPayload extends JwtPayload {
     id: number
+    typ: string
     user_id: number
     username: string
     role_id: number

@@ -1,369 +1,365 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <div class="row">
-      <!-- Foto Pegawai -->
-      <div class="col-md-4 mb-3">
-        <label class="form-label">Foto Pegawai</label>
-        <div class="upload-area border-2 border-dashed rounded p-4 text-center">
-          <div v-if="!previewImage" class="upload-placeholder">
-            <i class="bi bi-cloud-upload text-muted" style="font-size: 2rem"></i>
-            <p class="text-muted small mt-2">Upload file PNG/JPEG/JPG</p>
-          </div>
-          <img v-else :src="previewImage" class="img-fluid rounded" style="max-height: 200px" />
-          <input
-            type="file"
-            class="form-control mt-2"
-            accept=".png,.jpg,.jpeg"
-            @change="handleFotoChange"
-          />
-          <small class="text-muted d-block mt-2">Format: PNG, JPEG, JPG (Maks 5MB)</small>
-        </div>
-      </div>
+  <form @submit.prevent="submitForm" class="needs-validation">
 
-      <!-- Right Column - Form Fields -->
-      <div class="col-md-8">
-        <!-- NIP -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label">NIP <span class="text-danger">*</span></label>
-            <input
-              v-model="form.nip"
-              type="text"
-              class="form-control"
-              placeholder="Minimal 8 karakter angka"
-              :class="{ 'is-invalid': errors.nip }"
-            />
-            <small v-if="errors.nip" class="text-danger d-block mt-1">{{ errors.nip }}</small>
-          </div>
 
-          <!-- Nama Pegawai -->
-          <div class="col-md-6">
-            <label class="form-label">Nama Pegawai <span class="text-danger">*</span></label>
-            <input
-              v-model="form.nama"
-              type="text"
-              class="form-control"
-              placeholder="Nama lengkap"
-              :class="{ 'is-invalid': errors.nama }"
-            />
-            <small v-if="errors.nama" class="text-danger d-block mt-1">{{ errors.nama }}</small>
-          </div>
-        </div>
-
-        <!-- Email & No HP -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label">Email <span class="text-danger">*</span></label>
-            <input
-              v-model="form.email"
-              type="email"
-              class="form-control"
-              placeholder="email@company.com"
-              :class="{ 'is-invalid': errors.email }"
-            />
-            <small v-if="errors.email" class="text-danger d-block mt-1">{{ errors.email }}</small>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Nomor HP <span class="text-danger">*</span></label>
-            <input
-              v-model="form.noHp"
-              type="tel"
-              class="form-control"
-              placeholder="+6282218458888"
-              :class="{ 'is-invalid': errors.noHp }"
-            />
-            <small v-if="errors.noHp" class="text-danger d-block mt-1">{{ errors.noHp }}</small>
-            <small class="text-muted d-block mt-1">Format: +62xxxxxxxxxx</small>
-          </div>
-        </div>
-
-        <!-- Status Aktif -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label">Status <span class="text-danger">*</span></label>
-            <div class="form-check">
-              <input
-                id="statusAktif"
-                v-model="form.statusAktif"
-                type="checkbox"
-                class="form-check-input"
-              />
-              <label class="form-check-label" for="statusAktif">
-                Aktif
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <hr class="my-4" />
-
-    <!-- Alamat Section -->
-    <h5 class="mb-3">Alamat</h5>
+    <!-- NIP & Name -->
     <div class="row mb-3">
       <div class="col-md-6">
-        <label class="form-label">Kecamatan <span class="text-danger">*</span></label>
+        <label class="form-label">NIP <span class="text-danger">*</span></label>
         <input
-          v-model="form.alamatKecamatan"
-          type="text"
-          class="form-control"
-          placeholder="Masukkan minimal 3 karakter"
-          :class="{ 'is-invalid': errors.alamatKecamatan }"
-        />
-        <small v-if="errors.alamatKecamatan" class="text-danger d-block mt-1">{{ errors.alamatKecamatan }}</small>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Kabupaten <span class="text-danger">*</span></label>
-        <input
-          v-model="form.alamatKabupaten"
-          type="text"
-          class="form-control"
-          disabled
-          placeholder="Auto terisi"
-        />
-      </div>
-    </div>
-
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">Provinsi <span class="text-danger">*</span></label>
-        <input
-          v-model="form.alamatProvinsi"
-          type="text"
-          class="form-control"
-          disabled
-          placeholder="Auto terisi"
-        />
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
-        <input
-          v-model="form.tempatLahir"
-          type="text"
-          class="form-control"
-          placeholder="Pilih kabupaten"
-          :class="{ 'is-invalid': errors.tempatLahir }"
-        />
-        <small v-if="errors.tempatLahir" class="text-danger d-block mt-1">{{ errors.tempatLahir }}</small>
-      </div>
-    </div>
-
-    <div class="row mb-3">
-      <div class="col-12">
-        <label class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
-        <textarea
-          v-model="form.alamatLengkap"
-          class="form-control"
-          rows="3"
-          placeholder="Jalan, no rumah, RT/RW, dll"
-          :class="{ 'is-invalid': errors.alamatLengkap }"
-        ></textarea>
-        <small v-if="errors.alamatLengkap" class="text-danger d-block mt-1">{{ errors.alamatLengkap }}</small>
-      </div>
-    </div>
-
-    <hr class="my-4" />
-
-    <!-- Data Pribadi Section -->
-    <h5 class="mb-3">Data Pribadi</h5>
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
-        <input
-          v-model="form.tanggalLahir"
-          type="date"
-          class="form-control"
-          :class="{ 'is-invalid': errors.tanggalLahir }"
-        />
-        <small v-if="errors.tanggalLahir" class="text-danger d-block mt-1">{{ errors.tanggalLahir }}</small>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Usia (Otomatis)</label>
-        <input
-          v-model="form.usia"
+          v-model.number="form.nip"
           type="number"
           class="form-control"
-          disabled
+          placeholder="Contoh: 2024003121211212"
+          :class="{ 'is-invalid': errors.nip }"
         />
+        <small v-if="errors.nip" class="text-danger d-block mt-1">{{ errors.nip }}</small>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Nama Pegawai <span class="text-danger">*</span></label>
+        <input
+          v-model="form.name"
+          type="text"
+          class="form-control"
+          placeholder="Nama lengkap"
+          :class="{ 'is-invalid': errors.name }"
+          @input="form.name = form.name.replace(/[^A-Za-z0-9'\s]/g, '')"
+        />
+        <small v-if="errors.name" class="text-danger d-block mt-1">{{ errors.name }}</small>
       </div>
     </div>
 
+    <!-- Email & Phone -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Email <span class="text-danger">*</span></label>
+        <input
+          v-model="form.email"
+          type="email"
+          class="form-control"
+          placeholder="email@company.com"
+          :class="{ 'is-invalid': errors.email }"
+        />
+        <small v-if="errors.email" class="text-danger d-block mt-1">{{ errors.email }}</small>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Nomor HP <span class="text-danger">*</span></label>
+        <input
+          v-model="form.phone"
+          type="tel"
+          class="form-control"
+          placeholder="+6282218458888"
+          :class="{ 'is-invalid': errors.phone }"
+        />
+        <small v-if="errors.phone" class="text-danger d-block mt-1">{{ errors.phone }}</small>
+      </div>
+    </div>
+
+    <!-- Birth Date & Gender -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
+        <input
+          v-model="form.birth_date"
+          type="date"
+          class="form-control"
+          :max="new Date().toISOString().split('T')[0]"
+          :class="{ 'is-invalid': errors.birth_date }"
+        />
+        <small v-if="errors.birth_date" class="text-danger d-block mt-1">{{ errors.birth_date }}</small>
+      </div>
+      
+      <div class="col-md-4">
+        <label class="form-label">Tempat Lahir (Kabupaten)</label>
+        <div class="position-relative">
+          <input
+            v-model="form.birthCityName"
+            type="text"
+            class="form-control"
+            placeholder="Ketik minimal 3 karakter..."
+            @input="searchBirthCity"
+          />
+          <ul v-if="birthCitySuggestions.length" class="list-group position-absolute z-3 w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; top: 100%; left: 0;">
+            <li 
+              v-for="city in birthCitySuggestions" :key="city.id" 
+              class="list-group-item list-group-item-action cursor-pointer"
+              @click="selectBirthCity(city)"
+            >
+              {{ city.name }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
+        <select
+          v-model="form.gender"
+          class="form-select"
+          :class="{ 'is-invalid': errors.gender }"
+        >
+          <option value="">Pilih Jenis Kelamin</option>
+          <option value="Male">Laki-laki</option>
+          <option value="Female">Perempuan</option>
+          <option value="Other">Lainnya</option>
+        </select>
+        <small v-if="errors.gender" class="text-danger d-block mt-1">{{ errors.gender }}</small>
+      </div>
+    </div>
+
+    <!-- Marital Status & Children -->
     <div class="row mb-3">
       <div class="col-md-6">
         <label class="form-label">Status Kawin <span class="text-danger">*</span></label>
-        <div>
-          <div class="form-check">
-            <input
-              id="statusKawin"
-              v-model="form.statusKawin"
-              type="radio"
-              value="kawin"
-              class="form-check-input"
-            />
-            <label class="form-check-label" for="statusKawin">Kawin</label>
-          </div>
-          <div class="form-check">
-            <input
-              id="statusTidakKawin"
-              v-model="form.statusKawin"
-              type="radio"
-              value="tidak kawin"
-              class="form-check-input"
-            />
-            <label class="form-check-label" for="statusTidakKawin">Tidak Kawin</label>
-          </div>
-        </div>
+        <select
+          v-model="form.marital_status"
+          class="form-select"
+          :class="{ 'is-invalid': errors.marital_status }"
+        >
+          <option value="">Pilih Status</option>
+          <option value="Single">Belum Kawin</option>
+          <option value="Married">Kawin</option>
+          <option value="Divorced">Cerai</option>
+          <option value="Widowed">Janda/Duda</option>
+        </select>
+        <small v-if="errors.marital_status" class="text-danger d-block mt-1">{{ errors.marital_status }}</small>
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">Jumlah Anak <span class="text-danger">*</span></label>
+        <label class="form-label">Jumlah Anak</label>
         <input
-          v-model.number="form.jumlahAnak"
+          v-model.number="form.children_count"
           type="number"
-          class="form-control"
           min="0"
-          max="99"
-          placeholder="0"
-          :class="{ 'is-invalid': errors.jumlahAnak }"
+          class="form-control"
+          :class="{ 'is-invalid': errors.children_count }"
         />
-        <small v-if="errors.jumlahAnak" class="text-danger d-block mt-1">{{ errors.jumlahAnak }}</small>
+        <small v-if="errors.children_count" class="text-danger d-block mt-1">{{ errors.children_count }}</small>
       </div>
     </div>
 
-    <hr class="my-4" />
-
-    <!-- Dara Kerja Section -->
-    <h5 class="mb-3">Data Kerja</h5>
+    <!-- Address -->
     <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">Tanggal Masuk <span class="text-danger">*</span></label>
-        <input
-          v-model="form.tanggalMasuk"
-          type="date"
-          class="form-control"
-          @change="calculateMasaKerja"
-          :class="{ 'is-invalid': errors.tanggalMasuk }"
-        />
-        <small v-if="errors.tanggalMasuk" class="text-danger d-block mt-1">{{ errors.tanggalMasuk }}</small>
+      <div class="col-md-4">
+        <label class="form-label">Kecamatan</label>
+        <div class="position-relative">
+          <input
+            v-model="form.districtName"
+            type="text"
+            class="form-control"
+            placeholder="Minimal 3 karakter..."
+            @input="searchDistrict"
+          />
+          <ul v-if="districtSuggestions.length" class="list-group position-absolute z-3 w-100 mt-1 shadow-sm" style="max-height: 200px; overflow-y: auto; top: 100%; left: 0;">
+            <li 
+              v-for="district in districtSuggestions" :key="district.id" 
+              class="list-group-item list-group-item-action cursor-pointer"
+              @click="selectDistrict(district)"
+              style="cursor: pointer;"
+            >
+              {{ district.name }}
+            </li>
+          </ul>
+        </div>
       </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Masa Kerja (Otomatis)</label>
+      <div class="col-md-4">
+        <label class="form-label">Kabupaten</label>
         <input
-          v-model="form.masaKerja"
-          type="number"
+          :value="form.regencyName"
+          type="text"
+          class="form-control"
+          disabled
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Provinsi</label>
+        <input
+          :value="form.provinceName"
+          type="text"
           class="form-control"
           disabled
         />
       </div>
     </div>
+    <div class="row mb-3">
+      <div class="col-12">
+        <label class="form-label">Alamat Lengkap</label>
+        <textarea
+          v-model="form.full_address"
+          class="form-control"
+          rows="2"
+          placeholder="Detail alamat..."
+        ></textarea>
+      </div>
+    </div>
 
+    <!-- Position & Department -->
     <div class="row mb-3">
       <div class="col-md-6">
         <label class="form-label">Jabatan <span class="text-danger">*</span></label>
-        <select v-model="form.jabatan" class="form-select" :class="{ 'is-invalid': errors.jabatan }">
-          <option value="">-- Pilih Jabatan --</option>
+        <select
+          v-model="form.position"
+          class="form-select"
+          :class="{ 'is-invalid': errors.position }"
+        >
+          <option value="">Pilih Jabatan</option>
           <option value="Manager">Manager</option>
           <option value="Staf">Staf</option>
           <option value="Magang">Magang</option>
         </select>
-        <small v-if="errors.jabatan" class="text-danger d-block mt-1">{{ errors.jabatan }}</small>
+        <small v-if="errors.position" class="text-danger d-block mt-1">{{ errors.position }}</small>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Departemen <span class="text-danger">*</span></label>
-        <select v-model="form.departemen" class="form-select" :class="{ 'is-invalid': errors.departemen }">
-          <option value="">-- Pilih Departemen --</option>
-          <option value="Marketing">Marketing</option>
+        <select
+          v-model="form.department"
+          class="form-select"
+          :class="{ 'is-invalid': errors.department }"
+        >
+          <option value="">Pilih Departemen</option>
           <option value="HRD">HRD</option>
+          <option value="Marketing">Marketing</option>
           <option value="Production">Production</option>
           <option value="Executive">Executive</option>
           <option value="Commissioner">Commissioner</option>
         </select>
-        <small v-if="errors.departemen" class="text-danger d-block mt-1">{{ errors.departemen }}</small>
+        <small v-if="errors.department" class="text-danger d-block mt-1">{{ errors.department }}</small>
       </div>
     </div>
 
-    <hr class="my-4" />
-
-    <!-- Pendidikan Section -->
-    <div class="mb-3">
-      <label class="form-label">Pendidikan <span class="text-danger">*</span></label>
-      
-      <!-- Add Education Form -->
-      <div class="d-flex gap-2 mb-3">
+    <!-- Join Date & Employment Type -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Tanggal Masuk <span class="text-danger">*</span></label>
         <input
-          v-model="newEducationName"
+          v-model="form.join_date"
+          type="date"
+          class="form-control"
+          :class="{ 'is-invalid': errors.join_date }"
+        />
+        <small v-if="errors.join_date" class="text-danger d-block mt-1">{{ errors.join_date }}</small>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Usia (Tahun)</label>
+        <input
+          :value="calculatedAge"
           type="text"
           class="form-control"
-          placeholder="Contoh: S1 / Sarjana, SMA, SMK, dll"
-          @keyup.enter="addEducation"
+          disabled
         />
-        <button
-          type="button"
-          class="btn btn-outline-primary flex-shrink-0"
-          @click="addEducation"
-        >
-          <i class="bi bi-plus-lg"></i> Tambah
-        </button>
       </div>
 
-      <!-- Pendidikan Checklist -->
-      <div v-if="form.pendidikan.length > 0" class="border rounded p-3">
-        <div
-          v-for="(pendidikan, idx) in form.pendidikan"
-          :key="idx"
-          class="d-flex gap-2 align-items-center mb-2 pb-2"
-          :class="{ 'border-bottom': idx < form.pendidikan.length - 1 }"
+      <div class="col-md-4">
+        <label class="form-label">Tipe Kontrak <span class="text-danger">*</span></label>
+        <select
+          v-model="form.type"
+          class="form-control form-select"
+          :class="{ 'is-invalid': errors.type }"
         >
-          <!-- Checkbox -->
-          <input
-            v-model="pendidikan.selected"
-            type="checkbox"
-            class="form-check-input"
-            style="margin-top: 0"
-          />
-
-          <!-- Education Name -->
-          <span class="flex-grow-1">
-            {{ allEducations.find(e => e.id === pendidikan.educationId)?.name || `Education #${pendidikan.educationId}` }}
-          </span>
-
-          <!-- Delete Button -->
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-danger flex-shrink-0"
-            @click="removeEducationField(idx)"
-          >
-            <i class="bi bi-x"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div v-else class="alert alert-light text-center py-2 mb-0">
-        <small class="text-muted">Belum ada pendidikan. Ketik nama di atas dan klik Tambah.</small>
+          <option value="">Pilih Tipe</option>
+          <option value="Tetap">Tetap</option>
+          <option value="Kontrak">Kontrak</option>
+          <option value="Magang">Magang</option>
+        </select>
+        <small v-if="errors.type" class="text-danger d-block mt-1">{{ errors.type }}</small>
       </div>
     </div>
 
-    <!-- Pendidikan Error Message -->
-    <small v-if="errors.pendidikan" class="text-danger d-block mt-1">{{ errors.pendidikan }}</small>
+    <!-- Educations -->
+    <div class="row mb-3">
+      <div class="col-12">
+        <label class="form-label">Pendidikan</label>
+        
+        <!-- Add Education Section -->
+        <div class="card mb-3 border-light">
+          <div class="card-body">
+            <div class="d-flex gap-2 mb-3">
+              <select v-model="selectedEducationId" class="form-select form-select-sm">
+                <option value="">-- Pilih Pendidikan --</option>
+                <option v-for="edu in availableEducations" :key="edu.id" :value="edu.id">
+                  {{ edu.name }}
+                </option>
+              </select>
+              <button type="button" class="btn btn-sm btn-primary" @click="addSelectedEducation" :disabled="!selectedEducationId">
+                <i class="bi bi-check-circle"></i> Pilih
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteGlobalEducation" :disabled="!selectedEducationId" title="Hapus Pendidikan dari Daftar Utama">
+                <i class="bi bi-trash"></i> Hapus Master
+              </button>
+            </div>
 
-    <hr class="my-4" />
+            <!-- Create New Education -->
+            <div class="d-flex gap-2">
+              <input 
+                v-model="newEducationName" 
+                type="text" 
+                class="form-control form-control-sm" 
+                placeholder="Atau buat pendidikan baru..."
+                @keyup.enter="createNewEducation"
+              />
+              <button type="button" class="btn btn-sm btn-outline-success" @click="createNewEducation" :disabled="!newEducationName">
+                <i class="bi bi-plus-lg"></i> Buat
+              </button>
+            </div>
+          </div>
+        </div>
 
-    <!-- Submit Buttons -->
-    <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-check-lg"></i> {{ isEdit ? 'Update' : 'Simpan' }}
-      </button>
-      <NuxtLink to="/employees" class="btn btn-outline-secondary">
-        <i class="bi bi-x-lg"></i> Batal
-      </NuxtLink>
+        <!-- Selected Educations -->
+        <div v-if="selectedEducations.length > 0" class="list-group">
+          <div v-for="edu in selectedEducations" :key="edu.id" class="list-group-item d-flex justify-content-between align-items-center">
+            <label class="form-check-label mb-0 flex-grow-1">
+              <input type="checkbox" class="form-check-input me-2" :checked="true" disabled />
+              {{ edu.name }}
+            </label>
+            <button 
+              type="button" 
+              class="btn btn-sm btn-outline-danger" 
+              @click="removeSelectedEducation(edu.id)"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div v-else class="alert alert-light mb-0">
+          <small class="text-muted">Belum ada pendidikan dipilih</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Status <span class="text-danger">*</span></label>
+        <div class="form-check">
+          <input
+            id="status"
+            v-model="form.status"
+            type="checkbox"
+            class="form-check-input"
+          />
+          <label class="form-check-label" for="status">
+            Aktif
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit & Cancel Buttons -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary me-2">
+          <i class="bi bi-check-circle me-2"></i>
+          Simpan Data
+        </button>
+        <NuxtLink to="/employees" class="btn btn-outline-secondary">
+          <i class="bi bi-x-circle me-2"></i>
+          Batal
+        </NuxtLink>
+      </div>
     </div>
   </form>
 </template>
@@ -371,231 +367,285 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { Employee } from '~/composables/useEmployees'
-import { useEducations, type Education } from '~/composables/useEducations'
+import { useEducations } from '~/composables/useEducations'
+import type { Education } from '~/composables/useEducations'
 
-const props = withDefaults(
-  defineProps<{
-    initialData?: Partial<Employee>
-    isEdit?: boolean
-  }>(),
-  {
-    isEdit: false
-  }
-)
-
-const emit = defineEmits<{
-  submit: [data: Omit<Employee, 'id'>]
+const props = defineProps<{
+  initialData?: Partial<Employee>
 }>()
 
-const previewImage = ref<string>('')
-const errors = ref<Record<string, string>>({})
+const emit = defineEmits<{
+  submit: [data: Omit<Employee, 'id' | 'created_at' | 'updated_at'>]
+}>()
+
+const formatDateForInput = (dateString: string | undefined | null) => {
+  if (!dateString) return ''
+  try {
+    return new Date(dateString).toISOString().split('T')[0]
+  } catch (e) {
+    return ''
+  }
+}
+
+const form = ref({
+  nip: props.initialData?.nip || 0,
+  name: props.initialData?.name || '',
+  email: props.initialData?.email || '',
+  phone: props.initialData?.phone || '',
+  birth_date: formatDateForInput(props.initialData?.birth_date as string | undefined) || '',
+  birth_place_id: props.initialData?.birth_place_id || 0,
+  birthCityName: props.initialData?.birthCityName || '',
+  gender: props.initialData?.gender || '',
+  marital_status: props.initialData?.marital_status || '',
+  children_count: props.initialData?.children_count ?? 0,
+  position: props.initialData?.position || '',
+  department: props.initialData?.department || '',
+  join_date: formatDateForInput(props.initialData?.join_date as string | undefined) || '',
+  type: props.initialData?.type || '',
+  status: props.initialData?.status ?? true,
+  district_id: props.initialData?.district_id || 0,
+  districtName: props.initialData?.districtName || '',
+  regencyName: props.initialData?.regencyName || '',
+  provinceName: props.initialData?.provinceName || '',
+  full_address: props.initialData?.full_address || '',
+  educations: props.initialData?.educations ? [...props.initialData.educations] : ([] as string[])
+})
+
+// Education Management
+const { fetchEducations, createEducation, syncEmployeeEducations, removeGlobalEducation } = useEducations()
+const availableEducations = ref<Education[]>([])
+const selectedEducations = ref<Education[]>(props.initialData?.educations || [])
+const selectedEducationId = ref<number | string>('')
 const newEducationName = ref<string>('')
-const { getEducations, createEducation } = useEducations()
-const allEducations = ref<Education[]>([])
+const educationLoading = ref(false)
+const educationError = ref<string>('')
 
 onMounted(async () => {
-  allEducations.value = await getEducations()
-})
-
-// Helper function to normalize pendidikan data
-const normalizePendidikan = (data: any) => {
-  if (!data) return []
-  if (Array.isArray(data)) {
-    return data.map((item: any) => {
-      if (typeof item === 'number') {
-        return { educationId: item, selected: false }
-      }
-      if (typeof item === 'object' && item.educationId) {
-        return { ...item, selected: item.selected ?? false }
-      }
-      return item
-    })
+  // Fetch available educations from API
+  educationLoading.value = true
+  try {
+    availableEducations.value = await fetchEducations()
+  } catch (e) {
+    educationError.value = 'Gagal memuat daftar pendidikan'
+  } finally {
+    educationLoading.value = false
   }
-  return []
-}
-const form = ref({
-  nip: props.initialData?.nip || '',
-  nama: props.initialData?.nama || '',
-  email: props.initialData?.email || '',
-  noHp: props.initialData?.noHp || '',
-  tempatLahir: props.initialData?.tempatLahir || '',
-  alamatKecamatan: props.initialData?.alamatKecamatan || '',
-  alamatKabupaten: props.initialData?.alamatKabupaten || '',
-  alamatProvinsi: props.initialData?.alamatProvinsi || '',
-  alamatLengkap: props.initialData?.alamatLengkap || '',
-  tanggalLahir: props.initialData?.tanggalLahir || '',
-  statusKawin: props.initialData?.statusKawin || 'tidak kawin',
-  jumlahAnak: props.initialData?.jumlahAnak || 0,
-  tanggalMasuk: props.initialData?.tanggalMasuk || '',
-  masaKerja: props.initialData?.masaKerja || 0,
-  jabatan: props.initialData?.jabatan || '',
-  departemen: props.initialData?.departemen || '',
-  usia: props.initialData?.usia || 0,
-  pendidikan: normalizePendidikan(props.initialData?.pendidikan),
-  statusAktif: props.initialData?.statusAktif ?? true
 })
 
-const handleFotoChange = (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      previewImage.value = e.target?.result as string
+const addSelectedEducation = () => {
+  if (!selectedEducationId.value) return
+
+  const selectedId = Number(selectedEducationId.value)
+  const education = availableEducations.value.find(e => e.id === selectedId)
+
+  if (education && !selectedEducations.value.find(e => e.id === education.id)) {
+    selectedEducations.value.push(education)
+    selectedEducationId.value = ''
+  }
+}
+
+const deleteGlobalEducation = async () => {
+  if (!selectedEducationId.value) return
+  const confirmed = confirm('Apakah Anda yakin ingin menghapus pendidikan ini dari data master?')
+  if (!confirmed) return
+
+  educationLoading.value = true
+  try {
+    await removeGlobalEducation(Number(selectedEducationId.value))
+    // Hapus jg dari dropdown dan dari selected jika ada
+    availableEducations.value = availableEducations.value.filter(e => e.id !== Number(selectedEducationId.value))
+    removeSelectedEducation(Number(selectedEducationId.value))
+    selectedEducationId.value = ''
+    alert('Pendidikan berhasil dihapus')
+  } catch (err: any) {
+    alert(err.message || 'Gagal menghapus pendidikan (mungkin sedang digunakan)')
+  } finally {
+    educationLoading.value = false
+  }
+}
+
+const createNewEducation = async () => {
+  if (!newEducationName.value.trim()) return
+
+  educationLoading.value = true
+  try {
+    const newEducation = await createEducation(newEducationName.value)
+    if (newEducation) {
+      availableEducations.value.push(newEducation)
+      selectedEducations.value.push(newEducation)
+      newEducationName.value = ''
     }
-    reader.readAsDataURL(file)
+  } catch (e) {
+    educationError.value = 'Gagal membuat pendidikan baru'
+  } finally {
+    educationLoading.value = false
   }
 }
 
-const calculateMasaKerja = () => {
-  if (!form.value.tanggalMasuk) return
-  const joinDate = new Date(form.value.tanggalMasuk)
-  const today = new Date()
-  form.value.masaKerja = today.getFullYear() - joinDate.getFullYear()
+const removeSelectedEducation = (educationId: number) => {
+  selectedEducations.value = selectedEducations.value.filter(e => e.id !== educationId)
+}
 
-  // Hitung usia jika ada tanggal lahir
-  if (form.value.tanggalLahir) {
-    const birthDate = new Date(form.value.tanggalLahir)
-    form.value.usia = today.getFullYear() - birthDate.getFullYear()
+const calculatedAge = computed(() => {
+  if (form.value.birth_date && form.value.join_date) {
+    const birth = new Date(form.value.birth_date)
+    const join = new Date(form.value.join_date)
+    let age = join.getFullYear() - birth.getFullYear()
+    if (join.getMonth() < birth.getMonth() || (join.getMonth() === birth.getMonth() && join.getDate() < birth.getDate())) {
+      age--
+    }
+    return age > 0 ? age : 0
+  }
+  return '-'
+})
+
+// Autocomplete Logic
+const { $axios } = useNuxtApp()
+
+const debounce = (fn: Function, delay: number) => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  return (...args: any[]) => {
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => {
+      fn(...args)
+    }, delay)
   }
 }
 
-const addEducationField = () => {
-  form.value.pendidikan.push({
-    educationId: 0,
-    selected: false
-  })
-}
-
-const addEducation = async () => {
-  if (!newEducationName.value.trim()) {
-    alert('Masukkan nama pendidikan')
-    return
+const birthCitySuggestions = ref<any[]>([])
+const searchBirthCity = debounce(async () => {
+  if (form.value.birthCityName.length >= 3) {
+    try {
+      const res = await $axios.get('/api/locations/regencies', { params: { q: form.value.birthCityName } })
+      birthCitySuggestions.value = res.data || []
+    } catch (e) {
+      birthCitySuggestions.value = []
+    }
+  } else {
+    birthCitySuggestions.value = []
   }
-
-  // Create new education
-  const newEducation = await createEducation(newEducationName.value.trim())
-  
-  // Add to form pendidikan
-  form.value.pendidikan.push({
-    educationId: newEducation.id,
-    selected: true
-  })
-
-  // Reset input
-  newEducationName.value = ''
+}, 400)
+const selectBirthCity = (city: any) => {
+  form.value.birthCityName = city.name
+  form.value.birth_place_id = city.id
+  birthCitySuggestions.value = []
 }
 
-const removeEducationField = (index: number) => {
-  form.value.pendidikan.splice(index, 1)
+const districtSuggestions = ref<any[]>([])
+const searchDistrict = debounce(async () => {
+  if (form.value.districtName.length >= 3) {
+    try {
+      const res = await $axios.get('/api/locations/districts', { params: { q: form.value.districtName } })
+      districtSuggestions.value = res.data || []
+    } catch (e) {
+      districtSuggestions.value = []
+    }
+  } else {
+    districtSuggestions.value = []
+  }
+}, 400)
+const selectDistrict = (district: any) => {
+  form.value.district_id = district.id
+  form.value.districtName = district.name
+  form.value.regencyName = district.regency
+  form.value.provinceName = district.province
+  districtSuggestions.value = []
 }
+
+const errors = ref<Record<string, string>>({})
+const hasSubmitted = ref(false)
 
 const validateForm = (): boolean => {
   errors.value = {}
 
-  if (!form.value.nip) {
-    errors.value.nip = 'NIP harus diisi'
-  } else if (form.value.nip.length < 8 || !/^\d+$/.test(form.value.nip)) {
-    errors.value.nip = 'NIP minimal 8 karakter angka'
+  if (!form.value.nip || form.value.nip <= 0) {
+    errors.value.nip = 'NIP harus berupa angka positif'
   }
 
-  if (!form.value.nama) {
-    errors.value.nama = 'Nama harus diisi'
+  if (!form.value.name || form.value.name.trim() === '') {
+    errors.value.name = 'Nama harus diisi'
   }
 
-  if (!form.value.email) {
+  if (!form.value.email || form.value.email.trim() === '') {
     errors.value.email = 'Email harus diisi'
   } else if (!form.value.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
     errors.value.email = 'Format email tidak valid'
   }
 
-  if (!form.value.noHp) {
-    errors.value.noHp = 'Nomor HP harus diisi'
+  if (!form.value.phone || form.value.phone.trim() === '') {
+    errors.value.phone = 'Nomor HP harus diisi'
+  } else if (!/^\+[1-9]\d{1,14}$/.test(form.value.phone)) {
+    errors.value.phone = 'Format nomor HP tidak valid (contoh: +6282218458888)'
   }
 
-  if (!form.value.jabatan) {
-    errors.value.jabatan = 'Jabatan harus dipilih'
+  if (!form.value.birth_date) {
+    errors.value.birth_date = 'Tanggal lahir harus diisi'
   }
 
-  if (!form.value.departemen) {
-    errors.value.departemen = 'Departemen harus dipilih'
+  if (!form.value.gender) {
+    errors.value.gender = 'Jenis kelamin harus dipilih'
   }
 
-  if (!form.value.tanggalMasuk) {
-    errors.value.tanggalMasuk = 'Tanggal masuk harus diisi'
+  if (!form.value.marital_status) {
+    errors.value.marital_status = 'Status kawin harus dipilih'
   }
 
-  if (!form.value.tempatLahir) {
-    errors.value.tempatLahir = 'Tempat lahir harus diisi'
+  if (!form.value.position) {
+    errors.value.position = 'Jabatan harus dipilih'
   }
 
-  if (!form.value.tanggalLahir) {
-    errors.value.tanggalLahir = 'Tanggal lahir harus diisi'
+  if (!form.value.department) {
+    errors.value.department = 'Departemen harus dipilih'
   }
 
-  if (!form.value.alamatKecamatan) {
-    errors.value.alamatKecamatan = 'Kecamatan harus diisi'
+  if (!form.value.join_date) {
+    errors.value.join_date = 'Tanggal masuk harus diisi'
   }
 
-  if (!form.value.alamatLengkap) {
-    errors.value.alamatLengkap = 'Alamat lengkap harus diisi'
-  }
-
-  if (form.value.jumlahAnak < 0) {
-    errors.value.jumlahAnak = 'Jumlah anak tidak valid'
-  }
-
-  if (form.value.pendidikan.length === 0) {
-    errors.value.pendidikan = 'Minimal satu pendidikan harus dipilih'
-  } else if (form.value.pendidikan.some(p => !p.educationId || p.educationId === 0)) {
-    errors.value.pendidikan = 'Semua pendidikan harus dipilih'
+  if (!form.value.type) {
+    errors.value.type = 'Tipe kontrak harus dipilih'
   }
 
   return Object.keys(errors.value).length === 0
 }
 
+import { watch } from 'vue'
+watch(form, () => {
+  if (hasSubmitted.value) {
+    validateForm()
+  }
+}, { deep: true })
+
 const submitForm = () => {
+  hasSubmitted.value = true
   if (validateForm()) {
     emit('submit', {
       nip: form.value.nip,
-      nama: form.value.nama,
+      name: form.value.name,
       email: form.value.email,
-      noHp: form.value.noHp,
-      tempatLahir: form.value.tempatLahir,
-      alamatKecamatan: form.value.alamatKecamatan,
-      alamatKabupaten: form.value.alamatKabupaten,
-      alamatProvinsi: form.value.alamatProvinsi,
-      alamatLengkap: form.value.alamatLengkap,
-      tanggalLahir: form.value.tanggalLahir,
-      statusKawin: form.value.statusKawin,
-      jumlahAnak: form.value.jumlahAnak,
-      tanggalMasuk: form.value.tanggalMasuk,
-      masaKerja: form.value.masaKerja,
-      jabatan: form.value.jabatan,
-      departemen: form.value.departemen,
-      usia: form.value.usia,
-      pendidikan: form.value.pendidikan,
-      statusAktif: form.value.statusAktif
-    })
+      phone: form.value.phone,
+      birth_date: form.value.birth_date,
+      birth_place_id: form.value.birth_place_id,
+      gender: form.value.gender,
+      marital_status: form.value.marital_status,
+      children_count: form.value.children_count,
+      position: form.value.position,
+      department: form.value.department,
+      join_date: form.value.join_date,
+      type: form.value.type,
+      status: form.value.status,
+      district_id: form.value.district_id,
+      full_address: form.value.full_address,
+      educations: form.value.educations,
+      educationIds: selectedEducations.value.map(e => e.id),
+    } as any)
   }
 }
 </script>
 
 <style scoped>
-.upload-area {
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.upload-area:hover {
-  background: #f0f4f8;
-  border-color: #667eea !important;
-}
-
-.upload-placeholder {
-  padding: 2rem 0;
-}
-
-.card {
-  border: 1px solid #e2e8f0;
+.needs-validation {
+  padding: 1.5rem;
 }
 </style>
+    

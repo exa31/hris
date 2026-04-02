@@ -72,7 +72,7 @@ export const up = (pgm) => {
     pgm.createTable('employees', {
         id: 'id',
         nip: {
-            type: 'integer',
+            type: 'bigint',
             notNull: true,
             unique: true,
         },
@@ -129,7 +129,7 @@ export const up = (pgm) => {
         birth_place_id: {
             type: 'integer',
             notNull: true,
-            references: 'districts',
+            references: 'regencies',
             onDelete: 'cascade',
         },
         created_at: {

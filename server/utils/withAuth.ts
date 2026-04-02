@@ -44,7 +44,6 @@ export const withAuth = <T extends EventHandlerRequest, D>(
                 email: payload.email,
                 raw: payload,
             }
-            console.log('Authenticated user:', event.context.user)
 
             // 5️⃣ Lanjut ke handler kalau ada
             if (handler) {

@@ -19,7 +19,7 @@ const employmentTypeEnum = z.enum(['Kontrak', 'Tetap', 'Magang'])
 
 export const employeeModel = z.object({
     id: z.number(),
-    nip: z.number(),
+    nip: z.number().positive('NIP harus berupa angka positif'),
     name: z.string().min(1).max(255),
     email: z.string().email(),
     phone: z.string().min(1).max(20),
@@ -44,7 +44,7 @@ export const employeeModel = z.object({
 export type Employee = z.infer<typeof employeeModel>
 
 export const createEmployeeSchema = z.object({
-    nip: z.number(),
+    nip: z.number().positive('NIP harus berupa angka positif'),
     name: z.string().min(1).max(255),
     email: z.string().email(),
     phone: z.string().min(1).max(20),
@@ -62,12 +62,17 @@ export const createEmployeeSchema = z.object({
     type: employmentTypeEnum,
     birth_place_id: z.number(),
     status: z.boolean().default(true),
+    district_id: z.number().optional(),
+    full_address: z.string().optional(),
+    educations: z.array(z.any()).optional(),
+    educationIds: z.array(z.number()).optional(),
 })
 
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>
 
 export const updateEmployeeSchema = z.object({
     id: z.number(),
+    nip: z.number().positive('NIP harus berupa angka positif').optional(),
     name: z.string().min(1).max(255).optional(),
     email: z.string().email().optional(),
     phone: z.string().min(1).max(20).optional(),
@@ -77,11 +82,32 @@ export const updateEmployeeSchema = z.object({
     marital_status: maritalStatusEnum.optional(),
     gender: genderEnum.optional(),
     children_count: z.number().nonnegative().optional(),
+    join_date: z.string().refine((date) => !isNaN(Date.parse(date)), {
+        message: 'Invalid date format',
+    }).optional(),
     position: jabatanEnum.optional(),
     department: departemenEnum.optional(),
     status: z.boolean().optional(),
     type: employmentTypeEnum.optional(),
     birth_place_id: z.number().optional(),
+    district_id: z.number().optional(),
+    full_address: z.string().optional(),
+    educationIds: z.array(z.number()).optional(),
 })
 
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>
+
+export const searchEmployeesSchema = z.object({
+    limit: z.coerce.number().int().positive().default(10),
+    offset: z.coerce.number().int().nonnegative().default(0),
+    search: z.string().optional(),
+    department: z.string().optional(),
+    status: z.preprocess((val) => val === 'true' ? true : val === 'false' ? false : undefined, z.boolean().optional()),
+    sortColumn: z.string().optional(),
+    sortDirection: z.enum(['asc', 'desc']).default('desc'),
+    positions: z.preprocess((val) => typeof val === 'string' ? val.split(',') : val, z.array(z.string()).optional()),
+    tenureOperator: z.enum(['>', '<', '>=', '<=', '=']).optional(),
+    tenureValue: z.coerce.number().int().nonnegative().optional(),
+})
+
+export type SearchEmployeesInput = z.infer<typeof searchEmployeesSchema>

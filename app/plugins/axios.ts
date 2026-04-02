@@ -65,14 +65,20 @@ export default defineNuxtPlugin((nuxtApp) => {
     // RESPONSE INTERCEPTOR
     // =========================
     api.interceptors.response.use(
-        (response) => response,
+        (response) => {
+            // Unwrap data if it follows the BaseResponse pattern
+            if (response.data && response.data.success === true && response.data.data !== undefined) {
+                return { ...response, data: response.data.data }
+            }
+            return response
+        },
         async (error: AxiosError) => {
             const originalRequest: any = error.config
 
             if (
                 error.response?.status !== 401 ||
                 originalRequest?._retry ||
-                originalRequest?.url?.includes('/api/users/refresh')
+                originalRequest?.url?.includes('/api/auth/refresh')
             ) {
                 return Promise.reject(error)
             }
@@ -84,14 +90,16 @@ export default defineNuxtPlugin((nuxtApp) => {
                     isRefreshing = true
 
                     refreshPromise = api
-                        .post('/api/users/refresh', {}, {
+                        .post('/api/auth/refresh', {}, {
                             withCredentials: true,
                         })
                         .then((res) => {
-                            tokenCookie.value = res.data.data.access_token
+                            // Extract token correctly based on backend response signature
+                            tokenCookie.value = res.data.accessToken
                         })
                         .finally(() => {
                             isRefreshing = false
+                            refreshPromise = null
                         })
                 }
 

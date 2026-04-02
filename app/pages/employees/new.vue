@@ -23,17 +23,25 @@
 <script setup lang="ts">
 import type { Employee } from '~/composables/useEmployees'
 import { useEmployees } from '~/composables/useEmployees'
+import { useEducations } from '~/composables/useEducations'
 
+const { addEmployee, loading } = useEmployees()
+const { syncEmployeeEducations } = useEducations()
 const router = useRouter()
 
-const handleFormSubmit = (data: Omit<Employee, 'id'>) => {
+const handleFormSubmit = async (data: any) => {
   try {
-    useEmployees().addEmployee(data)
-    alert('Data pegawai berhasil ditambahkan!')
-    router.push('/employees')
+    const createdEmployee = await addEmployee(data)
+    
+    // Sync educations if provided
+    if (data.educationIds && data.educationIds.length > 0) {
+      await syncEmployeeEducations(createdEmployee.id, data.educationIds)
+    }
+    
+    // Show success message or redirect
+    navigateTo('/employees')
   } catch (error) {
     console.error('Error adding employee:', error)
-    alert('Gagal menambahkan data pegawai')
   }
 }
 

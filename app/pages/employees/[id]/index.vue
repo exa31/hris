@@ -2,23 +2,27 @@
   <div class="employee-detail" v-if="employee">
     <!-- Header -->
     <div class="page-header mb-4">
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3 mb-3">
         <NuxtLink to="/employees" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-chevron-left"></i> Kembali
         </NuxtLink>
-        <h1 class="mb-0">{{ employee.nama }}</h1>
-        <span 
-          v-if="employee.statusAktif"
-          class="badge bg-success ms-auto"
-        >
-          <i class="bi bi-check-circle"></i> Aktif
-        </span>
-        <span 
-          v-else
-          class="badge bg-danger ms-auto"
-        >
-          <i class="bi bi-x-circle"></i> Nonaktif
-        </span>
+      </div>
+      <div class="d-flex align-items-center">
+        <div>
+          <h1 class="mb-0">{{ employee.name }}</h1>
+          <span 
+            v-if="employee.status"
+            class="badge bg-success mt-1"
+          >
+            <i class="bi bi-check-circle"></i> Aktif
+          </span>
+          <span 
+            v-else
+            class="badge bg-danger mt-1"
+          >
+            <i class="bi bi-x-circle"></i> Nonaktif
+          </span>
+        </div>
       </div>
     </div>
 
@@ -35,181 +39,110 @@
       </button>
     </div>
 
-    <!-- Tabs -->
-    <ul class="nav nav-tabs" role="tablist" style="border-bottom: 2px solid #e2e8f0">
-      <li class="nav-item" role="presentation">
-        <button 
-          class="nav-link active" 
-          @click="activeTab = 'info'"
-          type="button"
-          :class="{ active: activeTab === 'info' }"
-        >
-          <i class="bi bi-person"></i> Informasi Pribadi
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button 
-          class="nav-link" 
-          @click="activeTab = 'work'"
-          type="button"
-          :class="{ active: activeTab === 'work' }"
-        >
-          <i class="bi bi-briefcase"></i> Data Kerja
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button 
-          class="nav-link" 
-          @click="activeTab = 'education'"
-          type="button"
-          :class="{ active: activeTab === 'education' }"
-        >
-          <i class="bi bi-book"></i> Pendidikan
-        </button>
-      </li>
-    </ul>
-
-    <div class="tab-content mt-4">
-      <!-- Tab 1: Informasi Pribadi -->
-      <div v-if="activeTab === 'info'" class="tab-pane fade show active">
-        <div class="row">
-          <div class="col-md-4 mb-4">
-            <div class="card">
-              <div class="card-body text-center">
-                <div class="mb-3" v-if="employee.foto">
-                  <img :src="employee.foto" class="img-fluid rounded" style="max-height: 300px" />
-                </div>
-                <div v-else class="placeholder-image mb-3">
-                  <i class="bi bi-person-fill" style="font-size: 5rem"></i>
-                </div>
-                <h5>{{ employee.nama }}</h5>
-                <p class="text-muted small">{{ employee.jabatan }} - {{ employee.departemen }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-8">
-            <div class="card">
-              <div class="card-body">
-                <h6 class="card-title">Kontak</h6>
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <p class="text-muted small">Email</p>
-                    <p>{{ employee.email }}</p>
-                  </div>
-                  <div class="col-md-6">
-                    <p class="text-muted small">Nomor HP</p>
-                    <p>{{ employee.noHp }}</p>
-                  </div>
-                </div>
-
-                <hr />
-
-                <h6 class="card-title">Data Pribadi</h6>
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <p class="text-muted small">Tanggal Lahir</p>
-                    <p>{{ formatDate(employee.tanggalLahir) }}</p>
-                  </div>
-                  <div class="col-md-6">
-                    <p class="text-muted small">Usia</p>
-                    <p>{{ employee.usia }} tahun</p>
-                  </div>
-                </div>
-
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <p class="text-muted small">Tempat Lahir</p>
-                    <p>{{ employee.tempatLahir }}</p>
-                  </div>
-                  <div class="col-md-6">
-                    <p class="text-muted small">Status Kawin</p>
-                    <p class="text-capitalize">{{ employee.statusKawin }}</p>
-                  </div>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <p class="text-muted small">Jumlah Anak</p>
-                    <p>{{ employee.jumlahAnak }} anak</p>
-                  </div>
-                </div>
-
-                <hr />
-
-                <h6 class="card-title">Alamat</h6>
-                <p class="small text-muted">{{ employee.alamatKecamatan }}, {{ employee.alamatKabupaten }}, {{ employee.alamatProvinsi }}</p>
-                <p>{{ employee.alamatLengkap }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab 2: Data Kerja -->
-      <div v-if="activeTab === 'work'" class="tab-pane fade show active">
+    <!-- Info Cards -->
+    <div class="row">
+      <div class="col-md-6 mb-3">
         <div class="card">
           <div class="card-body">
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <p class="text-muted small">NIP</p>
-                <p class="h6">{{ employee.nip }}</p>
-              </div>
-              <div class="col-md-6">
-                <p class="text-muted small">Jabatan</p>
-                <p class="h6">
-                  <span class="badge bg-info">{{ employee.jabatan }}</span>
-                </p>
-              </div>
-            </div>
-
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <p class="text-muted small">Departemen</p>
-                <p class="h6">{{ employee.departemen }}</p>
-              </div>
-              <div class="col-md-6">
-                <p class="text-muted small">Status</p>
-                <p class="h6">
-                  <span v-if="employee.statusAktif" class="badge bg-success">Aktif</span>
-                  <span v-else class="badge bg-danger">Nonaktif</span>
-                </p>
-              </div>
-            </div>
-
+            <h6 class="card-title">Informasi Kontak</h6>
             <hr />
-
-            <div class="row">
-              <div class="col-md-6">
-                <p class="text-muted small">Tanggal Masuk</p>
-                <p class="h6">{{ formatDate(employee.tanggalMasuk) }}</p>
-              </div>
-              <div class="col-md-6">
-                <p class="text-muted small">Masa Kerja</p>
-                <p class="h6">{{ employee.masaKerja }} tahun</p>
-              </div>
+            <div class="mb-3">
+              <p class="text-muted small">Email</p>
+              <p class="mb-0">{{ employee.email }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Nomor HP</p>
+              <p class="mb-0">{{ employee.phone }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Alamat Lengkap</p>
+              <p class="mb-0">{{ employee.full_address || '-' }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Kecamatan/Kabupaten/Provinsi</p>
+              <p class="mb-0">{{ employee.districtName || '-' }}, {{ employee.regencyName || '-' }}, {{ employee.provinceName || '-' }}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Tab 3: Pendidikan -->
-      <div v-if="activeTab === 'education'" class="tab-pane fade show active">
-        <div v-if="employee.pendidikan && employee.pendidikan.length > 0">
-          <div v-for="(edu, idx) in employee.pendidikan" :key="idx" class="card mb-3">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <h6 class="card-title">{{ edu.tingkat }}</h6>
-                  <p class="text-muted">{{ edu.sekolah }}</p>
-                  <small class="text-muted">Tahun Lulus: {{ edu.tahunLulus }}</small>
-                </div>
-              </div>
+      <div class="col-md-6 mb-3">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title">Data Kerja</h6>
+            <hr />
+            <div class="mb-3">
+              <p class="text-muted small">NIP</p>
+              <p class="mb-0 h6">{{ employee.nip }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Jabatan</p>
+              <p class="mb-0"><span class="badge bg-info">{{ employee.position }}</span></p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Departemen</p>
+              <p class="mb-0"><span class="badge bg-secondary">{{ employee.department }}</span></p>
             </div>
           </div>
         </div>
-        <div v-else class="alert alert-info">
-          <i class="bi bi-info-circle"></i> Tidak ada data pendidikan
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title">Data Pribadi</h6>
+            <hr />
+            <div class="mb-3">
+              <p class="text-muted small">Tempat, Tanggal Lahir</p>
+              <p class="mb-0">{{ employee.birthCityName || '-' }}, {{ formatDate(employee.birth_date) }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Usia</p>
+              <p class="mb-0">{{ calculateAge(employee.birth_date, employee.join_date) }} Tahun</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Jenis Kelamin</p>
+              <p class="mb-0">{{ employee.gender }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Status Kawin</p>
+              <p class="mb-0 text-capitalize">{{ employee.marital_status }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Jumlah Anak</p>
+              <p class="mb-0">{{ employee.children_count }} anak</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Riwayat Pendidikan</p>
+              <div v-if="employee.educations && employee.educations.length > 0" class="d-flex flex-wrap gap-2 mt-1">
+                <span 
+                  v-for="edu in employee.educations" 
+                  :key="edu.id" 
+                  class="badge bg-light text-primary border border-primary-subtle px-3 py-2 fw-medium"
+                >
+                  <i class="bi bi-mortarboard me-1"></i> {{ edu.name }}
+                </span>
+              </div>
+              <p class="mb-0 text-muted italic" v-else>-</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title">Kontrak Kerja</h6>
+            <hr />
+            <div class="mb-3">
+              <p class="text-muted small">Tanggal Masuk</p>
+              <p class="mb-0">{{ formatDate(employee.join_date) }}</p>
+            </div>
+            <div class="mb-3">
+              <p class="text-muted small">Tipe Kontrak</p>
+              <p class="mb-0"><span class="badge bg-warning">{{ employee.type }}</span></p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -221,20 +154,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useEmployees } from '~/composables/useEmployees'
 
 const route = useRoute()
 const router = useRouter()
-const activeTab = ref<'info' | 'work' | 'education'>('info')
 
 const employeeId = computed(() => parseInt(route.params.id as string))
-
-const employee = computed(() => {
-  return useEmployees().getEmployee(employeeId.value)
-})
+const employee = ref<any>(null)
+const loading = ref(false)
 
 const formatDate = (date: string) => {
+  if (!date) return '-';
   return new Date(date).toLocaleDateString('id-ID', {
     year: 'numeric',
     month: 'long',
@@ -242,48 +173,53 @@ const formatDate = (date: string) => {
   })
 }
 
-const deleteThisEmployee = () => {
+const calculateAge = (birthDate: string, joinDate: string) => {
+  if (!birthDate || !joinDate) return '-';
+  const birth = new Date(birthDate)
+  const join = new Date(joinDate)
+  let age = join.getFullYear() - birth.getFullYear()
+  if (join.getMonth() < birth.getMonth() || (join.getMonth() === birth.getMonth() && join.getDate() < birth.getDate())) {
+    age--
+  }
+  return age > 0 ? age : 0
+}
+
+const deleteThisEmployee = async () => {
   if (confirm('Apakah Anda yakin ingin menghapus data pegawai ini?')) {
-    useEmployees().deleteEmployee(employeeId.value)
-    router.push('/employees')
+    try {
+      await useEmployees().deleteEmployee(employeeId.value)
+      router.push('/employees')
+    } catch (error) {
+      alert('Gagal menghapus data!')
+    }
   }
 }
 
-definePageMeta({
-  layout: 'default'
+onMounted(async () => {
+  loading.value = true
+  try {
+    employee.value = await useEmployees().getEmployee(employeeId.value)
+  } catch (error) {
+    console.error('Failed to load employee:', error)
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
 <style scoped>
-.placeholder-image {
-  width: 100%;
-  height: 250px;
-  background: #f1f5f9;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
+.employee-detail {
+  padding: 0;
 }
 
-.nav-link {
-  color: #64748b;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.nav-link:hover {
-  color: #667eea;
-}
-
-.nav-link.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+.page-header {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
 }
 </style>
+        

@@ -156,156 +156,44 @@ definePageMeta({
   layout: 'default', // Use default layout with sidebar
 });
 
-const { user, loading } = useAuth();
+// Auth and Loading state
+const { user: currentUser, loading: authLoading } = useAuth();
+const loading = ref(false);
 
-// Dummy data
-const dummyUser = {
-  id: 1,
-  employee_id: 1,
-  username: 'manager_hrd',
-  role_id: 2,
-  is_active: true,
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
-  employee: {
-    id: 1,
-    nip: 123456789,
-    name: 'Budi Santoso',
-    email: 'budi@company.com',
-    phone: '08123456789',
-    birth_date: '1990-05-15',
-    address_id: 1,
-    marital_status: 'Married' as any,
-    gender: 'Male' as any,
-    children_count: 2,
-    join_date: '2020-01-01',
-    position: 'Manager' as any,
-    department: 'HRD' as any,
-    type: 'Tetap' as any,
-    status: true,
-    created_at: '2020-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-  },
-  role: {
-    id: 2,
-    name: 'Manager HRD',
-  },
-};
-
-const dummyStats = {
-  total: 45,
-  kontrak: 12,
-  tetap: 25,
-  magang: 8,
-  male: 28,
-  female: 17,
-};
-
-const dummyNewEmployees: Employee[] = [
-  {
-    id: 1,
-    nip: 111111111,
-    name: 'Ari Wijaya',
-    email: 'ari@company.com',
-    phone: '08111111111',
-    birth_date: '1995-08-20',
-    address_id: 1,
-    marital_status: 'Single' as any,
-    gender: 'Male' as any,
-    children_count: 0,
-    join_date: '2024-03-15',
-    position: 'Staf' as any,
-    department: 'HRD' as any,
-    type: 'Kontrak' as any,
-    status: true,
-    created_at: '2024-03-15T00:00:00Z',
-    updated_at: '2024-03-15T00:00:00Z',
-  },
-  {
-    id: 2,
-    nip: 222222222,
-    name: 'Siti Nursyamsi',
-    email: 'siti@company.com',
-    phone: '08222222222',
-    birth_date: '1998-03-10',
-    address_id: 2,
-    marital_status: 'Single' as any,
-    gender: 'Female' as any,
-    children_count: 0,
-    join_date: '2024-03-01',
-    position: 'Staf' as any,
-    department: 'HRD' as any,
-    type: 'Kontrak' as any,
-    status: true,
-    created_at: '2024-03-01T00:00:00Z',
-    updated_at: '2024-03-01T00:00:00Z',
-  },
-  {
-    id: 3,
-    nip: 333333333,
-    name: 'Rinto Harahap',
-    email: 'rinto@company.com',
-    phone: '08333333333',
-    birth_date: '1996-11-05',
-    address_id: 3,
-    marital_status: 'Married' as any,
-    gender: 'Male' as any,
-    children_count: 1,
-    join_date: '2024-02-20',
-    position: 'Staf' as any,
-    department: 'Marketing' as any,
-    type: 'Kontrak' as any,
-    status: true,
-    created_at: '2024-02-20T00:00:00Z',
-    updated_at: '2024-02-20T00:00:00Z',
-  },
-  {
-    id: 4,
-    nip: 444444444,
-    name: 'Dewi Lestari',
-    email: 'dewi@company.com',
-    phone: '08444444444',
-    birth_date: '1997-07-12',
-    address_id: 4,
-    marital_status: 'Single' as any,
-    gender: 'Female' as any,
-    children_count: 0,
-    join_date: '2024-02-10',
-    position: 'Staf' as any,
-    department: 'Production' as any,
-    type: 'Kontrak' as any,
-    status: true,
-    created_at: '2024-02-10T00:00:00Z',
-    updated_at: '2024-02-10T00:00:00Z',
-  },
-  {
-    id: 5,
-    nip: 555555555,
-    name: 'Hendra Gunawan',
-    email: 'hendra@company.com',
-    phone: '08555555555',
-    birth_date: '1994-09-25',
-    address_id: 5,
-    marital_status: 'Married' as any,
-    gender: 'Male' as any,
-    children_count: 2,
-    join_date: '2024-01-15',
-    position: 'Staf' as any,
-    department: 'Production' as any,
-    type: 'Kontrak' as any,
-    status: true,
-    created_at: '2024-01-15T00:00:00Z',
-    updated_at: '2024-01-15T00:00:00Z',
-  },
-];
+interface DashboardStats {
+  total: number;
+  kontrak: number;
+  tetap: number;
+  magang: number;
+  male: number;
+  female: number;
+}
 
 // Component state
-const stats = ref(dummyStats);
-const newEmployees = ref(dummyNewEmployees);
-const currentUser = computed(() => dummyUser);
+const stats = ref<DashboardStats | null>(null);
+const newEmployees = ref<Employee[]>([]);
+
+const fetchDashboardData = async () => {
+  loading.value = true;
+  try {
+    const res = await $fetch<any>('/api/dashboard/stats');
+    const data = res.data;
+    stats.value = data.stats;
+    newEmployees.value = data.latestEmployees;
+  } catch (error) {
+    console.error('Failed to fetch dashboard data:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchDashboardData();
+});
 
 // Format date helper
 const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-';
   const date = new Date(dateStr);
   return date.toLocaleDateString('id-ID', {
     year: 'numeric',

@@ -13,7 +13,7 @@
                 <select v-model.number="formData.employeeId" class="form-select" required>
                   <option value="">-- Pilih Pegawai --</option>
                   <option v-for="emp in employees" :key="emp.id" :value="emp.id">
-                    {{ emp.nama }} ({{ emp.nip }})
+                    {{ emp.name }} ({{ emp.nip }})
                   </option>
                 </select>
                 <small class="text-muted">Pegawai untuk tunjangan transport</small>

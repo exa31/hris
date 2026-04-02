@@ -133,7 +133,7 @@ export const refreshAccessToken = async (event: H3Event, refreshToken: string): 
         }
 
         // Get user info
-        const user = await userRepository.getUserById(client, tokenPayload.id)
+        const user = await userRepository.getUserById(client, Number(tokenPayload.sub))
 
         if (!user || !user.is_active) {
             throw new HttpError(401, 'SESSION_EXPIRED', 'User account is inactive or not found')

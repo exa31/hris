@@ -31,10 +31,10 @@
                 @click="selectEmployee(emp)"
               >
                 <div class="small">
-                  <strong>{{ emp.nama }}</strong>
+                  <strong>{{ emp.name }}</strong>
                   <span class="text-muted">({{ emp.nip }})</span>
                 </div>
-                <small class="text-muted">{{ emp.jabatan }} - {{ emp.departemen }}</small>
+                <small class="text-muted">{{ emp.position }} - {{ emp.department }}</small>
               </button>
             </div>
           </div>
@@ -264,7 +264,7 @@ onMounted(async () => {
 const filteredEmployees = computed(() => {
   if (form.value.employee_name.length < 2) return []
   return employees.value.filter(emp =>
-    emp.nama.toLowerCase().includes(form.value.employee_name.toLowerCase()) ||
+    emp.name.toLowerCase().includes(form.value.employee_name.toLowerCase()) ||
     emp.nip.toString().includes(form.value.employee_name)
   )
 })
@@ -282,7 +282,7 @@ const filterEmployees = () => {
 
 const selectEmployee = (employee: any) => {
   form.value.employee_id = employee.id
-  form.value.employee_name = employee.nama
+  form.value.employee_name = employee.name
   showSuggestions.value = false
 }
 
