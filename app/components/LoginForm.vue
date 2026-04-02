@@ -49,7 +49,7 @@
                     class="form-control"
                     :class="{ 'is-invalid': passwordError }"
                     placeholder="Masukkan password"
-                    @input="(e)=>validatePasswordStrength(e.target.value)"
+                    @input="(e)=>validatePasswordStrength((e.target as HTMLInputElement).value)"
                   />
                   <button
                     type="button"
@@ -61,24 +61,7 @@
                   <div class="invalid-feedback d-block" v-if="password && passwordError">
                     {{ passwordError }}
                   </div>
-                </div>
-
-                <!-- Password Strength Indicator -->
-                <div v-if="password" class="mt-2">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <small class="fw-bold">Kekuatan Password:</small>
-                    <small :class="['fw-bold', getPasswordStrengthClass]">
-                      {{ passwordStrengthText }}
-                    </small>
-                  </div>
-                  <div class="progress" style="height: 8px">
-                    <div
-                      class="progress-bar"
-                      :class="getPasswordStrengthClass"
-                      :style="{ width: passwordStrength + '%' }"
-                    ></div>
-                  </div>
-                </div>
+                </div>                  
               </div>
 
               <!-- Captcha -->
@@ -186,6 +169,9 @@
 
 <script setup lang="ts">
 import { validateCredential, validatePassword } from '~/utils/validation';
+import { useAuth } from '~/composables/useAuth';
+
+const { login, loading } = useAuth();
 
 const credential = ref('');
 const password = ref('');
@@ -193,7 +179,6 @@ const userCaptcha = ref('');
 const captchaCode = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
-const loading = ref(false);
 const showSuccess = ref(false);
 const showError = ref(false);
 const errorMessage = ref('');
@@ -346,38 +331,18 @@ const handleLogin = async () => {
   }
 
   // Simulate login request
-  loading.value = true;
-
   try {
-    // TODO: Replace dengan actual API call
-    // const response = await $fetch('/api/login', {
-    //   method: 'POST',
-    //   body: {
-    //     credential: credential.value,
-    //     password: password.value,
-    //     rememberMe: rememberMe.value,
-    //   },
-    // });
-
-    // Simulasi delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    console.log('Login attempt:', {
-      credential: credential.value,
-      rememberMe: rememberMe.value,
-    });
+    await login(credential.value, password.value, rememberMe.value);
 
     showSuccessAlert();
 
-    // Simulate redirect after success
+    // Redirect after success
     setTimeout(() => {
       navigateTo('/dashboard');
     }, 1500);
 
   } catch (error: any) {
-    showErrorAlert(error.data?.message || 'Login gagal, silakan coba lagi');
-  } finally {
-    loading.value = false;
+    showErrorAlert(error.data?.message || error.message || 'Login gagal, silakan coba lagi');
   }
 };
 </script>

@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import {useAppConfig} from '~~/server/utils/config';
-import type {TokenPayload} from "~~/server/model/token.model";
-import {HttpError} from "~~/server/errors/HttpError";
+import { useAppConfig } from '~~/server/utils/config';
+import type { TokenPayload } from "~~/server/model/refresh_token.model";
+import { HttpError } from "~~/server/errors/HttpError";
 
 const Config = useAppConfig();
 const ACCESS_TOKEN_EXPIRES_IN = '15m';
@@ -17,7 +17,7 @@ function getJwtSecret() {
 
 export function signAccessToken(name: string, email: string, userId: string): string {
     const secret = getJwtSecret();
-    return jwt.sign({name, email, sub: userId}, secret, {algorithm: 'HS256', expiresIn: ACCESS_TOKEN_EXPIRES_IN});
+    return jwt.sign({ name, email, sub: userId }, secret, { algorithm: 'HS256', expiresIn: ACCESS_TOKEN_EXPIRES_IN });
 }
 
 export function verifyAccessToken(token: string) {
@@ -31,11 +31,11 @@ export function signRefreshToken(userId: string, name: string, email: string): {
     const secret = getJwtSecret();
     const jti = crypto.randomBytes(16).toString('hex');
     const expiresInSeconds = REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60; // seconds
-    const options: jwt.SignOptions = {algorithm: 'HS256', expiresIn: expiresInSeconds};
-    const token = jwt.sign({sub: userId, name, email, typ: 'refresh', jti}, secret, options);
+    const options: jwt.SignOptions = { algorithm: 'HS256', expiresIn: expiresInSeconds };
+    const token = jwt.sign({ sub: userId, name, email, typ: 'refresh', jti }, secret, options);
     const decoded = jwt.decode(token) as TokenPayload;
     const exp = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60 * 1000);
-    return {token, expiresAt: exp};
+    return { token, expiresAt: exp };
 }
 
 export function verifyRefreshToken(token: string) {

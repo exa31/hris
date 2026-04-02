@@ -1,0 +1,218 @@
+/**
+ * Authentication Service
+ * Handles user login, token generation, and session management
+ */
+
+import type { H3Event } from 'h3'
+import type { PoolClient } from 'pg'
+import { HttpError } from '~~/server/errors/HttpError'
+import { withTransaction } from '~~/server/db/postgres'
+import { useAppConfig } from '~~/server/utils/config'
+import { signAccessToken, signRefreshToken, verifyRefreshToken, isRefreshTokenRotatingSoon } from '~~/server/utils/jwt'
+import { hashToSha256, verifyPassword } from '~~/server/utils/hash'
+import * as userRepository from '~~/server/repositories/user.repository'
+import * as tokenRepository from '~~/server/repositories/refresh_token.repository'
+
+const Config = useAppConfig()
+
+interface LoginRequest {
+    username: string
+    password: string
+    rememberMe?: boolean
+}
+
+interface LoginResponse {
+    user: {
+        id: number
+        username: string
+        employee_name: string
+        role: string
+    }
+    accessToken: string
+    refreshToken: string
+}
+
+/**
+ * Login user with username and password
+ * @param event - H3Event for setting cookies
+ * @param loginData - Login credentials
+ * @returns Login response with tokens
+ */
+export const login = async (event: H3Event, loginData: LoginRequest): Promise<LoginResponse> => {
+    return withTransaction(async (client) => {
+        // Validate input
+        if (!loginData.username || !loginData.password) {
+            throw new HttpError(400, 'INVALID_CREDENTIALS', 'Username and password are required')
+        }
+
+        // Get user by username
+        const user = await userRepository.getUserByUsername(client, loginData.username)
+
+        if (!user) {
+            throw new HttpError(401, 'INVALID_CREDENTIALS', 'Invalid username or password')
+        }
+
+        if (!user.is_active) {
+            throw new HttpError(403, 'USER_INACTIVE', 'This user account is inactive')
+        }
+
+        // Verify password
+        const isPasswordValid = await verifyPassword(loginData.password, user.password_hash)
+        if (!isPasswordValid) {
+            throw new HttpError(401, 'INVALID_CREDENTIALS', 'Invalid username or password')
+        }
+
+        // Generate tokens
+        const accessToken = signAccessToken(user.username, user.id, user.role_id)
+        const { token: refreshToken, expiresAt } = signRefreshToken(user.id, user.username, user.employee_name)
+
+        // Save refresh token to database
+        await tokenRepository.saveRefreshToken(client, {
+            userId: user.id.toString(),
+            tokenHash: hashToSha256(refreshToken),
+            expiresAt,
+        })
+
+        // Set cookies
+        // Refresh token: session cookie if rememberMe is false, persistent if true
+        const refreshTokenCookieOptions: any = {
+            httpOnly: true,
+            secure: Config.mode === 'production',
+            sameSite: 'lax',
+            path: '/api',
+        }
+
+        if (loginData.rememberMe) {
+            refreshTokenCookieOptions.expires = expiresAt
+        }
+        // If rememberMe is false, no expires/maxAge means session cookie
+
+        setCookie(event, 'refresh_token', refreshToken, refreshTokenCookieOptions)
+
+        setCookie(event, 'access_token', accessToken, {
+            httpOnly: false,
+            secure: Config.mode === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 15 * 60, // 15 minutes
+        })
+
+        return {
+            user: {
+                id: user.id,
+                username: user.username,
+                employee_name: user.employee_name,
+                role: user.role_name,
+            },
+            accessToken,
+            refreshToken,
+        }
+    })
+}
+
+/**
+ * Refresh access token using refresh token
+ * @param event - H3Event for setting cookies
+ * @param refreshToken - Current refresh token
+ * @returns New access token
+ */
+export const refreshAccessToken = async (event: H3Event, refreshToken: string): Promise<{ accessToken: string }> => {
+    return withTransaction(async (client) => {
+        // Verify refresh token
+        const tokenPayload = verifyRefreshToken(refreshToken)
+
+        if (!tokenPayload) {
+            throw new HttpError(401, 'INVALID_TOKEN', 'Invalid or expired refresh token')
+        }
+
+        // Check if token exists in database
+        const storedToken = await tokenRepository.findByHash(client, hashToSha256(refreshToken))
+
+        if (!storedToken) {
+            throw new HttpError(401, 'INVALID_TOKEN', 'Token not found or has expired')
+        }
+
+        // Get user info
+        const user = await userRepository.getUserById(client, tokenPayload.id)
+
+        if (!user || !user.is_active) {
+            throw new HttpError(401, 'SESSION_EXPIRED', 'User account is inactive or not found')
+        }
+
+        // Check if token rotation is needed
+        if (isRefreshTokenRotatingSoon(new Date(storedToken.expires_at))) {
+            const { token: newRefreshToken, expiresAt: newExpiresAt } = signRefreshToken(
+                user.id,
+                user.username,
+                user.employee_name
+            )
+
+            // Update token in database
+            await tokenRepository.updateToken(client, hashToSha256(newRefreshToken), newExpiresAt, hashToSha256(refreshToken))
+
+            // Update cookies
+            setCookie(event, 'refresh_token', newRefreshToken, {
+                httpOnly: true,
+                secure: Config.mode === 'production',
+                sameSite: 'lax',
+                path: '/api',
+                expires: newExpiresAt,
+            })
+        }
+
+        // Generate new access token
+        const newAccessToken = signAccessToken(user.username, user.id, user.role_id)
+
+        setCookie(event, 'access_token', newAccessToken, {
+            httpOnly: true,
+            secure: Config.mode === 'production',
+            sameSite: 'lax',
+            path: '/api',
+            maxAge: 15 * 60,
+        })
+
+        return { accessToken: newAccessToken }
+    })
+}
+
+/**
+ * Logout user - clear tokens
+ * @param event - H3Event for clearing cookies
+ * @param refreshToken - Refresh token to invalidate
+ */
+export const logout = async (event: H3Event, refreshToken?: string): Promise<void> => {
+    // Clear cookies
+    deleteCookie(event, 'access_token', { path: '/api' })
+    deleteCookie(event, 'refresh_token', { path: '/api' })
+}
+
+/**
+ * Get current user profile
+ * @param userId - User ID from auth context
+ * @returns Formatted user profile with employee and role information
+ */
+export const getCurrentUserProfile = async (userId: number) => {
+    return withTransaction(async (client) => {
+        const user = await userRepository.getUserById(client, userId)
+
+        if (!user) {
+            throw new HttpError(404, 'USER_NOT_FOUND', 'User not found')
+        }
+
+        return {
+            id: user.id,
+            username: user.username,
+            employee: {
+                id: user.employee_id,
+                name: user.employee_name,
+                email: user.email,
+                phone: user.phone,
+            },
+            role: {
+                id: user.role_id,
+                name: user.role_name,
+            },
+            is_active: user.is_active,
+        }
+    })
+}

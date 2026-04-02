@@ -1,7 +1,7 @@
-import {verifyAccessToken} from '~~/server/utils/jwt'
-import {HttpError} from '~~/server/errors/HttpError'
-import type {EventHandler, EventHandlerRequest, H3Event} from 'h3'
-import {sendError} from "~~/server/utils/response";
+import { verifyAccessToken } from '~~/server/utils/jwt'
+import { HttpError } from '~~/server/errors/HttpError'
+import type { EventHandler, EventHandlerRequest, H3Event } from 'h3'
+import { sendError } from "~~/server/utils/response";
 
 export const withAuth = <T extends EventHandlerRequest, D>(
     handler?: EventHandler<T, D>
@@ -44,6 +44,7 @@ export const withAuth = <T extends EventHandlerRequest, D>(
                 email: payload.email,
                 raw: payload,
             }
+            console.log('Authenticated user:', event.context.user)
 
             // 5️⃣ Lanjut ke handler kalau ada
             if (handler) {

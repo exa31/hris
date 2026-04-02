@@ -6,13 +6,14 @@ export const useAuth = () => {
     const user = ref<UserWithDetails | null>(null);
     const isAuthenticated = computed(() => !!user.value);
     const loading = ref(false);
+    const $axios = useNuxtApp().$axios;
 
     // Fetch current user
     const fetchUser = async () => {
         try {
             loading.value = true;
-            const { data } = await useFetch('/api/user');
-            user.value = data.value;
+            const response = await $axios.get('/api/auth/me');
+            user.value = response.data;
         } catch (error) {
             user.value = null;
         } finally {
@@ -21,24 +22,17 @@ export const useAuth = () => {
     };
 
     // Login
-    const login = async (credential: string, password: string, rememberMe: boolean = false) => {
+    const login = async (username: string, password: string, rememberMe: boolean = false) => {
         try {
             loading.value = true;
-            const { data, error } = await useFetch('/api/login', {
-                method: 'POST',
-                body: {
-                    credential,
-                    password,
-                    rememberMe,
-                },
+            const response = await $axios.post('/api/auth/credentials', {
+                username,
+                password,
+                rememberMe,
             });
 
-            if (error.value) {
-                throw new Error(error.value.message);
-            }
-
-            user.value = data.value?.user;
-            return data.value;
+            user.value = response.data?.user;
+            return response.data;
         } catch (error: any) {
             throw error;
         } finally {
@@ -50,7 +44,7 @@ export const useAuth = () => {
     const logout = async () => {
         try {
             loading.value = true;
-            await $fetch('/api/logout', { method: 'POST' });
+            await $axios.post('/api/auth/logout');
             user.value = null;
             navigateTo('/');
         } catch (error) {

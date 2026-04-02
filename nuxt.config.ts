@@ -15,4 +15,26 @@ export default defineNuxtConfig({
     }
   },
 
+  // ========== RUNTIME CONFIG ==========
+  runtimeConfig: {
+    mode: process.env.NUXT_MODE || 'production',
+    jwtSecret: process.env.NUXT_JWT_SECRET,
+    clientUrl: process.env.NUXT_CLIENT_URL || 'https://eka-dev.cloud',
+
+    pgHost: process.env.NUXT_PG_HOST || 'localhost',
+    pgPort: process.env.NUXT_PG_PORT ? Number(process.env.NUXT_PG_PORT) : 5432,
+    pgUser: process.env.NUXT_PG_USER || 'postgres',
+    pgPassword: process.env.NUXT_PG_PASSWORD || 'password',
+    pgDatabase: process.env.NUXT_PG_DATABASE || 'mydatabase',
+    pgMax: process.env.NUXT_PG_MAX ? Number(process.env.NUXT_PG_MAX) : 10,
+    pgIdleTimeoutMs: process.env.NUXT_PG_IDLE_TIMEOUT_MS ? Number(process.env.NUXT_PG_IDLE_TIMEOUT_MS) : 30000,
+    pgConnectionTimeoutMs: process.env.NUXT_PG_CONNECTION_TIMEOUT_MS ? Number(process.env.NUXT_PG_CONNECTION_TIMEOUT_MS) : 2000,
+    pgSsl: process.env.NUXT_PG_SSL === 'true',
+    databaseUrl: process.env.NUXT_DATABASE_URL,
+
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'https://eka-dev.cloud',
+    },
+  },
+
 })

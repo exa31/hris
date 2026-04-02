@@ -11,7 +11,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         : {}
 
     // Use useCookie for consistent cookie handling
-    const tokenCookie = useCookie('token', {
+    const tokenCookie = useCookie('access_token', {
         maxAge: 86400, // 1 day
         path: '/',
         sameSite: 'lax',
@@ -106,7 +106,7 @@ export default defineNuxtPlugin((nuxtApp) => {
                 return api(originalRequest)
             } catch (err) {
                 if (import.meta.client) {
-                    navigateTo('/login')
+                    navigateTo('/')
                 }
                 return Promise.reject(err)
             }

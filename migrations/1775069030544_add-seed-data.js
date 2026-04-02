@@ -58,19 +58,28 @@ export const up = (pgm) => {
     pgm.sql(`
         INSERT INTO employees (id, nip, name, email, phone, birth_date, marital_status, gender, children_count, join_date, position, department, type, birth_place_id, status)
         VALUES
-        (1, 2024001, 'superadmin', 'superadmin@company.com', '08123456789', '1990-05-20', 'Married', 'Male', 2, '2020-01-15', 'Manager', 'HRD', 'Tetap', 1, true),
-        (2, 2024002, 'Siti Nurhaliza', 'siti@company.com', '08234567890', '1995-08-15', 'Single', 'Female', 0, '2021-03-10', 'Staf', 'HRD', 'Tetap', 2, true),
-        (3, 2024003, 'Ahmad Rahman', 'ahmad@company.com', '08345678901', '1998-03-25', 'Single', 'Male', 0, '2024-01-10', 'Staf', 'HRD', 'Kontrak', 3, true);
+        (1, 2024001, 'superadmin', 'superadmin@company.com', '08123456789', '1990-05-20', 'Married', 'Male', 2, '2020-01-15', 'Manager', 'HRD', 'Tetap', 3328150, true),
+        (2, 2024002, 'Siti Nurhaliza', 'siti@company.com', '08234567890', '1995-08-15', 'Single', 'Female', 0, '2021-03-10', 'Staf', 'HRD', 'Tetap', 3328150, true),
+        (3, 2024003, 'Ahmad Rahman', 'ahmad@company.com', '08345678901', '1998-03-25', 'Single', 'Male', 0, '2024-01-10', 'Staf', 'HRD', 'Kontrak', 3328150, true);
     `);
 
-    // Insert Users with password (hashed password: password123)
-    // Hash: $2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36ZyWsQu
+    // Insert Employee Addresses
+    pgm.sql(`
+        INSERT INTO employee_addresses (employee_id, district_id, full_address )
+        VALUES
+        (1, 3328150, 'Jl. Merdeka No. 1, Kecamatan A, Kabupaten B, Jawa Tengah'),
+        (2, 3328150, 'Jl. Merdeka No. 2, Kecamatan A, Kabupaten B, Jawa Tengah'),
+        (3, 3328150, 'Jl. Merdeka No. 3, Kecamatan A, Kabupaten B, Jawa Tengah');            
+    `);
+
+    // Insert Users with password (hashed password: P@ssword123)
+    // Hash: $2a$12$0f.OU237cHxB9dPUgHIIweggC52fr0eJKGyztHtg2SFLSTaWvYKqi
     pgm.sql(`
         INSERT INTO users (id, employee_id, username, password_hash, role_id, is_active)
         VALUES
-        (1, 1, 'superadmin', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36ZyWsQu', 1, true),
-        (2, 2, 'siti.nurhaliza', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36ZyWsQu', 2, true),
-        (3, 3, 'ahmad.rahman', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36ZyWsQu', 3, true);
+        (1, 1, 'superadmin', '$2a$12$0f.OU237cHxB9dPUgHIIweggC52fr0eJKGyztHtg2SFLSTaWvYKqi', 1, true),
+        (2, 2, 'siti.nurhaliza', '$2a$12$0f.OU237cHxB9dPUgHIIweggC52fr0eJKGyztHtg2SFLSTaWvYKqi', 2, true),
+        (3, 3, 'ahmad.rahman', '$2a$12$0f.OU237cHxB9dPUgHIIweggC52fr0eJKGyztHtg2SFLSTaWvYKqi', 3, true);
     `);
 };
 

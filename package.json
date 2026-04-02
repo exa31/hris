@@ -13,8 +13,10 @@
     "migrate:make": "npx node-pg-migrate create -m migrations"
   },
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "axios": "^1.14.0",
+    "bcrypt": "^6.0.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "bootstrap-vue-next": "^0.44.1",
