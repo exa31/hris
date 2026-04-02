@@ -154,8 +154,8 @@ export const createEmployee = async (
 
     const query = `
         INSERT INTO employees 
-        (nip, name, email, phone, birth_date, marital_status, gender, children_count, join_date, position, department, status, type, birth_place_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        (nip, name, email, phone, birth_date, marital_status, gender, children_count, join_date, position, department, status, type, birth_place_id, photo_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         RETURNING *
     `
 
@@ -174,6 +174,7 @@ export const createEmployee = async (
         employeeData.status,
         employeeData.type,
         employeeData.birth_place_id,
+        employeeData.photo_url,
     ])
 
     const emp = result.rows[0]
@@ -303,7 +304,7 @@ export const getDashboardStats = async (client: PoolClient) => {
     
     // Latest 5 employees
     const latestResult = await client.query(`
-        SELECT id, name, email, join_date, type, position, department
+        SELECT id, name, email, join_date, type, position, department, photo_url
         FROM employees
         ORDER BY join_date DESC, id DESC
         LIMIT 5
@@ -327,7 +328,7 @@ export const getDashboardStats = async (client: PoolClient) => {
  */
 export const getNewContractEmployees = async (client: PoolClient) => {
     const result = await client.query(`
-        SELECT id, name, email, join_date, type, position, department
+        SELECT id, name, email, join_date, type, position, department, photo_url
         FROM employees
         WHERE type = 'Kontrak' AND status = true
         ORDER BY join_date DESC, id DESC

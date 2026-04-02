@@ -39,6 +39,7 @@ export const employeeModel = z.object({
     birth_place_id: z.number(),
     created_at: z.string(),
     updated_at: z.string(),
+    photo_url: z.string().nullable().optional(),
 })
 
 export type Employee = z.infer<typeof employeeModel>
@@ -62,10 +63,11 @@ export const createEmployeeSchema = z.object({
     type: employmentTypeEnum,
     birth_place_id: z.number(),
     status: z.boolean().default(true),
-    district_id: z.number().optional(),
+    district_id: z.number({ error: 'Kecamatan harus dipilih' }),
     full_address: z.string().optional(),
     educations: z.array(z.any()).optional(),
     educationIds: z.array(z.number()).optional(),
+    photo_url: z.string().optional().nullable(),
 })
 
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>
@@ -93,6 +95,7 @@ export const updateEmployeeSchema = z.object({
     district_id: z.number().optional(),
     full_address: z.string().optional(),
     educationIds: z.array(z.number()).optional(),
+    photo_url: z.string().optional().nullable(),
 })
 
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>

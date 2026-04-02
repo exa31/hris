@@ -1,6 +1,49 @@
 <template>
   <form @submit.prevent="submitForm" class="needs-validation">
-
+    <!-- Profile Photo Section -->
+    <div class="row mb-5 justify-content-center">
+      <div class="col-auto text-center">
+        <label class="form-label d-block mb-3 small fw-bold text-muted">FOTO PROFIL</label>
+        <div 
+          class="position-relative profile-photo-container mb-2 mx-auto cursor-pointer"
+          @click="$refs.fileInput.click()"
+          :class="{ 'opacity-50': uploadingPhoto }"
+        >
+          <img 
+            :src="form.photo_url || 'https://ui-avatars.com/api/?name=' + (form.name || 'User') + '&background=random&size=128'" 
+            class="rounded-circle border shadow-sm profile-photo-preview"
+            alt="Profile Preview"
+            style="width: 120px; height: 120px; object-fit: cover;"
+          />
+          <div class="photo-overlay d-flex flex-column align-items-center justify-content-center rounded-circle">
+            <template v-if="uploadingPhoto">
+              <div class="spinner-border spinner-border-sm text-white mb-1"></div>
+              <span class="text-white" style="font-size: 10px;">Uploading...</span>
+            </template>
+            <template v-else>
+              <i class="bi bi-camera text-white fs-4"></i>
+              <span class="text-white" style="font-size: 10px;">Ganti Foto</span>
+            </template>
+          </div>
+          <input 
+            type="file" 
+            ref="fileInput" 
+            class="d-none" 
+            accept="image/*"
+            @change="handleFileUpload"
+          />
+        </div>
+        <small class="text-muted d-block" v-if="!form.photo_url">Klik lingkaran untuk upload foto</small>
+        <button 
+          v-else 
+          type="button" 
+          class="btn btn-link btn-sm text-danger text-decoration-none p-0"
+          @click="form.photo_url = ''"
+        >
+          Hapus Foto
+        </button>
+      </div>
+    </div>
 
     <!-- NIP & Name -->
     <div class="row mb-3">
@@ -145,12 +188,13 @@
     <!-- Address -->
     <div class="row mb-3">
       <div class="col-md-4">
-        <label class="form-label">Kecamatan</label>
+        <label class="form-label">Kecamatan <span class="text-danger">*</span></label>
         <div class="position-relative">
           <input
             v-model="form.districtName"
             type="text"
             class="form-control"
+            :class="{ 'is-invalid': errors.districtName }"
             placeholder="Minimal 3 karakter..."
             @input="searchDistrict"
           />
@@ -165,6 +209,7 @@
             </li>
           </ul>
         </div>
+        <small v-if="errors.districtName" class="text-danger d-block mt-1">{{ errors.districtName }}</small>
       </div>
       <div class="col-md-4">
         <label class="form-label">Kabupaten</label>
@@ -412,7 +457,8 @@ const form = ref({
   regencyName: props.initialData?.regencyName || '',
   provinceName: props.initialData?.provinceName || '',
   full_address: props.initialData?.full_address || '',
-  educations: props.initialData?.educations ? [...props.initialData.educations] : ([] as string[])
+  educations: props.initialData?.educations ? [...props.initialData.educations] : ([] as string[]),
+  photo_url: props.initialData?.photo_url || ''
 })
 
 // Education Management
@@ -423,6 +469,36 @@ const selectedEducationId = ref<number | string>('')
 const newEducationName = ref<string>('')
 const educationLoading = ref(false)
 const educationError = ref<string>('')
+const uploadingPhoto = ref(false)
+
+const handleFileUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  // Validate
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Ukuran file maksimal 2MB')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  uploadingPhoto.value = true
+  try {
+    const res = await $axios.post('/api/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    form.value.photo_url = res.data.url
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Gagal upload foto')
+  } finally {
+    uploadingPhoto.value = false
+    // Reset file input value so it can be re-triggered for the same file
+    target.value = ''
+  }
+}
 
 onMounted(async () => {
   // Fetch available educations from API
@@ -614,6 +690,10 @@ const validateForm = (): boolean => {
     errors.value.birthCityName = 'Tempat lahir harus dipilih dari daftar'
   }
 
+  if (!form.value.district_id || form.value.district_id <= 0) {
+    errors.value.districtName = 'Kecamatan harus dipilih dari daftar'
+  }
+
   return Object.keys(errors.value).length === 0
 }
 
@@ -646,6 +726,7 @@ const submitForm = () => {
       full_address: form.value.full_address,
       educations: form.value.educations,
       educationIds: selectedEducations.value.map(e => e.id),
+      photo_url: form.value.photo_url
     } as any)
   }
 }
@@ -659,6 +740,41 @@ defineExpose({ setExternalErrors })
 <style scoped>
 .needs-validation {
   padding: 1.5rem;
+}
+
+.profile-photo-container {
+  width: 120px;
+  height: 120px;
+  background-color: #f8f9fa;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.profile-photo-container:hover .photo-overlay {
+  opacity: 1;
+}
+
+.profile-photo-preview {
+  transition: transform 0.3s ease;
+}
+
+.profile-photo-container:hover .profile-photo-preview {
+  transform: scale(1.05);
 }
 </style>
     

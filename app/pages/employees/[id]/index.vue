@@ -7,21 +7,31 @@
           <i class="bi bi-chevron-left"></i> Kembali
         </NuxtLink>
       </div>
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center mb-0 gap-4">
+        <img 
+          :src="employee.photo_url || 'https://ui-avatars.com/api/?name=' + employee.name + '&background=random&size=120'" 
+          class="rounded-circle border shadow-sm profile-image-detail"
+          style="width: 120px; height: 120px; object-fit: cover;"
+          alt="Avatar"
+        />
         <div>
           <h1 class="mb-0">{{ employee.name }}</h1>
-          <span 
-            v-if="employee.status"
-            class="badge bg-success mt-1"
-          >
-            <i class="bi bi-check-circle"></i> Aktif
-          </span>
-          <span 
-            v-else
-            class="badge bg-danger mt-1"
-          >
-            <i class="bi bi-x-circle"></i> Nonaktif
-          </span>
+          <div class="d-flex gap-2 align-items-center mt-2">
+            <span 
+                v-if="employee.status"
+                class="badge bg-success"
+            >
+                <i class="bi bi-check-circle"></i> Aktif
+            </span>
+            <span 
+                v-else
+                class="badge bg-danger"
+            >
+                <i class="bi bi-x-circle"></i> Nonaktif
+            </span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fw-bold">{{ employee.nip }}</span>
+          </div>
+          <p class="text-muted mt-2 mb-0"><i class="bi bi-briefcase me-1"></i> {{ employee.position }} &bull; {{ employee.department }}</p>
         </div>
       </div>
     </div>
