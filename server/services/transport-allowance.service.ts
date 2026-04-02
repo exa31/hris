@@ -24,7 +24,7 @@ export const createTransportAllowance = async (client: PoolClient, data: any) =>
     if (!validation.success) {
         throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body', z.treeifyError(validation.error).properties)
     }
-    
+
     // Check if duplicate for employee, month, year
     const exist = await transportAllowanceRepository.getTransportAllowances(client, {
         month: validation.data.month,
@@ -32,7 +32,7 @@ export const createTransportAllowance = async (client: PoolClient, data: any) =>
         search: validation.data.employee_id.toString(), // hack search just to filter
         limit: 1
     })
-    
+
     // Manual check duplicate because repository search is fuzzy
     const isDuplicate = exist.rows.some(r => r.employee_id === validation.data.employee_id && r.month === validation.data.month && r.year === validation.data.year)
     if (isDuplicate) {
@@ -64,12 +64,53 @@ export const deleteTransportAllowance = async (client: PoolClient, id: number) =
 }
 
 export const getTransportSettings = async (client: PoolClient) => {
-    return transportAllowanceRepository.getTransportSettings(client)
+    const settings = await transportAllowanceRepository.getTransportSettings(client)
+    if (!settings) {
+        return {
+            baseFare: 5000,
+            tariffPerKm: 2000,
+            minDistance: 5,
+            maxDistance: 25,
+            minWorkingDays: 19,
+            updatedBy: 'System'
+        }
+    }
+    return settings
 }
 
-export const updateTransportSettings = async (client: PoolClient, baseFare: number) => {
+export const updateTransportSettings = async (client: PoolClient, data: any) => {
+    // Validate input
+    if (!data || typeof data !== 'object') {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body')
+    }
+
+    const { baseFare, tariffPerKm, minDistance, maxDistance, minWorkingDays, updatedBy } = data
+
     if (typeof baseFare !== 'number' || baseFare < 0) {
         throw new HttpError(400, 'INVALID_REQUEST', 'Base fare must be a positive number')
     }
-    return transportAllowanceRepository.updateTransportSettings(client, baseFare)
+    if (typeof tariffPerKm !== 'number' || tariffPerKm < 0) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Tariff per km must be a positive number')
+    }
+    if (typeof minDistance !== 'number' || minDistance < 0) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Min distance must be a positive number')
+    }
+    if (typeof maxDistance !== 'number' || maxDistance <= 0) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Max distance must be a positive number')
+    }
+    if (typeof minWorkingDays !== 'number' || minWorkingDays < 1) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Min working days must be at least 1')
+    }
+    if (minDistance >= maxDistance) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Min distance must be less than max distance')
+    }
+
+    return transportAllowanceRepository.updateTransportSettings(client, {
+        baseFare,
+        tariffPerKm,
+        minDistance,
+        maxDistance,
+        minWorkingDays,
+        updatedBy: updatedBy || 'System',
+    })
 }

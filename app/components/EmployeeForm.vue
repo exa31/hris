@@ -72,13 +72,14 @@
       </div>
       
       <div class="col-md-4">
-        <label class="form-label">Tempat Lahir (Kabupaten)</label>
+        <label class="form-label">Tempat Lahir (Kabupaten) <span class="text-danger">*</span></label>
         <div class="position-relative">
           <input
             v-model="form.birthCityName"
             type="text"
             class="form-control"
             placeholder="Ketik minimal 3 karakter..."
+            :class="{ 'is-invalid': errors.birthCityName }"
             @input="searchBirthCity"
           />
           <ul v-if="birthCitySuggestions.length" class="list-group position-absolute z-3 w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; top: 100%; left: 0;">
@@ -91,6 +92,7 @@
             </li>
           </ul>
         </div>
+        <small v-if="errors.birthCityName" class="text-danger d-block mt-1">{{ errors.birthCityName }}</small>
       </div>
 
       <div class="col-md-4">
@@ -606,6 +608,10 @@ const validateForm = (): boolean => {
 
   if (!form.value.type) {
     errors.value.type = 'Tipe kontrak harus dipilih'
+  }
+
+  if (!form.value.birth_place_id || form.value.birth_place_id <= 0) {
+    errors.value.birthCityName = 'Tempat lahir harus dipilih dari daftar'
   }
 
   return Object.keys(errors.value).length === 0

@@ -45,7 +45,7 @@ export const getTransportAllowances = async (
 
     // Order and Pagination
     query += ` ORDER BY ta.year DESC, ta.month DESC, e.name ASC`
-    
+
     if (options?.limit) {
         query += ` LIMIT $${paramCount}`
         params.push(options.limit)
@@ -130,23 +130,97 @@ export const deleteTransportAllowance = async (client: PoolClient, id: number): 
 
 export const getTransportSettings = async (client: PoolClient): Promise<any> => {
     const result = await client.query('SELECT * FROM transport_settings ORDER BY updated_at DESC LIMIT 1')
-    return result.rows[0] || null
+    if (!result.rows[0]) return null
+
+    const row = result.rows[0]
+    return {
+        id: row.id,
+        baseFare: parseFloat(row.base_fare_per_km || 0),
+        tariffPerKm: parseFloat(row.tariff_per_km || 0),
+        minDistance: parseFloat(row.min_distance || 5),
+        maxDistance: parseFloat(row.max_distance || 25),
+        minWorkingDays: row.min_working_days || 19,
+        updatedBy: row.updated_by || 'System',
+        lastUpdated: row.updated_at,
+    }
 }
 
-export const updateTransportSettings = async (client: PoolClient, baseFare: number): Promise<any> => {
+export const updateTransportSettings = async (
+    client: PoolClient,
+    settings: {
+        baseFare: number
+        tariffPerKm: number
+        minDistance: number
+        maxDistance: number
+        minWorkingDays: number
+        updatedBy?: string
+    }
+): Promise<any> => {
     // Check if settings exist
     const exist = await client.query('SELECT id FROM transport_settings LIMIT 1')
+
+    const query = `
+        UPDATE transport_settings
+        SET base_fare_per_km = $1,
+            tariff_per_km = $2,
+            min_distance = $3,
+            max_distance = $4,
+            min_working_days = $5,
+            updated_by = $6,
+            updated_at = NOW()
+        WHERE id = $7
+        RETURNING *
+    `
+
     if (exist.rowCount! > 0) {
-        const result = await client.query(
-            'UPDATE transport_settings SET base_fare_per_km = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-            [baseFare, exist.rows[0].id]
-        )
-        return result.rows[0]
+        const result = await client.query(query, [
+            settings.baseFare,
+            settings.tariffPerKm,
+            settings.minDistance,
+            settings.maxDistance,
+            settings.minWorkingDays,
+            settings.updatedBy || 'System',
+            exist.rows[0].id,
+        ])
+
+        const row = result.rows[0]
+        return {
+            id: row.id,
+            baseFare: parseFloat(row.base_fare_per_km),
+            tariffPerKm: parseFloat(row.tariff_per_km || 0),
+            minDistance: parseFloat(row.min_distance || 5),
+            maxDistance: parseFloat(row.max_distance || 25),
+            minWorkingDays: row.min_working_days || 19,
+            updatedBy: row.updated_by || 'System',
+            lastUpdated: row.updated_at,
+        }
     } else {
+        // Insert new record
         const result = await client.query(
-            'INSERT INTO transport_settings (base_fare_per_km) VALUES ($1) RETURNING *',
-            [baseFare]
+            `INSERT INTO transport_settings 
+             (base_fare_per_km, tariff_per_km, min_distance, max_distance, min_working_days, updated_by)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING *`,
+            [
+                settings.baseFare,
+                settings.tariffPerKm,
+                settings.minDistance,
+                settings.maxDistance,
+                settings.minWorkingDays,
+                settings.updatedBy || 'System',
+            ]
         )
-        return result.rows[0]
+
+        const row = result.rows[0]
+        return {
+            id: row.id,
+            baseFare: parseFloat(row.base_fare_per_km),
+            tariffPerKm: parseFloat(row.tariff_per_km || 0),
+            minDistance: parseFloat(row.min_distance || 5),
+            maxDistance: parseFloat(row.max_distance || 25),
+            minWorkingDays: row.min_working_days || 19,
+            updatedBy: row.updated_by || 'System',
+            lastUpdated: row.updated_at,
+        }
     }
 }

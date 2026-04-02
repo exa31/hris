@@ -6,8 +6,31 @@
       <p class="text-muted">Atur tarif dasar dan batas jarak untuk tunjangan transport pegawai</p>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="alert alert-info">
+      <i class="bi bi-hourglass-split"></i> Memuat pengaturan...
+    </div>
+
+    <!-- Error Alert -->
+    <div v-if="error && !loading" class="alert alert-warning alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle"></i> {{ error }}
+      <button type="button" class="btn-close" @click="error = null"></button>
+    </div>
+
+    <!-- Success Alert -->
+    <div v-if="saveSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle"></i> Pengaturan berhasil disimpan!
+      <button type="button" class="btn-close" @click="saveSuccess = false"></button>
+    </div>
+
+    <!-- Save Error Alert -->
+    <div v-if="saveError" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-circle"></i> {{ saveError }}
+      <button type="button" class="btn-close" @click="saveError = null"></button>
+    </div>
+
     <!-- Settings Form -->
-    <div class="row">
+    <div class="row"> 
       <div class="col-md-6">
         <div class="card">
           <div class="card-body">
@@ -89,10 +112,20 @@
             </div>
 
             <div class="d-flex gap-2 mt-4">
-              <button class="btn btn-primary" @click="saveSettings">
-                <i class="bi bi-check-circle"></i> Simpan Pengaturan
+              <button 
+                class="btn btn-primary" 
+                @click="saveSettings"
+                :disabled="loading"
+              >
+                <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                <i v-else class="bi bi-check-circle"></i> 
+                {{ loading ? 'Menyimpan...' : 'Simpan Pengaturan' }}
               </button>
-              <button class="btn btn-outline-secondary" @click="resetSettings">
+              <button 
+                class="btn btn-outline-secondary" 
+                @click="resetSettings"
+                :disabled="loading"
+              >
                 <i class="bi bi-arrow-clockwise"></i> Reset
               </button>
             </div>
@@ -170,15 +203,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useTransportSettings } from '~/composables/useTransportSettings'
 
-const { settings, updateSettings, formatCurrency } = useTransportSettings()
+const { settings, updateSettings, formatCurrency, fetchSettings, loading, error } = useTransportSettings()
 
 // Local state untuk form
 const localSettings = ref({ ...settings.value })
+const saveError = ref<string | null>(null)
+const saveSuccess = ref(false)
+
+// Fetch settings on component mount
+onMounted(async () => {
+  await fetchSettings()
+  localSettings.value = { ...settings.value }
+})
 
 const saveSettings = async () => {
+  saveError.value = null
+  saveSuccess.value = false
+
   // Validate
   if (
     localSettings.value.baseFare <= 0 ||
@@ -187,33 +231,42 @@ const saveSettings = async () => {
     localSettings.value.maxDistance <= 0 ||
     localSettings.value.minWorkingDays < 1
   ) {
-    alert('Nilai harus valid (positif)')
+    saveError.value = 'Nilai harus valid (positif)'
     return
   }
 
   if (localSettings.value.minDistance >= localSettings.value.maxDistance) {
-    alert('Jarak minimum harus kurang dari jarak maksimal')
+    saveError.value = 'Jarak minimum harus kurang dari jarak maksimal'
     return
   }
 
-  updateSettings(localSettings.value)
-  const { useAuditLog } = await import('~/composables/useAuditLog')
-  const auditLog = useAuditLog()
-  auditLog.addLog({
-    userId: 'current_user',
-    userName: 'Admin',
-    timestamp: new Date().toISOString(),
-    modul: 'Pengaturan Tunjangan Transport',
-    aksi: 'update',
-    deskripsi: 'Update pengaturan tarif tunjangan transport'
-  })
+  try {
+    await updateSettings(localSettings.value)
+    saveSuccess.value = true
 
-  alert('Pengaturan berhasil disimpan!')
+    const { useAuditLog } = await import('~/composables/useAuditLog')
+    const auditLog = useAuditLog()
+    auditLog.addLog({
+      userId: 'current_user',
+      userName: 'Admin',
+      timestamp: new Date().toISOString(),
+      modul: 'Pengaturan Tunjangan Transport',
+      aksi: 'update',
+      deskripsi: 'Update pengaturan tarif tunjangan transport'
+    })
+
+    setTimeout(() => {
+      saveSuccess.value = false
+    }, 3000)
+  } catch (err: any) {
+    saveError.value = error.value || 'Gagal menyimpan pengaturan'
+  }
 }
 
 const resetSettings = () => {
   if (confirm('Apakah Anda yakin ingin membatalkan perubahan?')) {
     localSettings.value = { ...settings.value }
+    saveError.value = null
   }
 }
 

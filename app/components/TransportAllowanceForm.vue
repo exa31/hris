@@ -69,7 +69,6 @@
                         />
                         <span class="input-group-text bg-light border-0 rounded-3 ms-1 fw-bold">KM</span>
                     </div>
-                    <small class="text-muted mt-1 d-block px-1">Gunakan desimal jika perlu</small>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-bold">Hari Masuk Kerja <span class="text-danger">*</span></label>
@@ -85,14 +84,13 @@
                         />
                          <span class="input-group-text bg-light border-0 rounded-3 ms-1 fw-bold">Hari</span>
                     </div>
-                     <small class="text-muted mt-1 d-block px-1">Jumlah hari aktf dalam sebulan</small>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Column 2: Preview Perhitungan -->
+        <!-- Column 2: Perhitungan Info -->
         <div class="col-lg-5">
           <div class="card border-0 shadow-sm rounded-3 bg-primary bg-opacity-10 h-100">
             <div class="card-body p-4 d-flex flex-column h-100">
@@ -100,8 +98,13 @@
 
               <div class="bg-white rounded-3 p-4 mb-4 shadow-sm border border-primary border-opacity-10 flex-grow-1">
                   <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
-                    <span class="text-muted small">Tarif Dasar (Settings)</span>
-                    <span class="fw-bold text-primary">{{ formatCurrency(baseFare) }} / km</span>
+                    <span class="text-muted small">Tarif Dasar</span>
+                    <span class="fw-bold text-primary">{{ formatCurrency(settings.baseFare) }}</span>
+                  </div>
+
+                  <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                    <span class="text-muted small">Tarif per KM</span>
+                    <span class="fw-bold text-primary">{{ formatCurrency(settings.tariffPerKm) }} / km</span>
                   </div>
 
                   <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
@@ -114,8 +117,8 @@
                     <span class="fw-bold">{{ formData.working_days }} Hari</span>
                   </div>
 
-                  <div class="alert alert-light border border-dashed rounded-3 small p-2 mb-4 text-center">
-                    <i class="bi bi-info-circle me-1"></i> {{ formatCurrency(baseFare) }} × {{ effectiveKm }}km × {{ formData.working_days }}hr
+                  <div class="alert alert-light border border-dashed rounded-3 small p-2 mb-4 text-center lh-sm">
+                    <i class="bi bi-info-circle me-1"></i> ({{ formatCurrency(settings.baseFare) }} + ({{ formatCurrency(settings.tariffPerKm) }} &times; {{ effectiveKm }}km)) &times; {{ formData.working_days }}hari
                   </div>
 
                   <div class="text-center pt-3 mt-auto">
@@ -124,25 +127,17 @@
                   </div>
               </div>
 
-              <!-- Validation Message / Notes -->
-              <div v-if="validationNote" class="alert alert-warning border-0 animate__animated animate__fadeIn">
+              <!-- Validation Note -->
+              <div v-if="validationNote" class="alert alert-warning border-0 animate__animated animate__fadeIn mb-4">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ validationNote }}
-              </div>
-
-              <!-- Form Error Message -->
-              <div v-if="formError" class="alert alert-danger border-0 animate__animated animate__shakeX">
-                <i class="bi bi-x-circle-fill me-2"></i> {{ formError }}
               </div>
 
               <!-- Form Actions -->
               <div class="mt-auto d-grid gap-2">
                 <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3" :disabled="loading">
                   <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-                  <i v-else class="bi bi-check-lg me-1"></i> {{ isEdit ? 'Simpan Perubahan' : 'Proses & Simpan'}}
+                  <i v-else class="bi bi-check-lg me-1"></i> Simpan Tunjangan
                 </button>
-                <NuxtLink to="/transport-allowance" class="btn btn-link text-muted text-decoration-none">
-                  Batal & Kembali
-                </NuxtLink>
               </div>
             </div>
           </div>
@@ -168,7 +163,15 @@ const emit = defineEmits<{
 
 const { employees, fetchEmployees, loading: employeesLoading } = useEmployees()
 
-// Form Data matching DB model
+// State
+const settings = ref({
+    baseFare: 5000,
+    tariffPerKm: 2000,
+    minDistance: 5,
+    maxDistance: 25,
+    minWorkingDays: 19
+})
+
 const formData = ref({
   employee_id: props.initialData?.employee_id || 0,
   month: props.initialData?.month || new Date().getMonth() + 1,
@@ -179,28 +182,30 @@ const formData = ref({
   keterangan: props.initialData?.keterangan || ''
 })
 
-const formError = ref('')
-const baseFare = ref(5000) // Default base fare 
 const validationNote = ref('')
 
-// Fetch necessary data
 onMounted(async () => {
   await fetchEmployees()
-  // Mock fetch settings for base fare - real one would come from /api/transport-allowance/settings
   try {
      const { $axios } = useNuxtApp()
      const res = await $axios.get('/api/transport-allowance/settings')
-     if (res.data?.base_fare_per_km) {
-         baseFare.value = parseFloat(res.data.base_fare_per_km)
+     if (res.data) {
+         settings.value = {
+             baseFare: res.data.baseFare || 5000,
+             tariffPerKm: res.data.tariffPerKm || 2000,
+             minDistance: res.data.minDistance || 5,
+             maxDistance: res.data.maxDistance || 25,
+             minWorkingDays: res.data.minWorkingDays || 19
+         }
      }
   } catch (e) {}
 })
 
-// Logic derived from DB rules and user requirements
+// Logic
 const effectiveKm = computed(() => {
     let km = formData.value.distance_km
-    if (km < 5) return 0
-    if (km > 25) km = 25
+    if (km < settings.value.minDistance) return 0
+    if (km > settings.value.maxDistance) km = settings.value.maxDistance
     
     // Rounding logic: < .5 round down, >= .5 round up
     const decimal = km - Math.floor(km)
@@ -208,40 +213,30 @@ const effectiveKm = computed(() => {
 })
 
 const calculatedAmount = computed(() => {
-    if (formData.value.working_days < 19) return 0
-    return baseFare.value * effectiveKm.value * formData.value.working_days
+    // Note: User's logic in calc summary was: (baseFare + (tariffPerKm * km)) * days
+    if (formData.value.working_days < settings.value.minWorkingDays) return 0
+    if (effectiveKm.value === 0) return 0
+    
+    return (settings.value.baseFare + (settings.value.tariffPerKm * effectiveKm.value)) * formData.value.working_days
 })
 
-// SYNC total_allowance whenever input changes
 watch(calculatedAmount, (newVal) => {
     formData.value.total_allowance = newVal
 }, { immediate: true })
 
-// Validation notes logic
-watch(() => [formData.value.distance_km, formData.value.working_days], () => {
+watch(() => [formData.value.distance_km, formData.value.working_days, settings.value], () => {
     validationNote.value = ''
-    if (formData.value.distance_km > 0 && formData.value.distance_km < 5) {
-        validationNote.value = 'Jarak kurang dari 5km tidak mendapatkan tunjangan.'
-    } else if (formData.value.working_days > 0 && formData.value.working_days < 19) {
-        validationNote.value = 'Hari masuk kerja minimal 19 hari untuk klaim tunjangan transpor.'
-    } else if (formData.value.distance_km > 25) {
-        validationNote.value = 'Maksimal jarak yang dihitung adalah 25km.'
+    if (formData.value.distance_km > 0 && formData.value.distance_km < settings.value.minDistance) {
+        validationNote.value = `Jarak kurang dari ${settings.value.minDistance}km tidak mendapatkan tunjangan.`
+    } else if (formData.value.working_days > 0 && formData.value.working_days < settings.value.minWorkingDays) {
+        validationNote.value = `Hari kerja minimal ${settings.value.minWorkingDays} hari dalam sebulan.`
+    } else if (formData.value.distance_km > settings.value.maxDistance) {
+        validationNote.value = `Maksimal jarak yang dihitung adalah ${settings.value.maxDistance}km.`
     }
 })
 
 const submitForm = () => {
-  formError.value = ''
-  
-  if (formData.value.employee_id === 0) {
-    formError.value = 'Silakan pilih pegawai terlebih dahulu.'
-    return
-  }
-  
-  if (formData.value.distance_km <= 0 || formData.value.working_days <= 0) {
-    formError.value = 'Jarak tempuh dan hari masuk kerja harus diisi.'
-    return
-  }
-  
+  if (formData.value.employee_id === 0) return
   emit('submit', { ...formData.value })
 }
 
@@ -255,13 +250,8 @@ const formatCurrency = (value: number) => {
 </script>
 
 <style scoped>
-.transport-allowance-form {
-  animation: fadeIn 0.5s ease;
-}
+.transport-allowance-form { animation: fadeIn 0.5s ease; }
 .card { border-radius: 1rem; }
 .form-select, .form-control { color: #1e293b; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
