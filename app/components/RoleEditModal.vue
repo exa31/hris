@@ -40,59 +40,61 @@
             </div>
 
             <!-- Permissions Section -->
-            <div class="mb-4">
-              <label class="form-label fw-500 mb-3">
-                <i class="bi bi-shield-check text-success me-2"></i>
-                Permissions ({{ formData.selectedPermissions.length }} dipilih)
-              </label>
+                  <label class="form-label fw-bold mb-3 d-flex align-items-center">
+                    <i class="bi bi-shield-check text-success me-2"></i>
+                    <span>Hak Akses ({{ formData.selectedPermissions.length }} terpilih)</span>
+                  </label>
 
-              <div class="permissions-container">
-                <div
-                  v-for="(permsByModule, module) in groupedPermissions"
-                  :key="module"
-                  class="module-section mb-3"
-                >
-                  <!-- Module Header -->
-                  <div class="d-flex align-items-center mb-2">
-                    <div class="form-check">
-                      <input
-                        :id="`check-all-${module}`"
-                        type="checkbox"
-                        class="form-check-input"
-                        :checked="isModuleAllChecked(module)"
-                        :indeterminate="isModuleIndeterminate(module)"
-                        @change="toggleModulePermissions(module)"
-                      />
-                      <label :for="`check-all-${module}`" class="form-check-label fw-600">
-                        {{ module }}
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- Permissions -->
-                  <div class="ps-4">
+                  <div class="permissions-scroll px-2">
                     <div
-                      v-for="perm in permsByModule"
-                      :key="perm.id"
-                      class="form-check mb-2"
+                      v-for="(permsByModule, module) in groupedPermissions"
+                      :key="module"
+                      class="module-group mb-4"
                     >
-                      <input
-                        :id="`perm-${perm.id}`"
-                        type="checkbox"
-                        class="form-check-input"
-                        :value="perm.id"
-                        :checked="formData.selectedPermissions.includes(perm.id)"
-                        @change="togglePermission(perm.id)"
-                      />
-                      <label :for="`perm-${perm.id}`" class="form-check-label">
-                        {{ perm.name }}
-                        <span class="badge bg-light text-dark small ms-2">{{ perm.action }}</span>
-                      </label>
+                      <!-- Module Header -->
+                      <div class="module-header d-flex align-items-center mb-3">
+                        <div class="form-check m-0">
+                          <input
+                            :id="`check-all-${module}`"
+                            type="checkbox"
+                            class="form-check-input"
+                            :checked="isModuleAllChecked(module)"
+                            :indeterminate="isModuleIndeterminate(module)"
+                            @change="toggleModulePermissions(module)"
+                          />
+                          <label :for="`check-all-${module}`" class="form-check-label fw-bold ms-2 text-primary text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                            {{ formatModuleName(String(module)) }}
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Permissions Grid -->
+                      <div class="row g-3 ms-1">
+                        <div
+                          v-for="perm in permsByModule"
+                          :key="perm.id"
+                          class="col-md-4 col-sm-6"
+                        >
+                          <div class="perm-item p-2 rounded-2 border" :class="{ 'bg-primary-subtle border-primary-subtle': formData.selectedPermissions.includes(perm.id) }">
+                            <div class="form-check m-0">
+                              <input
+                                :id="`perm-${perm.id}`"
+                                type="checkbox"
+                                class="form-check-input shadow-none"
+                                :value="perm.id"
+                                :checked="formData.selectedPermissions.includes(perm.id)"
+                                @change="togglePermission(perm.id)"
+                              />
+                              <label :for="`perm-${perm.id}`" class="form-check-label d-flex flex-column ms-2" style="cursor: pointer;">
+                                <span class="fw-medium text-dark small">{{ perm.name }}</span>
+                                <span class="text-muted" style="font-size: 0.7rem; font-family: monospace;">{{ perm.action }}</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
 
             <!-- Submit Error -->
             <div v-if="errors.submit" class="alert alert-danger py-2 small mb-3">
@@ -245,6 +247,18 @@ const closeModal = () => {
   emit('close')
 }
 
+const formatModuleName = (module: string) => {
+  const map: Record<string, string> = {
+    'dashboard': 'Dashboard',
+    'users': 'Manajemen User',
+    'employees': 'Data Pegawai',
+    'transport': 'Tunjangan Transport',
+    'logs': 'Log Aktivitas',
+    'settings': 'Pengaturan'
+  }
+  return map[module] || (module.charAt(0).toUpperCase() + module.slice(1))
+}
+
 // Initialize form when role prop changes
 watch(
   () => props.role,
@@ -271,20 +285,34 @@ watch(
   z-index: 1040;
 }
 
-.permissions-container {
-  max-height: 400px;
+.permissions-scroll {
+  max-height: 450px;
   overflow-y: auto;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
+  scrollbar-width: thin;
 }
 
-.module-section {
-  padding: 0.75rem;
-  background-color: white;
-  border-radius: 0.375rem;
-  border-left: 3px solid #0d6efd;
+.module-group {
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 1rem;
+}
+
+.module-group:last-child {
+  border-bottom: none;
+}
+
+.perm-item {
+  transition: all 0.2s ease;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.perm-item:hover {
+  border-color: #0d6efd !important;
+  background-color: #f0f7ff;
+}
+
+.form-check-input {
+  cursor: pointer;
 }
 
 .form-check-input:indeterminate {
@@ -292,16 +320,7 @@ watch(
   border-color: #0d6efd;
 }
 
-.form-label {
-  color: #212529;
-  margin-bottom: 0.5rem;
-}
-
 .fw-500 {
   font-weight: 500;
-}
-
-.fw-600 {
-  font-weight: 600;
 }
 </style>

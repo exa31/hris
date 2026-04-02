@@ -342,7 +342,24 @@ const handleLogin = async () => {
     }, 1500);
 
   } catch (error: any) {
-    showErrorAlert(error.data?.message || error.message || 'Login gagal, silakan coba lagi');
+    // Axios errors: error.response.data contains the server response
+    const serverData = error.response?.data
+
+    const errorCodeMap: Record<string, string> = {
+      INVALID_CREDENTIALS: 'Username atau password yang Anda masukkan salah.',
+      USER_INACTIVE: 'Akun Anda tidak aktif. Silakan hubungi administrator.',
+      INVALID_REQUEST: 'Data yang dikirim tidak valid.',
+      missing_token: 'Sesi tidak valid. Silakan login kembali.',
+    }
+
+    const code = serverData?.code || serverData?.error
+    const friendlyMessage = (code && errorCodeMap[code])
+      || serverData?.message
+      || error.message
+      || 'Login gagal. Silakan coba lagi.'
+
+    generateCaptcha() // Reset captcha after failed login
+    showErrorAlert(friendlyMessage)
   }
 };
 </script>

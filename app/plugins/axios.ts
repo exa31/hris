@@ -116,7 +116,7 @@ export default defineNuxtPlugin((nuxtApp) => {
                 if (import.meta.client) {
                     navigateTo('/')
                 }
-                return Promise.reject(err)
+                return Promise.reject(error)
             }
         }
     )

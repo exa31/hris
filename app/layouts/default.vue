@@ -15,7 +15,7 @@
         </button>
       </div>
 
-      <nav class="sidebar-nav">
+        <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">MENU UTAMA</div>
           <NuxtLink 
@@ -27,6 +27,7 @@
             <span>Dashboard</span>
           </NuxtLink>
           <NuxtLink 
+            v-if="hasPermission('employees', 'read')"
             to="/employees" 
             class="nav-item" 
             :class="{ active: isActive('/employees') }"
@@ -36,8 +37,8 @@
           </NuxtLink>
         </div>
 
-        <!-- Menu Manajemen Data (untuk semua) -->
-        <div class="nav-section">
+        <!-- Menu Manajemen Data -->
+        <div class="nav-section" v-if="hasPermission('transport', 'read')">
           <div class="nav-section-title">MANAJEMEN DATA</div>
           <NuxtLink 
             to="/transport-allowance" 
@@ -49,10 +50,11 @@
           </NuxtLink>
         </div>
 
-        <!-- Menu Administrasi (untuk semua) -->
-        <div class="nav-section">
+        <!-- Menu Administrasi -->
+        <div class="nav-section" v-if="hasPermission('users', 'read') || hasPermission('roles', 'read') || hasPermission('logs', 'read') || hasPermission('transport_setting', 'read')">
           <div class="nav-section-title">ADMINISTRASI</div>
           <NuxtLink 
+            v-if="hasPermission('users', 'read')"
             to="/user-management" 
             class="nav-item" 
             :class="{ active: isActive('/user-management') }"
@@ -61,6 +63,7 @@
             <span>Manajemen User</span>
           </NuxtLink>
           <NuxtLink 
+            v-if="hasPermission('roles', 'read')"
             to="/roles" 
             class="nav-item" 
             :class="{ active: isActive('/roles') }"
@@ -69,6 +72,7 @@
             <span>Kelola Role</span>
           </NuxtLink>
           <NuxtLink 
+            v-if="hasPermission('logs', 'read')"
             to="/activity-logs" 
             class="nav-item" 
             :class="{ active: isActive('/activity-logs') }"
@@ -77,6 +81,7 @@
             <span>Log Aktivitas</span>
           </NuxtLink>
           <NuxtLink 
+            v-if="hasPermission('transport_setting', 'read')"
             to="/settings/transport-settings" 
             class="nav-item" 
             :class="{ active: isActive('/settings/transport-settings') }"
@@ -131,9 +136,9 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const sidebarCollapsed = ref(false); // false = sidebar expanded (normal) / true = sidebar collapsed (narrow)
+const sidebarCollapsed = ref(false);
 
-const { user } = useAuth();
+const { user, hasPermission } = useAuth();
 
 const userName = computed(() => user.value?.employee?.name || 'User');
 const userRole = computed(() => user.value?.role?.name || '');

@@ -12,7 +12,7 @@ export const up = (pgm) => {
     // Insert Roles
     pgm.sql(`
         INSERT INTO roles (id, name) VALUES
-        (1, 'Superadmin'),
+        (1, 'Super Admin'),
         (2, 'Manager HRD'),
         (3, 'Admin HRD');
     `);

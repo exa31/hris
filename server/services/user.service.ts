@@ -91,6 +91,10 @@ export async function getPermissions(client: PoolClient) {
     return userRepository.getPermissions(client)
 }
 
+export async function getPermissionsByRoleId(client: PoolClient, roleId: number) {
+    return userRepository.getPermissionsByRoleId(client, roleId)
+}
+
 export async function updateRolePermissions(client: PoolClient, roleId: number, name: string, permissionIds: number[]) {
     return userRepository.updateRolePermissions(client, roleId, name, permissionIds)
 }

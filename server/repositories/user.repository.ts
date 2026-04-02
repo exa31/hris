@@ -147,6 +147,18 @@ export async function getPermissions(client: PoolClient) {
     return rows
 }
 
+export async function getPermissionsByRoleId(client: PoolClient, roleId: number) {
+    const { rows } = await client.query(
+        `SELECT p.module, p.action, p.name
+         FROM permissions p
+         INNER JOIN role_permissions rp ON p.id = rp.permission_id
+         WHERE rp.role_id = $1
+         ORDER BY p.module ASC, p.action ASC`,
+        [roleId]
+    )
+    return rows as { module: string; action: string; name: string }[]
+}
+
 export async function updateRolePermissions(client: PoolClient, roleId: number, name: string, permissionIds: number[]) {
     // 1. Update role name if provided
     await client.query(`UPDATE roles SET name = $1 WHERE id = $2`, [name, roleId])
