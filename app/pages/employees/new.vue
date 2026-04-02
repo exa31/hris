@@ -12,15 +12,27 @@
     </div>
 
     <!-- Form Card -->
-    <div class="card">
-      <div class="card-body">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
         <EmployeeForm @submit="handleFormSubmit" />
       </div>
     </div>
+
+    <!-- Status Modal -->
+    <ConfirmModal
+      :is-open="modalConfig.isOpen"
+      :title="modalConfig.title"
+      :message="modalConfig.message"
+      :type="modalConfig.type"
+      :is-confirm="false"
+      cancel-text="Tutup"
+      @close="modalConfig.isOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { reactive } from 'vue'
 import type { Employee } from '~/composables/useEmployees'
 import { useEmployees } from '~/composables/useEmployees'
 import { useEducations } from '~/composables/useEducations'
@@ -28,6 +40,14 @@ import { useEducations } from '~/composables/useEducations'
 const { addEmployee, loading } = useEmployees()
 const { syncEmployeeEducations } = useEducations()
 const router = useRouter()
+
+// Modal State
+const modalConfig = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success'
+})
 
 const handleFormSubmit = async (data: any) => {
   try {
@@ -39,9 +59,20 @@ const handleFormSubmit = async (data: any) => {
     }
     
     // Show success message or redirect
-    navigateTo('/employees')
-  } catch (error) {
+    modalConfig.title = 'Berhasil'
+    modalConfig.message = 'Data pegawai baru berhasil ditambahkan!'
+    modalConfig.type = 'success'
+    modalConfig.isOpen = true
+    
+    setTimeout(() => {
+        navigateTo('/employees')
+    }, 1500)
+  } catch (error: any) {
     console.error('Error adding employee:', error)
+    modalConfig.title = 'Terjadi Kesalahan'
+    modalConfig.message = error.response?.data?.message || 'Gagal menambahkan data pegawai.'
+    modalConfig.type = 'danger'
+    modalConfig.isOpen = true
   }
 }
 

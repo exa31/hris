@@ -147,14 +147,23 @@
       </div>
     </div>
   </div>
-
   <div v-else class="alert alert-warning">
     <i class="bi bi-exclamation-triangle"></i> Data pegawai tidak ditemukan
   </div>
+   <!-- Confirm Modal -->
+    <ConfirmModal
+      :is-open="modalConfig.isOpen"
+      :title="modalConfig.title"
+      :message="modalConfig.message"
+      :type="modalConfig.type"
+      :is-confirm="modalConfig.isConfirm"
+      @close="modalConfig.isOpen = false"
+      @confirm="handleConfirmDelete"
+    />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useEmployees } from '~/composables/useEmployees'
 
 const route = useRoute()
@@ -163,6 +172,15 @@ const router = useRouter()
 const employeeId = computed(() => parseInt(route.params.id as string))
 const employee = ref<any>(null)
 const loading = ref(false)
+
+// Modal State
+const modalConfig = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success',
+  isConfirm: true
+})
 
 const formatDate = (date: string) => {
   if (!date) return '-';
@@ -184,15 +202,26 @@ const calculateAge = (birthDate: string, joinDate: string) => {
   return age > 0 ? age : 0
 }
 
-const deleteThisEmployee = async () => {
-  if (confirm('Apakah Anda yakin ingin menghapus data pegawai ini?')) {
+const deleteThisEmployee = () => {
+  modalConfig.title = 'Hapus Pegawai'
+  modalConfig.message = 'Apakah Anda yakin ingin menghapus data pegawai ini secara permanen?'
+  modalConfig.type = 'danger'
+  modalConfig.isConfirm = true
+  modalConfig.isOpen = true
+}
+
+const handleConfirmDelete = async () => {
+    modalConfig.isOpen = false
     try {
-      await useEmployees().deleteEmployee(employeeId.value)
-      router.push('/employees')
+        await useEmployees().deleteEmployee(employeeId.value)
+        router.push('/employees')
     } catch (error) {
-      alert('Gagal menghapus data!')
+        modalConfig.title = 'Error'
+        modalConfig.message = 'Gagal menghapus data!'
+        modalConfig.type = 'danger'
+        modalConfig.isConfirm = false
+        modalConfig.isOpen = true
     }
-  }
 }
 
 onMounted(async () => {

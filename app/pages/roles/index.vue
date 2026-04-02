@@ -69,12 +69,7 @@
                 </span>
               </div>
             </div>
-            
-            <!-- Card Footer Decor -->
-            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                <small class="text-muted fst-italic">Digunakan oleh {{ Math.floor(Math.random() * 10) + 1 }} user</small>
-                <i class="bi bi-arrow-right-short text-primary fs-4 opacity-50"></i>
-            </div>
+                    
           </div>
         </div>
       </div>
@@ -166,6 +161,7 @@ onMounted(async () => {
 }
 
 .permissions-preview {
-  padding: 0.5rem 0;
+  max-height: 100px;
+  overflow: hidden;
 }
 </style>

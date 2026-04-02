@@ -3,13 +3,13 @@ import type { User, SearchUsersInput } from '~~/server/model/user.model'
 
 export const useUsers = () => {
     const { $axios } = useNuxtApp()
-    
+
     // State
     const users = ref<User[]>([])
     const totalCount = ref(0)
     const loading = ref(false)
     const error = ref<string | null>(null)
-    
+
     // Filters & Pagination
     const searchQuery = ref('')
     const filterStatus = ref<boolean | null>(null)
@@ -26,7 +26,7 @@ export const useUsers = () => {
                 search: searchQuery.value || undefined,
                 is_active: filterStatus.value !== null ? filterStatus.value : undefined
             }
-            
+
             const response = await $axios.get('/api/users', { params })
             // Our API returns { status, message, data: { users, pagination } }
             // But if there is a global interceptor, it might be different.

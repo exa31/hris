@@ -27,7 +27,7 @@
           <button
             v-if="selectedEmployees.length > 0"
             class="btn btn-outline-danger me-2"
-            @click="showDeleteConfirm = true"
+            @click="confirmBulkDelete"
           >
             <i class="bi bi-trash"></i> Hapus ({{ selectedEmployees.length }})
           </button>
@@ -51,26 +51,27 @@
       </div>
 
       <!-- Search & Filter Row -->
-      <div class="row g-3 mt-2">
+      <div class="row g-3 mt-3 align-items-end">
         <!-- Search -->
         <div class="col-md-3">
+          <label class="form-label small fw-bold">Cari Pegawai</label>
           <div class="input-group">
-            <span class="input-group-text bg-light">
-              <i class="bi bi-search"></i>
+            <span class="input-group-text bg-white border-end-0">
+              <i class="bi bi-search text-muted"></i>
             </span>
             <input
               v-model="searchQuery"
               type="text"
-              class="form-control"
-              placeholder="Cari nama/NIP/jabatan..."
+              class="form-control border-start-0"
+              placeholder="Nama / NIP..."
             />
           </div>
         </div>
 
-        <!-- Filter Jabatan (Multi select) -->
+        <!-- Filter Jabatan -->
         <div class="col-md-4">
-          <label class="form-label small fw-bold">Jabatan</label>
-          <div class="d-flex flex-wrap gap-2">
+          <label class="form-label small fw-bold">Filter Jabatan</label>
+          <div class="d-flex flex-wrap gap-2 py-1">
             <div v-for="pos in ['Manager', 'Staf', 'Magang']" :key="pos">
               <input 
                 type="checkbox" 
@@ -91,10 +92,10 @@
         </div>
 
         <!-- Filter Masa Kerja -->
-        <div class="col-md-4">
-          <label class="form-label small fw-bold">Masa Kerja (Tahun)</label>
-          <div class="input-group input-group-sm">
-            <select v-model="tenureOperator" class="form-select" style="max-width: 80px;">
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Masa Kerja (Thn)</label>
+          <div class="input-group">
+            <select v-model="tenureOperator" class="form-select border-end-0" style="max-width: 65px;">
               <option value=">">&gt;</option>
               <option value="=">=</option>
               <option value="<">&lt;</option>
@@ -103,15 +104,15 @@
               type="number" 
               class="form-control" 
               v-model="tenureValue" 
-              placeholder="Angka (Contoh: 5)"
+              placeholder="0"
               min="0"
             />
           </div>
         </div>
 
         <!-- Reset Button -->
-        <div class="col-md-2 d-flex align-items-end mb-1">
-          <button class="btn btn-outline-secondary btn-sm w-100" @click="resetFilters">
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" @click="resetFilters" title="Reset Filter">
             <i class="bi bi-arrow-clockwise"></i> Reset
           </button>
         </div>
@@ -119,8 +120,8 @@
     </div>
 
     <!-- Table -->
-    <div class="table-responsive">
-      <table class="table table-hover">
+    <div class="table-responsive bg-white rounded shadow-sm">
+      <table class="table table-hover mb-0">
         <thead class="table-light">
           <tr>
             <th style="width: 40px">
@@ -128,86 +129,51 @@
                 type="checkbox"
                 class="form-check-input"
                 @change="toggleSelectAll()"
-                :checked="
-                  selectedEmployees.length === employees.length &&
-                  employees.length > 0
-                "
+                :checked="selectedEmployees.length === employees.length && employees.length > 0"
               />
             </th>
             <th>No.</th>
-            <th class="sortable" @click="handleSort('nip')">
-              NIP <i v-if="sortColumn === 'nip'" :class="sortDirection === 'asc' ? 'bi bi-sort-numeric-up' : 'bi bi-sort-numeric-down'"></i>
-            </th>
-            <th class="sortable" @click="handleSort('name')">
-              Nama <i v-if="sortColumn === 'name'" :class="sortDirection === 'asc' ? 'bi bi-sort-alpha-up' : 'bi bi-sort-alpha-down'"></i>
-            </th>
-            <th class="sortable" @click="handleSort('position')">
-              Jabatan <i v-if="sortColumn === 'position'" :class="sortDirection === 'asc' ? 'bi bi-sort-alpha-up' : 'bi bi-sort-alpha-down'"></i>
-            </th>
-            <th class="sortable" @click="handleSort('join_date')">
-              Tanggal Masuk <i v-if="sortColumn === 'join_date'" :class="sortDirection === 'asc' ? 'bi bi-sort-numeric-up' : 'bi bi-sort-numeric-down'"></i>
-            </th>
-            <th class="sortable" @click="handleSort('join_date')">
-              Masa Kerja <i v-if="sortColumn === 'join_date'" :class="sortDirection === 'asc' ? 'bi bi-sort-numeric-up' : 'bi bi-sort-numeric-down'"></i>
-            </th>
-            <th>Aksi</th>
+            <th class="sortable" @click="handleSort('nip')">NIP</th>
+            <th class="sortable" @click="handleSort('name')">Nama</th>
+            <th>Jabatan</th>
+            <th>Masa Kerja</th>
+            <th style="width: 15%">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(emp, idx) in employees" :key="emp.id">
-            <td>
-              <input
-                type="checkbox"
-                class="form-check-input"
-                v-model="selectedEmployees"
-                :value="emp.id"
-              />
+          <tr v-if="loading">
+            <td colspan="7" class="text-center py-5">
+              <div class="spinner-border text-primary spinner-border-sm me-2"></div>
+              Memuat data...
             </td>
-            <td>
-              <small>{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</small>
+          </tr>
+          <tr v-else-if="employees.length === 0">
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+              Tidak ada data pegawai
             </td>
+          </tr>
+          <tr v-else v-for="(emp, idx) in employees" :key="emp.id">
             <td>
-              <small class="text-monospace">{{ emp.nip }}</small>
+              <input type="checkbox" class="form-check-input" v-model="selectedEmployees" :value="emp.id" />
             </td>
+            <td>{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
+            <td><code>{{ emp.nip }}</code></td>
+            <td class="fw-bold">{{ emp.name }}</td>
+            <td><span class="badge bg-info-subtle text-info border border-info-subtle">{{ emp.position }}</span></td>
+            <td>{{ calculateTenure(emp.join_date) }} Thn</td>
             <td>
-              <span class="fw-500">{{ emp.name }}</span>
-            </td>
-            <td>
-              <span class="badge bg-info">{{ emp.position }}</span>
-            </td>
-            <td>
-              <small>{{ formatDate(emp.join_date) }}</small>
-            </td>
-            <td>
-              <small>{{ calculateTenure(emp.join_date) }} Tahun</small>
-            </td>
-            <td>
-              <div class="btn-group btn-group-sm" role="group">
+              <div class="btn-group btn-group-sm">
                 <NuxtLink :to="`/employees/${emp.id}`" class="btn btn-outline-primary" title="Detail">
-                  <i class="bi bi-eye"></i> Detail
+                  <i class="bi bi-eye"></i>
                 </NuxtLink>
                 <NuxtLink :to="`/employees/${emp.id}/edit`" class="btn btn-outline-warning" title="Edit">
-                  <i class="bi bi-pencil"></i> Edit
+                  <i class="bi bi-pencil"></i>
                 </NuxtLink>
-                <button
-                  class="btn btn-outline-success"
-                  @click="downloadPersonalPdf(emp)"
-                  title="Download PDF"
-                >
-                  <i class="bi bi-download"></i> PDF
+                <button class="btn btn-outline-danger" @click="deleteEmployee(emp.id)" title="Hapus">
+                  <i class="bi bi-trash"></i>
                 </button>
               </div>
-            </td>
-          </tr>
-          <tr v-if="employees.length === 0 && !loading">
-            <td colspan="8" class="text-center text-muted py-4">
-              <i class="bi bi-inbox"></i> Tidak ada data pegawai
-            </td>
-          </tr>
-          <tr v-if="loading">
-            <td colspan="8" class="text-center text-muted py-4">
-              <span class="spinner-border spinner-border-sm me-2"></span>
-              Memuat data...
             </td>
           </tr>
         </tbody>
@@ -215,92 +181,59 @@
     </div>
 
     <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3">
-      <small class="text-muted">
-        Menampilkan {{ (currentPage - 1) * itemsPerPage + 1 }} -
-        {{ Math.min(currentPage * itemsPerPage, totalEmployees) }}
-        dari {{ totalEmployees }} data
-      </small>
-      <nav>
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item" :class="{ disabled: currentPage === 1 }">
-            <button
-              class="page-link"
-              @click="currentPage--"
-              :disabled="currentPage === 1"
-            >
-              <i class="bi bi-chevron-left"></i>
-            </button>
-          </li>
-          <li
-            v-for="page in totalPages"
-            :key="page"
-            class="page-item"
-            :class="{ active: currentPage === page }"
-          >
-            <button class="page-link" @click="currentPage = page">
-              {{ page }}
-            </button>
-          </li>
-          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-            <button
-              class="page-link"
-              @click="currentPage++"
-              :disabled="currentPage === totalPages"
-            >
-              <i class="bi bi-chevron-right"></i>
-            </button>
-          </li>
-        </ul>
-      </nav>
+    <div class="d-flex justify-content-between align-items-center mt-3" v-if="totalPages > 1">
+        <small class="text-muted">Total {{ totalEmployees }} data</small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                    <button class="page-link" @click="currentPage--"><i class="bi bi-chevron-left"></i></button>
+                </li>
+                <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+                    <button class="page-link" @click="currentPage = page">{{ page }}</button>
+                </li>
+                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                    <button class="page-link" @click="currentPage++"><i class="bi bi-chevron-right"></i></button>
+                </li>
+            </ul>
+        </nav>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div
-      v-if="showDeleteConfirm"
-      class="modal show d-block"
-      style="background: rgba(0, 0, 0, 0.5)"
-    >
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Konfirmasi Hapus</h5>
-            <button type="button" class="btn-close" @click="showDeleteConfirm = false"></button>
-          </div>
-          <div class="modal-body">
-            <p>Apakah Anda yakin ingin menghapus {{ selectedEmployees.length }} data pegawai?</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showDeleteConfirm = false">
-              Batal
-            </button>
-            <button type="button" class="btn btn-danger" @click="confirmDelete">
-              Hapus
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Confirm Modal -->
+    <ConfirmModal
+      :is-open="modalConfig.isOpen"
+      :title="modalConfig.title"
+      :message="modalConfig.message"
+      :type="modalConfig.type"
+      :is-confirm="modalConfig.isConfirm"
+      @close="modalConfig.isOpen = false"
+      @confirm="handleModalConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, reactive } from 'vue'
 import { useEmployees } from '~/composables/useEmployees'
 
-const showDeleteConfirm = ref(false)
+// Modal State
+const modalConfig = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success',
+  isConfirm: true,
+  action: null as 'delete' | 'bulkDelete' | 'bulkStatus' | 'alert' | null,
+  payload: null as any
+})
 
 const {
   employees,
   loading,
-  error,
   currentPage,
   itemsPerPage,
   totalEmployees,
   totalPages,
   searchQuery,
-  selectedDepartment,
-  selectedStatus,
   selectedEmployees,
   sortColumn,
   sortDirection,
@@ -308,12 +241,66 @@ const {
   tenureOperator,
   tenureValue,
   fetchEmployees,
-  deleteEmployee: deleteEmployeeMethod,
+  deleteEmployee: deleteMethod,
   deleteSelectedEmployees,
-  updateStatusBulk: updateStatusBulkMethod,
+  updateStatusBulk: statusMethod,
   toggleSelectAll,
   resetFilters: resetFiltersMethod,
 } = useEmployees()
+
+const showAlert = (title: string, message: string, type: any = 'primary') => {
+  modalConfig.title = title
+  modalConfig.message = message
+  modalConfig.type = type
+  modalConfig.isConfirm = false
+  modalConfig.action = 'alert'
+  modalConfig.isOpen = true
+}
+
+const handleModalConfirm = async () => {
+    modalConfig.isOpen = false
+    try {
+        if (modalConfig.action === 'delete') {
+            await deleteMethod(modalConfig.payload)
+        } else if (modalConfig.action === 'bulkDelete') {
+            await deleteSelectedEmployees()
+        } else if (modalConfig.action === 'bulkStatus') {
+            await statusMethod(modalConfig.payload)
+        }
+        await fetchEmployees()
+    } catch (err) {
+        showAlert('Error', 'Gagal memproses data', 'danger')
+    }
+}
+
+const deleteEmployee = (id: number) => {
+  modalConfig.title = 'Hapus Pegawai'
+  modalConfig.message = 'Yakin ingin menghapus data ini?'
+  modalConfig.type = 'danger'
+  modalConfig.isConfirm = true
+  modalConfig.action = 'delete'
+  modalConfig.payload = id
+  modalConfig.isOpen = true
+}
+
+const confirmBulkDelete = () => {
+  modalConfig.title = 'Hapus Terpilih'
+  modalConfig.message = `Hapus ${selectedEmployees.value.length} data terpilih?`
+  modalConfig.type = 'danger'
+  modalConfig.isConfirm = true
+  modalConfig.action = 'bulkDelete'
+  modalConfig.isOpen = true
+}
+
+const updateStatusBulk = (status: boolean) => {
+  modalConfig.title = 'Update Status'
+  modalConfig.message = `Update status ${selectedEmployees.value.length} data menjadi ${status ? 'Aktif' : 'Nonaktif'}?`
+  modalConfig.type = 'warning'
+  modalConfig.isConfirm = true
+  modalConfig.action = 'bulkStatus'
+  modalConfig.payload = status
+  modalConfig.isOpen = true
+}
 
 const handleSort = (column: string) => {
   if (sortColumn.value === column) {
@@ -325,6 +312,7 @@ const handleSort = (column: string) => {
 }
 
 const calculateTenure = (joinDate: string) => {
+  if (!joinDate) return 0
   const join = new Date(joinDate)
   const now = new Date()
   let years = now.getFullYear() - join.getFullYear()
@@ -334,122 +322,44 @@ const calculateTenure = (joinDate: string) => {
   return years > 0 ? years : 0
 }
 
-const downloadPersonalPdf = (emp: any) => {
-  alert(`Mendownload data ${emp.name} (PDF)... (Akan dikembangkan lebih lanjut)`)
-}
-
-// Load employees on mount
-onMounted(() => {
-  fetchEmployees()
-})
-
-// Refetch when filters or pagination changes
-watch([currentPage, itemsPerPage, searchQuery, selectedPositions, tenureOperator, tenureValue, sortColumn, sortDirection], () => {
-  fetchEmployees()
-})
-
-const deleteEmployee = async (id: number) => {
-  if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-    try {
-      await deleteEmployeeMethod(id)
-      await fetchEmployees()
-    } catch (err) {
-      alert('Gagal menghapus data pegawai')
-    }
-  }
-}
-
-const confirmDelete = async () => {
-  try {
-    await deleteSelectedEmployees()
-    await fetchEmployees()
-    showDeleteConfirm.value = false
-  } catch (err) {
-    alert('Gagal menghapus data pegawai')
-  }
-}
-
-const updateStatusBulk = async (status: boolean) => {
-  try {
-    await updateStatusBulkMethod(status)
-    await fetchEmployees()
-  } catch (err) {
-    alert('Gagal memperbarui status pegawai')
-  }
-}
-
 const resetFilters = () => {
   resetFiltersMethod()
   fetchEmployees()
 }
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
 const downloadExcel = () => {
-  alert('Fitur download Excel akan dikembangkan lebih lanjut')
+    const params = new URLSearchParams()
+    if (searchQuery.value) params.append('search', searchQuery.value)
+    if (selectedPositions.value.length > 0) params.append('positions', selectedPositions.value.join(','))
+    if (tenureOperator.value) params.append('tenureOperator', tenureOperator.value)
+    if (tenureValue.value !== null) params.append('tenureValue', String(tenureValue.value))
+    if (sortColumn.value) params.append('sortColumn', sortColumn.value)
+    if (sortDirection.value) params.append('sortDirection', sortDirection.value)
+
+    window.open(`/api/employees/export-excel?${params.toString()}`, '_blank')
 }
 
 const downloadPdf = () => {
-  alert('Fitur download PDF akan dikembangkan lebih lanjut')
+    const params = new URLSearchParams()
+    if (searchQuery.value) params.append('search', searchQuery.value)
+    if (selectedPositions.value.length > 0) params.append('positions', selectedPositions.value.join(','))
+    if (tenureOperator.value) params.append('tenureOperator', tenureOperator.value)
+    if (tenureValue.value !== null) params.append('tenureValue', String(tenureValue.value))
+    if (sortColumn.value) params.append('sortColumn', sortColumn.value)
+    if (sortDirection.value) params.append('sortDirection', sortDirection.value)
+
+    window.open(`/api/employees/export-pdf?${params.toString()}`, '_blank')
 }
 
-definePageMeta({
-  layout: 'default'
-})
+onMounted(() => fetchEmployees())
+watch([currentPage, searchQuery, selectedPositions, tenureOperator, tenureValue, sortColumn, sortDirection], () => fetchEmployees())
+
+definePageMeta({ layout: 'default' })
 </script>
 
 <style scoped>
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.actions-panel {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
-}
-
-.sortable {
-  user-select: none;
-}
-
-.sortable:hover {
-  color: #667eea;
-}
-
-.text-monospace {
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-}
-
-.fw-500 {
-  font-weight: 500;
-}
-
-.modal.show {
-  animation: fadeIn 0.2s;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+.page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1e293b; }
+.actions-panel { background: #f8fafc; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; }
+.sortable { cursor: pointer; }
+.sortable:hover { color: #0d6efd; }
 </style>

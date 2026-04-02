@@ -20,6 +20,17 @@
         />
       </div>
     </div>
+
+    <!-- Status Modal -->
+    <ConfirmModal
+      :is-open="modalConfig.isOpen"
+      :title="modalConfig.title"
+      :message="modalConfig.message"
+      :type="modalConfig.type"
+      :is-confirm="false"
+      cancel-text="Tutup"
+      @close="modalConfig.isOpen = false"
+    />
   </div>
 
   <div v-else-if="loading" class="alert alert-info">
@@ -44,6 +55,15 @@ const employeeId = computed(() => parseInt(route.params.id as string))
 const employee = ref<Partial<Employee> | null>(null)
 const loading = ref(false)
 
+// Modal State
+const modalConfig = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success',
+  isConfirm: false
+})
+
 const handleFormSubmit = async (data: any) => {
   try {
     await useEmployees().updateEmployee(employeeId.value, data)
@@ -53,10 +73,19 @@ const handleFormSubmit = async (data: any) => {
       await useEducations().syncEmployeeEducations(employeeId.value, data.educationIds)
     }
     
-    alert('Data pegawai berhasil diperbarui!')
-    router.push(`/employees/${employeeId.value}`)
+    modalConfig.title = 'Berhasil'
+    modalConfig.message = 'Data pegawai berhasil diperbarui!'
+    modalConfig.type = 'success'
+    modalConfig.isOpen = true
+    
+    setTimeout(() => {
+        router.push(`/employees/${employeeId.value}`)
+    }, 1500)
   } catch (error) {
-    alert('Gagal memperbarui data pegawai!')
+    modalConfig.title = 'Error'
+    modalConfig.message = 'Gagal memperbarui data pegawai!'
+    modalConfig.type = 'danger'
+    modalConfig.isOpen = true
     console.error(error)
   }
 }
