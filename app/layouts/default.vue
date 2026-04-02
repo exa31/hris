@@ -1,7 +1,5 @@
 <template>
   <div class="app-layout">
-    <!-- Sidebar Overlay for Mobile -->
-    <div class="sidebar-overlay" @click="sidebarCollapsed = true"></div>
 
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
@@ -10,8 +8,13 @@
           <i class="bi bi-building"></i>
           <span class="logo-text">JMC</span>
         </div>
-        <button class="btn-collapse" @click="sidebarCollapsed = !sidebarCollapsed">
+        <!-- Toggle button for Desktop -->
+        <button class="btn-collapse d-none d-md-flex" @click="sidebarCollapsed = !sidebarCollapsed">
           <i class="bi bi-chevron-left"></i>
+        </button>
+        <!-- Close button for Mobile -->
+        <button class="btn-close-mobile d-flex d-md-none" @click="sidebarCollapsed = true">
+          <i class="bi bi-x-lg"></i>
         </button>
       </div>
 
@@ -99,6 +102,9 @@
         </button>
       </div>
     </aside>
+
+    <!-- Sidebar Overlay for Mobile (Placed after for CSS sibling selector) -->
+    <div class="sidebar-overlay" :class="{ 'show': !sidebarCollapsed }" @click="sidebarCollapsed = true"></div>
 
     <!-- Main Content -->
     <div class="main-container">
@@ -195,7 +201,6 @@ const handleLogout = async () => {
   position: relative;
 }
 
-/* Sidebar Toggle Overlay for Mobile */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -203,11 +208,19 @@ const handleLogout = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.4);
   z-index: 90;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.sidebar-overlay.show {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar::before {
@@ -299,27 +312,30 @@ const handleLogout = async () => {
   opacity: 0;
 }
 
-.btn-collapse {
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: #334155;
+.btn-collapse, .btn-close-mobile {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #64748b;
   cursor: pointer;
-  font-size: 1.2rem;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+  font-size: 1.1rem;
+  padding: 0.4rem;
+  border-radius: 0.6rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.btn-collapse:hover {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: rgba(102, 126, 234, 0.5);
-  color: #667eea;
+.btn-collapse:hover, .btn-close-mobile:hover {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.btn-collapse i {
+.btn-collapse i, .btn-close-mobile i {
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -675,10 +691,10 @@ const handleLogout = async () => {
     box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
   }
 
-  /* Show overlay when sidebar is open on mobile */
-  .sidebar:not(.sidebar-collapsed) ~ .sidebar-overlay {
+  .sidebar:not(.sidebar-collapsed) + .sidebar-overlay {
     display: block;
     opacity: 1;
+    pointer-events: auto;
   }
 
   .btn-menu {
