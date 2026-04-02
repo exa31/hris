@@ -80,6 +80,11 @@ export async function deleteUser(client: PoolClient, id: number) {
     if (!user) {
         throw new HttpError(404, 'NOT_FOUND', 'User tidak ditemukan')
     }
+
+    if (user.role_name?.toLowerCase() === 'superadmin') {
+        throw new HttpError(403, 'FORBIDDEN', 'User dengan role SuperAdmin tidak dapat dihapus')
+    }
+
     return userRepository.deleteUser(client, id)
 }
 

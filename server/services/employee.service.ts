@@ -88,6 +88,18 @@ export async function updateEmployee(client: PoolClient, id: number, data: unkno
 }
 
 export async function deleteEmployee(client: PoolClient, id: number) {
+    // Check if employee is superadmin
+    const superAdminCheck = await client.query(`
+        SELECT u.id 
+        FROM users u 
+        JOIN roles r ON u.role_id = r.id 
+        WHERE u.employee_id = $1 AND LOWER(r.name) = 'superadmin'
+    `, [id])
+
+    if (superAdminCheck.rows.length > 0) {
+        throw new HttpError(403, 'FORBIDDEN', 'Pegawai dengan role SuperAdmin tidak dapat dihapus')
+    }
+
     const deleted = await employeeRepository.deleteEmployee(client, id)
 
     if (!deleted) {
@@ -100,6 +112,20 @@ export async function deleteEmployee(client: PoolClient, id: number) {
 export async function bulkDeleteEmployees(client: PoolClient, ids: number[]) {
     if (!Array.isArray(ids) || ids.length === 0) {
         throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body: ids array required')
+    }
+
+    // Check if any of these employees are superadmin
+    const superAdminCheck = await client.query(`
+        SELECT e.name 
+        FROM employees e
+        JOIN users u ON e.id = u.employee_id 
+        JOIN roles r ON u.role_id = r.id 
+        WHERE e.id = ANY($1) AND LOWER(r.name) = 'superadmin'
+    `, [ids])
+
+    if (superAdminCheck.rows.length > 0) {
+        const names = superAdminCheck.rows.map(r => r.name).join(', ')
+        throw new HttpError(403, 'FORBIDDEN', `Penghapusan massal gagal. Pegawai berikut memiliki role SuperAdmin dan tidak dapat dihapus: ${names}`)
     }
 
     const count = await employeeRepository.bulkDeleteEmployees(client, ids)

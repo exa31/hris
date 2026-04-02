@@ -37,6 +37,7 @@ export const employeeModel = z.object({
     status: z.boolean(),
     type: employmentTypeEnum,
     birth_place_id: z.number(),
+    role_name: z.string().optional().nullable(),
     created_at: z.string(),
     updated_at: z.string(),
     photo_url: z.string().nullable().optional(),

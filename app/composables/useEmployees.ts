@@ -9,6 +9,7 @@ export interface Employee {
     birth_date: string
     birth_place_id: number
     birthCityName?: string
+    role_name?: string
     marital_status: string
     gender: string
     children_count: number
@@ -212,10 +213,12 @@ export const useEmployees = () => {
 
     // Toggle select all
     const toggleSelectAll = () => {
-        if (selectedEmployees.value.length === employees.value.length) {
+        const selectableEmployees = employees.value.filter(emp => emp.role_name?.toLowerCase().replace(/\s/g, '') !== 'superadmin')
+        
+        if (selectedEmployees.value.length === selectableEmployees.length && selectableEmployees.length > 0) {
             selectedEmployees.value = []
         } else {
-            selectedEmployees.value = employees.value.map(emp => emp.id)
+            selectedEmployees.value = selectableEmployees.map(emp => emp.id)
         }
     }
 

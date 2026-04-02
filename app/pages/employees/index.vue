@@ -129,7 +129,7 @@
                 type="checkbox"
                 class="form-check-input"
                 @change="toggleSelectAll()"
-                :checked="selectedEmployees.length === employees.length && employees.length > 0"
+                :checked="selectedEmployees.length > 0 && selectedEmployees.length === employees.filter(e => e.role_name?.toLowerCase().replace(/\s/g, '') !== 'superadmin').length"
               />
             </th>
             <th>No.</th>
@@ -154,8 +154,14 @@
             </td>
           </tr>
           <tr v-else v-for="(emp, idx) in employees" :key="emp.id">
-            <td>
-              <input type="checkbox" class="form-check-input" v-model="selectedEmployees" :value="emp.id" />
+            <td :title="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' ? 'Super Admin tidak dapat dihapus' : ''">
+              <input 
+                type="checkbox" 
+                class="form-check-input" 
+                v-model="selectedEmployees" 
+                :value="emp.id" 
+                :disabled="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin'"
+              />
             </td>
             <td>{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
             <td><code>{{ emp.nip }}</code></td>
@@ -170,9 +176,17 @@
                 <NuxtLink v-if="hasPermission('employees', 'update')" :to="`/employees/${emp.id}/edit`" class="btn btn-outline-warning" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </NuxtLink>
-                <button v-if="hasPermission('employees', 'delete')" class="btn btn-outline-danger" @click="deleteEmployee(emp.id)" title="Hapus">
-                  <i class="bi bi-trash"></i>
-                </button>
+                <div class="d-inline-block" :title="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' ? 'Super Admin tidak dapat dihapus' : 'Hapus'">
+                  <button 
+                    v-if="hasPermission('employees', 'delete')" 
+                    class="btn btn-outline-danger" 
+                    @click="deleteEmployee(emp.id)" 
+                    :disabled="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin'"
+                    :class="{ 'opacity-50 cursor-not-allowed': emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' }"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
               </div>
             </td>
           </tr>

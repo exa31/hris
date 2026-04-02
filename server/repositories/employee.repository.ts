@@ -24,7 +24,13 @@ export const getEmployees = async (
         tenureValue?: number
     }
 ): Promise<{ rows: Employee[]; total: number }> => {
-    let query = 'SELECT * FROM employees WHERE 1=1'
+    let query = `
+        SELECT e.*, r.name as role_name 
+        FROM employees e
+        LEFT JOIN users u ON e.id = u.employee_id
+        LEFT JOIN roles r ON u.role_id = r.id
+        WHERE 1=1
+    `
     let countQuery = 'SELECT COUNT(*) as total FROM employees WHERE 1=1'
     const params: any[] = []
     let paramCount = 1

@@ -142,9 +142,18 @@
                   <NuxtLink v-if="hasPermission('users', 'update')" :to="`/user-management/${user.id}`" class="btn btn-outline-primary" title="Edit User">
                     <i class="bi bi-pencil"></i>
                   </NuxtLink>
-                  <button v-if="hasPermission('users', 'delete')" type="button" class="btn btn-outline-danger" @click="confirmDelete(user.id)" title="Hapus User">
-                    <i class="bi bi-trash"></i>
-                  </button>
+                  <div class="d-inline-block" :title="user.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' ? 'Role Super Admin tidak dapat dihapus' : 'Hapus User'">
+                    <button 
+                      v-if="hasPermission('users', 'delete')" 
+                      type="button" 
+                      class="btn btn-outline-danger" 
+                      @click="confirmDelete(user.id)" 
+                      :disabled="user.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin'"
+                      :class="{ 'opacity-50 cursor-not-allowed': user.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' }"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
                 </div>
               </td>
             </tr>
