@@ -1,8 +1,8 @@
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import { logActivity } from '~~/server/services/activity-log.service'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     const body = await readBody(event)
 
     return withTransaction(async (client) => {
@@ -17,4 +17,4 @@ export default withAuth(async (event) => {
             }
         })
     })
-})
+}, [{ module: 'logs', action: 'read' }])

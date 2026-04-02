@@ -1,4 +1,4 @@
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as userService from '~~/server/services/user.service'
 import { sendSuccess } from '~~/server/utils/response'
@@ -7,7 +7,7 @@ import { logActivity } from '~~/server/services/activity-log.service'
 
 import { sseEmitter } from '~~/server/utils/sse'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     const id = Number(event.context.params?.id)
     if (isNaN(id)) {
         throw new HttpError(400, 'INVALID_ID', 'ID role tidak valid')
@@ -37,4 +37,4 @@ export default withAuth(async (event) => {
 
         return sendSuccess(event, data)
     })
-})
+}, [{ module: 'roles', action: 'manage' }])

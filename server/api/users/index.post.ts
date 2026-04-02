@@ -1,4 +1,4 @@
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as userService from '~~/server/services/user.service'
 import { logActivity } from '~~/server/services/activity-log.service'
@@ -7,7 +7,7 @@ import { createUserSchema } from '~~/server/model/user.model'
 import { HttpError } from '~~/server/errors/HttpError'
 import z from 'zod'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     const body = await readBody(event)
     const validation = createUserSchema.safeParse(body)
 
@@ -34,4 +34,4 @@ export default withAuth(async (event) => {
 
         return sendSuccess(event, data, 'User berhasil dibuat', 'SUCCESS', 201)
     })
-})
+}, [{ module: 'users', action: 'create' }])

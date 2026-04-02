@@ -1,5 +1,5 @@
 import { HttpError } from '~~/server/errors/HttpError'
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as educationService from '~~/server/services/education.service'
 import { sendSuccess } from '~~/server/utils/response'
@@ -9,7 +9,7 @@ const syncEducationsSchema = z.object({
     educationIds: z.array(z.number().positive()).default([]),
 })
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     const employeeId = parseInt(getRouterParam(event, 'employeeId') || '0')
 
     if (!employeeId) {
@@ -32,5 +32,5 @@ export default withAuth(async (event) => {
         const data = await educationService.syncEmployeeEducations(client, employeeId, validation.data.educationIds)
         return sendSuccess(event, data, 'Pendidikan berhasil disinkronkan')
     })
-})
+}, [{ module: 'employees', action: 'update' }])
 

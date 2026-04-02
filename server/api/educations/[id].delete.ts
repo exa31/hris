@@ -1,10 +1,10 @@
 import { HttpError } from '~~/server/errors/HttpError'
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as educationService from '~~/server/services/education.service'
 import { sendSuccess } from '~~/server/utils/response'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     const id = parseInt(getRouterParam(event, 'id') || '0')
 
     if (!id) {
@@ -15,5 +15,5 @@ export default withAuth(async (event) => {
         const data = await educationService.deleteEducation(client, id)
         return sendSuccess(event, data, 'Pendidikan berhasil dihapus')
     })
-})
+}, [{ module: 'employees', action: 'delete' }])
 

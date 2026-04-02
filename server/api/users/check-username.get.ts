@@ -1,9 +1,9 @@
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as userService from '~~/server/services/user.service'
 import { sendSuccess } from '~~/server/utils/response'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     const query = getQuery(event)
     const username = (query.username as string) || ''
     const excludeId = query.excludeId ? Number(query.excludeId) : undefined
@@ -12,4 +12,4 @@ export default withAuth(async (event) => {
         const isAvailable = await userService.checkUsername(client, username, excludeId)
         return sendSuccess(event, { isAvailable })
     })
-})
+}, [{ module: 'users', action: 'read' }])

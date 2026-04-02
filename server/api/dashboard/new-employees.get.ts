@@ -1,10 +1,10 @@
-import { withAuth } from '~~/server/utils/withAuth';
+import { withPermission } from '~~/server/utils/withPermission';
 import { withTransaction } from '~~/server/db/postgres';
 import * as employeeService from '~~/server/services/employee.service';
 import { logActivity } from '~~/server/services/activity-log.service';
 import { sendSuccess } from '~~/server/utils/response'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     return withTransaction(async (client) => {
         const data = await employeeService.getNewContractEmployees(client);
         
@@ -18,4 +18,4 @@ export default withAuth(async (event) => {
 
         return sendSuccess(event, data)
     });
-});
+}, [{ module: 'dashboard', action: 'read' }]);

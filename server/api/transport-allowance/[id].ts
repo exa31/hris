@@ -1,9 +1,9 @@
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as transportAllowanceService from '~~/server/services/transport-allowance.service'
 import { logActivity } from '~~/server/services/activity-log.service'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     try {
         const id = parseInt(event.context.params?.id as string)
         const method = event.method
@@ -34,4 +34,4 @@ export default withAuth(async (event) => {
         console.error('API [id] Error:', e)
         throw e
     }
-})
+}, [{ module: 'transport', action: 'read' }])

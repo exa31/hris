@@ -1,11 +1,11 @@
-import { withAuth } from '~~/server/utils/withAuth'
+import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { logActivity } from '~~/server/services/activity-log.service'
 
-export default withAuth(async (event) => {
+export default withPermission(async (event) => {
     const query = getQuery(event)
     const params: any = {
         search: (query.search as string) || undefined,
@@ -61,4 +61,4 @@ export default withAuth(async (event) => {
 
         return pdfBuffer
     })
-})
+}, [{ module: 'employees', action: 'read' }])
