@@ -61,10 +61,15 @@ export const validatePassword = (password: string): PasswordValidation => {
         strengthScore++
     }
 
+    // Check for numbers
+    if (/\d/.test(password)) {
+        strengthScore++
+    }
+
     // Determine strength
     let strength: 'weak' | 'medium' | 'strong' = 'weak'
-    if (strengthScore >= 4) strength = 'strong'
-    else if (strengthScore >= 2) strength = 'medium'
+    if (strengthScore >= 5) strength = 'strong'
+    else if (strengthScore >= 3) strength = 'medium'
 
     return {
         isValid: errors.length === 0,

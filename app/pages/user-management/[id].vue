@@ -15,20 +15,39 @@
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
+
+    <!-- Status Modal -->
+    <ConfirmModal
+      :is-open="modal.isOpen"
+      :title="modal.title"
+      :message="modal.message"
+      :type="modal.type"
+      :is-confirm="false"
+      cancel-text="Tutup"
+      @close="modal.isOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
 
 const route = useRoute()
 const { getUserById, updateUser } = useUsers()
 const user = ref<any>(null)
 
-onMounted(() => {
+const modal = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success'
+})
+
+onMounted(async () => {
   const userId = Number(route.params.id)
-  user.value = getUserById(userId)
+  const result = await getUserById(userId)
+  user.value = result
   
   if (!user.value) {
     navigateTo('/user-management')
@@ -45,9 +64,12 @@ const handleSubmit = async (formData: any) => {
       ...(formData.password && { password: formData.password })
     })
     await navigateTo('/user-management')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating user:', error)
-    alert('Gagal update user. Silakan coba lagi.')
+    modal.title = 'Gagal Update User'
+    modal.message = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.'
+    modal.type = 'danger'
+    modal.isOpen = true
   }
 }
 </script>

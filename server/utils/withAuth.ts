@@ -38,6 +38,14 @@ export const withAuth = <T extends EventHandlerRequest, D>(
                 return sendError(event, 401, 'invalid_token', 'Access token is invalid')
             }
 
+            // 3.5 Check if user is still active in DB
+            const { query: dbQuery } = await import('~~/server/db/postgres')
+            
+            const dbUser = await dbQuery('SELECT is_active FROM users WHERE id = $1', [payload.sub])
+            if (dbUser.rows.length === 0 || !dbUser.rows[0].is_active) {
+                return sendError(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus. Silakan hubungi admin.')
+            }
+
             // 4️⃣ Attach ke context (SOURCE OF TRUTH)
             event.context.user = {
                 id: payload.sub,

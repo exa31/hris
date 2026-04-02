@@ -10,22 +10,44 @@
 
     <!-- Form -->
     <UserForm @submit="handleSubmit" />
+
+    <!-- Status Modal -->
+    <ConfirmModal
+      :is-open="modal.isOpen"
+      :title="modal.title"
+      :message="modal.message"
+      :type="modal.type"
+      :is-confirm="false"
+      cancel-text="Tutup"
+      @close="modal.isOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
 
 const { createUser } = useUsers()
 const router = useRouter()
 
+const modal = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success'
+})
+
 const handleSubmit = async (formData: any) => {
   try {
     await createUser(formData)
     await navigateTo('/user-management')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating user:', error)
-    alert('Gagal membuat user. Silakan coba lagi.')
+    modal.title = 'Gagal Membuat User'
+    modal.message = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.'
+    modal.type = 'danger'
+    modal.isOpen = true
   }
 }
 </script>

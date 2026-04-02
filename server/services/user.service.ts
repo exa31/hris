@@ -1,90 +1,99 @@
-import { useAppConfig } from '~~/server/utils/config';
-import { withTransaction } from "~~/server/db/postgres";
-import { HttpError } from "~~/server/errors/HttpError";
-import { isRefreshTokenRotatingSoon, signAccessToken, signRefreshToken, verifyRefreshToken } from "~~/server/utils/jwt";
-import * as repository from "~~/server/repositories/refresh_token.repository";
-import { hashToSha256 } from "~~/server/utils/hash";
-import type { H3Event } from "h3";
-import { sendSuccess } from "~~/server/utils/response";
+import { PoolClient } from 'pg'
+import bcrypt from 'bcrypt'
+import { HttpError } from '~~/server/errors/HttpError'
+import * as userRepository from '~~/server/repositories/user.repository'
+import type { CreateUserInput, UpdateUserInput, SearchUsersInput } from '~~/server/model/user.model'
 
-const Config = useAppConfig();
+const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT || '10')
 
-export const refreshToken = async (event: H3Event, oldRefreshToken: string) => {
-    return withTransaction(
-        async (client) => {
-            // verify refresh token
-            const { sub: userId, name, email } = verifyRefreshToken(oldRefreshToken);
-
-            const isActiveRefreshToken = await repository.findByHash(client, hashToSha256(oldRefreshToken));
-
-            if (!isActiveRefreshToken) {
-                throw new HttpError(401, 'INVALID_REFRESH_TOKEN', 'Refresh token is invalid or expired');
-            }
-
-            const refreshTokenNeedRotation = isRefreshTokenRotatingSoon(new Date(new Date(isActiveRefreshToken.expires_at)));
-
-            const accessToken = signAccessToken(name, email, userId!);
-
-            if (!refreshTokenNeedRotation) {
-
-                setCookie(
-                    event,
-                    'access_token',
-                    accessToken,
-                    {
-                        httpOnly: true,
-                        secure: Config.mode === 'production',
-                        sameSite: 'lax',
-                        path: '/api',
-                        expires: new Date(isActiveRefreshToken.expires_at),
-                    }
-                )
-
-                return sendSuccess(event, {
-                    access_token: accessToken,
-                    refresh_token: oldRefreshToken,
-                    refresh_expires_at: new Date(isActiveRefreshToken.expires_at),
-                }, "Token refreshed successfully", "TOKEN_REFRESHED", 200);
-            }
-
-            const {
-                token: newRefreshToken,
-                expiresAt
-            } = signRefreshToken(userId!, name, email);
-
-            await repository.updateToken(client, hashToSha256(oldRefreshToken), expiresAt, hashToSha256(newRefreshToken));
-
-            setCookie(
-                event,
-                'refresh_token',
-                newRefreshToken,
-                {
-                    httpOnly: true,
-                    secure: Config.mode === 'production',
-                    sameSite: 'lax',
-                    path: '/api',
-                    expires: expiresAt,
-                }
-            )
-
-            setCookie(
-                event,
-                'access_token',
-                accessToken,
-                {
-                    httpOnly: true,
-                    secure: Config.mode === 'production',
-                    sameSite: 'lax',
-                    path: '/api',
-                    expires: expiresAt,
-                }
-            )
-
-            return sendSuccess(event, {
-                access_token: accessToken,
-                refresh_token: newRefreshToken,
-                refresh_expires_at: expiresAt,
-            }, "Token refreshed successfully", "TOKEN_REFRESHED", 200);
+export async function getUsers(client: PoolClient, params: SearchUsersInput) {
+    const { rows, total } = await userRepository.getUsers(client, params)
+    return {
+        users: rows,
+        pagination: {
+            total,
+            limit: params.limit,
+            offset: params.offset,
+            pages: Math.ceil(total / params.limit)
         }
-    )
+    }
+}
+
+export async function getUserById(client: PoolClient, id: number) {
+    const user = await userRepository.getUserById(client, id)
+    if (!user) {
+        throw new HttpError(404, 'NOT_FOUND', 'User tidak ditemukan')
+    }
+    return user
+}
+
+export async function createUser(client: PoolClient, data: CreateUserInput) {
+    // 1. Check if employee already has a user account
+    const isTaken = await userRepository.isEmployeeAlreadyUser(client, data.employee_id)
+    if (isTaken) {
+        throw new HttpError(400, 'EMPLOYEE_ALREADY_USER', 'Pegawai ini sudah memiliki akun user')
+    }
+
+    // 2. Check username uniqueness
+    const existingUser = await userRepository.getUserByUsername(client, data.username)
+    if (existingUser) {
+        throw new HttpError(400, 'USERNAME_TAKEN', 'Username sudah digunakan')
+    }
+
+    // 3. Hash password
+    const password_hash = await bcrypt.hash(data.password, SALT_ROUNDS)
+
+    // 4. Create user
+    return userRepository.createUser(client, {
+        ...data,
+        password_hash
+    })
+}
+
+export async function updateUser(client: PoolClient, id: number, data: Partial<UpdateUserInput> & { password?: string }) {
+    const user = await userRepository.getUserById(client, id)
+    if (!user) {
+        throw new HttpError(404, 'NOT_FOUND', 'User tidak ditemukan')
+    }
+
+    // Check username uniqueness if changing
+    if (data.username && data.username.toLowerCase() !== user.username.toLowerCase()) {
+        const existingUser = await userRepository.getUserByUsername(client, data.username)
+        if (existingUser) {
+            throw new HttpError(400, 'USERNAME_TAKEN', 'Username sudah digunakan')
+        }
+    }
+
+    let password_hash: string | undefined
+    if (data.password) {
+        password_hash = await bcrypt.hash(data.password, SALT_ROUNDS)
+    }
+
+    return userRepository.updateUser(client, id, {
+        ...data,
+        password_hash
+    })
+}
+
+export async function deleteUser(client: PoolClient, id: number) {
+    const user = await userRepository.getUserById(client, id)
+    if (!user) {
+        throw new HttpError(404, 'NOT_FOUND', 'User tidak ditemukan')
+    }
+    return userRepository.deleteUser(client, id)
+}
+
+export async function getRoles(client: PoolClient) {
+    return userRepository.getRoles(client)
+}
+
+export async function checkUsername(client: PoolClient, username: string, excludeId?: number) {
+    const user = await userRepository.getUserByUsername(client, username)
+    if (!user) return true
+    if (excludeId && user.id === excludeId) return true
+    return false
+}
+
+export async function searchEmployeesWithoutAccount(client: PoolClient, search: string) {
+    return userRepository.searchEmployeesWithoutAccount(client, search)
 }

@@ -13,18 +13,19 @@
               class="form-control"
               placeholder="Ketik minimal 2 karakter..."
               :class="{ 'is-invalid': errors.employee_name, 'is-valid': form.employee_id }"
+              :disabled="isEdit"
               @input="filterEmployees"
               @focus="showSuggestions = true"
               @blur="closeSuggestions"
             />
             <!-- Autosuggest Dropdown -->
             <div
-              v-if="showSuggestions && filteredEmployees.length > 0"
+              v-if="showSuggestions && suggestedEmployees.length > 0"
               class="position-absolute top-100 start-0 end-0 bg-white border border-light rounded shadow-sm mt-1 z-3"
               style="max-height: 300px; overflow-y-auto"
             >
               <button
-                v-for="emp in filteredEmployees"
+                v-for="emp in suggestedEmployees"
                 :key="emp.id"
                 type="button"
                 class="w-100 text-start px-3 py-2 border-0 bg-white hover-light"
@@ -53,6 +54,7 @@
             class="form-control"
             placeholder="minimal 6 karakter, lowercase, tanpa spasi"
             :class="{ 'is-invalid': errors.username, 'is-valid': !errors.username && form.username }"
+            :disabled="isEdit"
             @input="validateUsernameField"
           />
           <small v-if="errors.username" class="text-danger d-block mt-1">{{ errors.username }}</small>
@@ -202,7 +204,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/composables/useUsers'
-import { useEmployees } from '~/composables/useEmployees'
 import { useRoles } from '~/composables/useRoles'
 import {
   validatePassword,
@@ -232,9 +233,10 @@ const showConfirmPassword = ref(false)
 const showSuggestions = ref(false)
 const errors = ref<Record<string, string>>({})
 const passwordValidation = ref<PasswordValidation>({ isValid: false, errors: [], strength: 'weak' })
+const suggestedEmployees = ref<any[]>([])
+const { $axios } = useNuxtApp()
 
 // Composables
-const { employees } = useEmployees()
 const { getRoles } = useRoles()
 const allRoles = ref<any[]>([])
 
@@ -251,39 +253,56 @@ const form = ref({
 
 // Mount
 onMounted(async () => {
-  allRoles.value = await getRoles()
+  const rolesData = await getRoles()
+  allRoles.value = rolesData
   
   // Generate password for new user
   if (!props.isEdit) {
     form.value.password = generatePassword()
     form.value.confirmPassword = form.value.password
+    validatePasswordField()
+    validateConfirmPasswordField()
   }
-})
-
-// Computed
-const filteredEmployees = computed(() => {
-  if (form.value.employee_name.length < 2) return []
-  return employees.value.filter(emp =>
-    emp.name.toLowerCase().includes(form.value.employee_name.toLowerCase()) ||
-    emp.nip.toString().includes(form.value.employee_name)
-  )
 })
 
 const passwordStrength = computed(() => passwordValidation.value.strength)
 
 // Methods
-const filterEmployees = () => {
+let employeeTimeout: any = null
+const filterEmployees = async () => {
   if (form.value.employee_name.length < 2) {
     showSuggestions.value = false
-  } else {
-    showSuggestions.value = true
+    suggestedEmployees.value = []
+    // Reset selection if name cleared
+    if (form.value.employee_name === '') {
+        form.value.employee_id = 0
+    }
+    if (employeeTimeout) clearTimeout(employeeTimeout)
+    return
   }
+  
+  if (employeeTimeout) clearTimeout(employeeTimeout)
+  employeeTimeout = setTimeout(async () => {
+    try {
+        const response = await $axios.get('/api/users/employee-search', {
+            params: { search: form.value.employee_name }
+        })
+        // The API returns the list directly in response.data (success wrapper handled by axios)
+        suggestedEmployees.value = response.data
+        showSuggestions.value = suggestedEmployees.value.length > 0
+    } catch (error) {
+        console.error('Error searching employees:', error)
+    }
+  }, 300)
 }
 
 const selectEmployee = (employee: any) => {
   form.value.employee_id = employee.id
   form.value.employee_name = employee.name
   showSuggestions.value = false
+  
+  // Clear any error
+  delete errors.value.employee_name
 }
 
 const closeSuggestions = () => {
@@ -292,13 +311,34 @@ const closeSuggestions = () => {
   }, 200)
 }
 
-const validateUsernameField = () => {
+let usernameTimeout: any = null
+const validateUsernameField = async () => {
   const validation = validateUsername(form.value.username)
   if (!validation.isValid) {
     errors.value.username = validation.errors[0] || 'Username tidak valid'
+    return
   } else {
     delete errors.value.username
   }
+  
+  // Debounce API check
+  if (usernameTimeout) clearTimeout(usernameTimeout)
+  if (!form.value.username || props.isEdit) return // No check and no need for edit mode
+
+  usernameTimeout = setTimeout(async () => {
+    try {
+      const response = await $axios.get('/api/users/check-username', {
+        params: { username: form.value.username }
+      })
+      if (!response.data.isAvailable) {
+        errors.value.username = 'Username sudah digunakan'
+      } else {
+        delete errors.value.username
+      }
+    } catch (error) {
+      console.error('Error checking username:', error)
+    }
+  }, 500)
 }
 
 const validatePasswordField = () => {
@@ -338,18 +378,20 @@ const validateForm = (): boolean => {
     errors.value.username = usernameValidation.errors[0] || 'Username tidak valid'
   }
 
-  if (!form.value.password) {
+  if (!props.isEdit && !form.value.password) {
     errors.value.password = 'Password harus diisi'
-  } else {
+  } else if (form.value.password) {
     const pwValidation = validatePassword(form.value.password)
     if (!pwValidation.isValid) {
       errors.value.password = pwValidation.errors[0] || 'Password tidak valid'
     }
   }
 
-  const confirmValidation = validateConfirmPassword(form.value.password, form.value.confirmPassword)
-  if (!confirmValidation.isValid) {
-    errors.value.confirmPassword = confirmValidation.error || 'Konfirmasi password tidak valid'
+  if (form.value.password || form.value.confirmPassword) {
+    const confirmValidation = validateConfirmPassword(form.value.password, form.value.confirmPassword)
+    if (!confirmValidation.isValid) {
+      errors.value.confirmPassword = confirmValidation.error || 'Konfirmasi password tidak valid'
+    }
   }
 
   if (!form.value.role_id) {

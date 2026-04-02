@@ -70,8 +70,15 @@ export const useRoles = () => {
      * TODO: Replace with API call to /api/roles
      */
     const getRoles = async (): Promise<Role[]> => {
-        // return await $fetch('/api/roles')
-        return roles.value
+        try {
+            const { $axios } = useNuxtApp()
+            const response = await $axios.get('/api/users/roles')
+            // result is in response.data based on my useUsers update
+            return response.data
+        } catch (err) {
+            console.error('Error fetching roles:', err)
+            return roles.value // fallback to dummy
+        }
     }
 
     const getRoleById = (id: number): Role | undefined => {
