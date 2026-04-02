@@ -7,9 +7,14 @@
       </NuxtLink>
       <h2 class="mt-2">Edit User</h2>
     </div>
-
     <!-- Form -->
-    <UserForm v-if="user" :initial-data="user" is-edit @submit="handleSubmit" />
+    <UserForm 
+      v-if="user" 
+      :initial-data="user" 
+      is-edit 
+      :can-manage-roles="currentUser?.role?.id === 1"
+      @submit="handleSubmit" 
+    />
     <div v-else class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -32,8 +37,10 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
+import { useAuth } from '~/composables/useAuth'
 
 const route = useRoute()
+const { hasPermission, user: currentUser } = useAuth()
 const { getUserById, updateUser } = useUsers()
 const user = ref<any>(null)
 

@@ -29,9 +29,9 @@ export const getEmployees = async (
         FROM employees e
         LEFT JOIN users u ON e.id = u.employee_id
         LEFT JOIN roles r ON u.role_id = r.id
-        WHERE 1=1
+        WHERE e.deleted_at IS NULL
     `
-    let countQuery = 'SELECT COUNT(*) as total FROM employees WHERE 1=1'
+    let countQuery = 'SELECT COUNT(*) as total FROM employees WHERE deleted_at IS NULL'
     const params: any[] = []
     let paramCount = 1
 
@@ -129,7 +129,7 @@ export const getEmployeeById = async (client: PoolClient, id: number): Promise<a
         LEFT JOIN regencies r ON d.regency_id = r.id
         LEFT JOIN provinces p ON r.province_id = p.id
         LEFT JOIN regencies b ON e.birth_place_id = b.id
-        WHERE e.id = $1
+        WHERE e.id = $1 AND e.deleted_at IS NULL
     `
     const result = await client.query(query, [id])
     const employee = result.rows[0]
@@ -265,7 +265,7 @@ export const updateEmployee = async (
  * Delete employee
  */
 export const deleteEmployee = async (client: PoolClient, id: number): Promise<boolean> => {
-    const result = await client.query('DELETE FROM employees WHERE id = $1', [id])
+    const result = await client.query('UPDATE employees SET deleted_at = NOW(), status = false WHERE id = $1', [id])
     return result.rowCount! > 0
 }
 
@@ -286,7 +286,7 @@ export const bulkUpdateStatus = async (
  * Bulk delete employees
  */
 export const bulkDeleteEmployees = async (client: PoolClient, ids: number[]): Promise<number> => {
-    const query = 'DELETE FROM employees WHERE id = ANY($1)'
+    const query = 'UPDATE employees SET deleted_at = NOW(), status = false WHERE id = ANY($1)'
     const result = await client.query(query, [ids])
     return result.rowCount!
 }
@@ -305,16 +305,17 @@ export const getDashboardStats = async (client: PoolClient) => {
             COUNT(*) FILTER (WHERE gender = 'Male') as male,
             COUNT(*) FILTER (WHERE gender = 'Female') as female
         FROM employees
-        WHERE status = true
-    `)
+        WHERE status = true AND deleted_at IS NULL
+    ` )
     
     // Latest 5 employees
     const latestResult = await client.query(`
         SELECT id, name, email, join_date, type, position, department, photo_url
         FROM employees
+        WHERE deleted_at IS NULL
         ORDER BY join_date DESC, id DESC
         LIMIT 5
-    `)
+    ` )
 
     return {
         stats: {
@@ -336,9 +337,24 @@ export const getNewContractEmployees = async (client: PoolClient) => {
     const result = await client.query(`
         SELECT id, name, email, join_date, type, position, department, photo_url
         FROM employees
-        WHERE type = 'Kontrak' AND status = true
+        WHERE type = 'Kontrak' AND status = true AND deleted_at IS NULL
         ORDER BY join_date DESC, id DESC
         LIMIT 5
-    `)
+    ` )
     return result.rows
+}
+
+/**
+ * Check if any of these employees are superadmins
+ */
+export const checkSuperAdminByIds = async (client: PoolClient, ids: number[]): Promise<any[]> => {
+    const query = `
+        SELECT e.id, e.name 
+        FROM employees e
+        JOIN users u ON e.id = u.employee_id 
+        JOIN roles r ON u.role_id = r.id 
+        WHERE e.id = ANY($1) AND LOWER(r.name) = 'superadmin' AND e.deleted_at IS NULL
+    `
+    const { rows } = await client.query(query, [ids])
+    return rows
 }

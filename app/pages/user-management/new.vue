@@ -7,9 +7,7 @@
       </NuxtLink>
       <h2 class="mt-2">Tambah User Baru</h2>
     </div>
-
-    <!-- Form -->
-    <UserForm @submit="handleSubmit" />
+    <UserForm :can-manage-roles="true" @submit="handleSubmit" />
 
     <!-- Status Modal -->
     <ConfirmModal
@@ -27,8 +25,10 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
+import { useAuth } from '~/composables/useAuth'
 
 const { createUser } = useUsers()
+const { user: currentUser } = useAuth()
 const router = useRouter()
 
 const modal = reactive({

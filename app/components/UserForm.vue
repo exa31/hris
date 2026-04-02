@@ -139,16 +139,16 @@
           <small v-if="errors.confirmPassword" class="text-danger d-block mt-1">{{ errors.confirmPassword }}</small>
         </div>
 
-        <!-- Role -->
         <div class="mb-3">
           <label class="form-label">Role <span class="text-danger">*</span></label>
-          <select v-model.number="form.role_id" class="form-select" :class="{ 'is-invalid': errors.role_id }">
+          <select v-model.number="form.role_id" class="form-select" :class="{ 'is-invalid': errors.role_id }" :disabled="!canManageRoles">
             <option value="">-- Pilih Role --</option>
             <option v-for="role in allRoles" :key="role.id" :value="role.id">
               {{ role.name }}
             </option>
           </select>
           <small v-if="errors.role_id" class="text-danger d-block mt-1">{{ errors.role_id }}</small>
+          <small v-if="!canManageRoles" class="text-muted d-block mt-1">Anda tidak memiliki izin untuk mengubah role</small>
         </div>
       </div>
 
@@ -165,6 +165,7 @@
                   v-model="form.is_active"
                   type="checkbox"
                   class="form-check-input"
+                  :disabled="!canManageRoles"
                 />
                 <label class="form-check-label" for="statusAktif">
                   Aktif
@@ -217,9 +218,11 @@ const props = withDefaults(
   defineProps<{
     initialData?: User
     isEdit?: boolean
+    canManageRoles?: boolean
   }>(),
   {
-    isEdit: false
+    isEdit: false,
+    canManageRoles: true
   }
 )
 
@@ -258,6 +261,9 @@ onMounted(async () => {
   
   // Generate password for new user
   if (!props.isEdit) {
+    if (!props.canManageRoles) {
+      form.value.role_id = 3 // Default to Admin HRD
+    }
     form.value.password = generatePassword()
     form.value.confirmPassword = form.value.password
     validatePasswordField()

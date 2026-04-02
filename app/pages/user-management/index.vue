@@ -86,7 +86,7 @@
               <th>Nama Pegawai</th>
               <th>Role</th>
               <th>Status</th>
-              <th v-if="hasPermission('users', 'update') || hasPermission('users', 'delete')" style="width: 10%">Aksi</th>
+              <th v-if="hasPermission('users', 'update') || hasPermission('users', 'update_own') || hasPermission('users', 'delete')" style="width: 10%">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -137,9 +137,9 @@
                   {{ user.is_active ? 'Aktif' : 'Non-Aktif' }}
                 </span>
               </td>
-              <td v-if="hasPermission('users', 'update') || hasPermission('users', 'delete')">
+              <td v-if="hasPermission('users', 'update') || hasPermission('users', 'update_own') || hasPermission('users', 'delete')">
                 <div class="btn-group btn-group-sm">
-                  <NuxtLink v-if="hasPermission('users', 'update')" :to="`/user-management/${user.id}`" class="btn btn-outline-primary" title="Edit User">
+                  <NuxtLink v-if="hasPermission('users', 'update') || (hasPermission('users', 'update_own') && user.id === currentUser?.id)" :to="`/user-management/${user.id}`" class="btn btn-outline-primary" title="Edit User">
                     <i class="bi bi-pencil"></i>
                   </NuxtLink>
                   <div class="d-inline-block" :title="user.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' ? 'Role Super Admin tidak dapat dihapus' : 'Hapus User'">
@@ -204,7 +204,7 @@ import { ref, onMounted, reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
 import { useAuth } from '~/composables/useAuth'
 
-const { hasPermission } = useAuth()
+const { hasPermission, user: currentUser } = useAuth()
 
 const { 
   users, 

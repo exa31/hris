@@ -29,71 +29,86 @@ export const up = (pgm) => {
         -- Users
         (7, 'View Users', 'users', 'read'),
         (8, 'Update Own User', 'users', 'update_own'),
+        (9, 'Manage Users', 'users', 'manage'),
 
         -- Roles
-        (9, 'Manage Roles', 'roles', 'manage'),
+        (10, 'Manage Roles', 'roles', 'manage'),
 
         -- Transport Setting
-        (10, 'View Transport Setting', 'transport_setting', 'read'),
-        (11, 'Create Transport Setting', 'transport_setting', 'create'),
-        (12, 'Update Transport Setting', 'transport_setting', 'update'),
-        (13, 'Delete Transport Setting', 'transport_setting', 'delete'),
+        (11, 'View Transport Setting', 'transport_setting', 'read'),
+        (12, 'Create Transport Setting', 'transport_setting', 'create'),
+        (13, 'Update Transport Setting', 'transport_setting', 'update'),
+        (14, 'Delete Transport Setting', 'transport_setting', 'delete'),
 
         -- Dashboard
-        (14, 'View Dashboard', 'dashboard', 'read');
+        (15, 'View Dashboard', 'dashboard', 'read');
     `);
 
     // ========================
     // ROLE PERMISSIONS
     // ========================
 
-    // Superadmin (ALL)
+    // Super Admin → ALL permissions
     pgm.sql(`
         INSERT INTO role_permissions (role_id, permission_id)
         SELECT 1, id FROM permissions;
     `);
 
-    // Manager HRD
+    // Manager HRD → mostly read only
     pgm.sql(`
         INSERT INTO role_permissions (role_id, permission_id) VALUES
         (2, 1),  -- view employees
         (2, 5),  -- view transport
         (2, 6),  -- view logs
         (2, 7),  -- view users
-        (2, 8),  -- update own
-        (2, 14); -- dashboard
+        (2, 8),  -- update own profile
+        (2, 11), -- view transport setting
+        (2, 15); -- dashboard
     `);
 
-    // Admin HRD
+    // Admin HRD → operational role
     pgm.sql(`
         INSERT INTO role_permissions (role_id, permission_id) VALUES
         (3, 1), (3, 2), (3, 3), (3, 4), -- employees CRUD
         (3, 5), -- transport read
-        (3, 7), (3, 8), -- users
-        (3, 10), (3, 11), (3, 12), (3, 13), -- transport setting CRUD
-        (3, 14); -- dashboard
+        (3, 7), (3, 8), -- users (view + update own)
+        (3, 11), (3, 12), (3, 13), (3, 14), -- transport setting CRUD
+        (3, 15); -- dashboard
     `);
 
     // ========================
     // EMPLOYEES
     // ========================
     pgm.sql(`
-        INSERT INTO employees (id, nip, name, email, phone, birth_date, marital_status, gender, children_count, join_date, position, department, type, birth_place_id, status)
+        INSERT INTO employees (
+            id, nip, name, email, phone, birth_date,
+            marital_status, gender, children_count,
+            join_date, position, department, type,
+            birth_place_id, status
+        )
         VALUES
-        (1, 2024001121, 'superadmin', 'superadmin@company.com', '08123456789', '1990-05-20', 'Married', 'Male', 2, '2020-01-15', 'Manager', 'HRD', 'Tetap', 1101, true),
-        (2, 2024002221, 'Siti Nurhaliza', 'siti@company.com', '08234567890', '1995-08-15', 'Single', 'Female', 0, '2021-03-10', 'Staf', 'HRD', 'Tetap', 1101, true),
-        (3, 2024003312, 'Ahmad Rahman', 'ahmad@company.com', '08345678901', '1998-03-25', 'Single', 'Male', 0, '2024-01-10', 'Staf', 'HRD', 'Kontrak', 1101, true);
+        (1, 2024001121, 'superadmin', 'superadmin@company.com', '08123456789',
+            '1990-05-20', 'Married', 'Male', 2,
+            '2020-01-15', 'Manager', 'HRD', 'Tetap', 1101, true),
+
+        (2, 2024002221, 'Siti Nurhaliza', 'siti@company.com', '08234567890',
+            '1995-08-15', 'Single', 'Female', 0,
+            '2021-03-10', 'Staf', 'HRD', 'Tetap', 1101, true),
+
+        (3, 2024003312, 'Ahmad Rahman', 'ahmad@company.com', '08345678901',
+            '1998-03-25', 'Single', 'Male', 0,
+            '2024-01-10', 'Staf', 'HRD', 'Kontrak', 1101, true);
     `);
 
     // ========================
     // ADDRESSES
     // ========================
     pgm.sql(`
-        INSERT INTO employee_addresses (employee_id, district_id, full_address )
+        INSERT INTO employee_addresses (employee_id, district_id, full_address)
         VALUES
         (1, 3328150, 'Jl. Merdeka No. 1'),
         (2, 3328150, 'Jl. Merdeka No. 2'),
-        (3, 3328150, 'Jl. Merdeka No. 3');            
+        (3, 3328150, 'Jl. Merdeka No. 3');
     `);
 
     // ========================
@@ -108,13 +123,13 @@ export const up = (pgm) => {
     `);
 
     // ========================
-    // FIX SEQUENCES (IMPORTANT 🔥)
+    // FIX SEQUENCES 🔥
     // ========================
     pgm.sql(`
-        SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles));
-        SELECT setval('permissions_id_seq', (SELECT MAX(id) FROM permissions));
-        SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees));
-        SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+        SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles), true);
+        SELECT setval('permissions_id_seq', (SELECT MAX(id) FROM permissions), true);
+        SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees), true);
+        SELECT setval('users_id_seq', (SELECT MAX(id) FROM users), true);
     `);
 };
 

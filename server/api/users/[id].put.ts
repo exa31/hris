@@ -4,6 +4,7 @@ import * as userService from '~~/server/services/user.service'
 import { sendSuccess } from '~~/server/utils/response'
 import { updateUserSchema } from '~~/server/model/user.model'
 import { HttpError } from '~~/server/errors/HttpError'
+import * as userRepository from '~~/server/repositories/user.repository'
 import z from 'zod'
 import { logActivity } from '~~/server/services/activity-log.service'
 
@@ -29,6 +30,42 @@ export default withPermission(async (event) => {
     }
 
     return withTransaction(async (client) => {
+        const currentUser = event.context.user
+        const targetUser = await userService.getUserById(client, id)
+        const userPermissions = await userService.getPermissionsByRoleId(client, currentUser.role_id)
+        const hasFullUpdate = userPermissions.some(p => p.module === 'users' && p.action === 'update')
+
+        // 1. Cek proteksi role
+        if (validation.data.role_id !== undefined && validation.data.role_id !== targetUser.role_id) {
+            // Hanya Super Admin yang boleh ganti role_id
+            if (currentUser.role_id !== 1) {
+                throw new HttpError(403, 'FORBIDDEN', 'Hanya Super Admin yang dapat mengubah role user')
+            }
+
+            // Jika target adalah Super Admin, cek apakah dia satu-satunya Super Admin aktif
+            if (targetUser.role_id === 1) {
+                const superAdminCount = await userRepository.countSuperAdmins(client)
+                if (superAdminCount <= 1) {
+                    throw new HttpError(403, 'FORBIDDEN', 'Gagal mengubah role. Harus ada minimal satu Super Admin yang aktif di sistem.')
+                }
+            }
+        }
+
+        // 2. Proteksi deaktifasi (is_active)
+        if (validation.data.is_active === false && targetUser.role_id === 1) {
+            const superAdminCount = await userRepository.countSuperAdmins(client)
+            if (superAdminCount <= 1) {
+                throw new HttpError(403, 'FORBIDDEN', 'Gagal menonaktifkan user. Super Admin terakhir tidak dapat dinonaktifkan.')
+            }
+        }
+
+        // 3. Cakupan Update (Own Data vs Full)
+        if (currentUser.role_id !== 1 && !hasFullUpdate) {
+            if (id !== currentUser.id) {
+                throw new HttpError(403, 'FORBIDDEN', 'Anda hanya dapat memperbarui data Anda sendiri')
+            }
+        }
+
         const data = await userService.updateUser(client, id, validation.data)
         
         // Log Activity

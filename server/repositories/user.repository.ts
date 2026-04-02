@@ -9,7 +9,7 @@ export async function getUsers(client: PoolClient, params: SearchUsersInput) {
         FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
         INNER JOIN roles r ON u.role_id = r.id
-        WHERE 1=1
+        WHERE u.deleted_at IS NULL
     `
     const values: any[] = []
 
@@ -52,7 +52,7 @@ export async function getUserById(client: PoolClient, id: number) {
         FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
         INNER JOIN roles r ON u.role_id = r.id
-        WHERE u.id = $1
+        WHERE u.id = $1 AND u.deleted_at IS NULL
     `
     const { rows } = await client.query(query, [id])
     return rows[0] as User || null
@@ -61,7 +61,8 @@ export async function getUserById(client: PoolClient, id: number) {
 export async function getUserByUsername(client: PoolClient, username: string) {
     const query = `SELECT u.*, e.name as employee_name, r.name as role_name FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
-        INNER JOIN roles r ON u.role_id = r.id WHERE u.username = $1 OR e.email = $1 OR e.phone = $1`
+        INNER JOIN roles r ON u.role_id = r.id 
+        WHERE (u.username = $1 OR e.email = $1 OR e.phone = $1) AND u.deleted_at IS NULL`
     const { rows } = await client.query(query, [username])
     return rows[0] as User || null
 }
@@ -121,7 +122,7 @@ export async function updateUser(client: PoolClient, id: number, data: Partial<U
 }
 
 export async function deleteUser(client: PoolClient, id: number) {
-    const query = `DELETE FROM users WHERE id = $1`
+    const query = `UPDATE users SET deleted_at = NOW(), is_active = false WHERE id = $1`
     await client.query(query, [id])
 }
 
@@ -179,7 +180,7 @@ export async function updateRolePermissions(client: PoolClient, roleId: number, 
 }
 
 export async function isEmployeeAlreadyUser(client: PoolClient, employeeId: number, excludeUserId?: number) {
-    let query = `SELECT id FROM users WHERE employee_id = $1`
+    let query = `SELECT id FROM users WHERE employee_id = $1 AND deleted_at IS NULL`
     const values = [employeeId]
 
     if (excludeUserId) {
@@ -194,11 +195,21 @@ export async function searchEmployeesWithoutAccount(client: PoolClient, search: 
     const query = `
         SELECT e.id, e.name, e.nip, e.position, e.department
         FROM employees e
-        LEFT JOIN users u ON e.id = u.employee_id
+        LEFT JOIN users u ON e.id = u.employee_id AND u.deleted_at IS NULL
         WHERE u.id IS NULL
         AND (LOWER(e.name) LIKE $1 OR CAST(e.nip AS TEXT) LIKE $1)
         LIMIT 10
     `
     const { rows } = await client.query(query, [`%${search.toLowerCase()}%`])
     return rows
+}
+
+export async function countSuperAdmins(client: PoolClient) {
+    const query = `
+        SELECT COUNT(*) as total 
+        FROM users 
+        WHERE role_id = 1 AND is_active = true AND deleted_at IS NULL
+    `
+    const { rows } = await client.query(query)
+    return parseInt(rows[0].total)
 }

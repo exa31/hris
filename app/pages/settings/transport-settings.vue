@@ -27,6 +27,7 @@
                   placeholder="Contoh: 2000"
                   min="0"
                   step="500"
+                  :disabled="!hasPermission('transport_setting', 'update') || saving"
                 />
               </div>
               <small class="text-muted">Base fare per kilometer per hari kerja. Rumus: <code>base_fare × km × hari_kerja</code></small>
@@ -43,6 +44,7 @@
                   class="form-check-input"
                   role="switch"
                   style="width: 3em; height: 1.5em;"
+                  :disabled="!hasPermission('transport_setting', 'update') || saving"
                 />
                 <label class="form-check-label ms-2 fw-medium" for="isActiveSwitch">
                   <span v-if="localSettings.is_active" class="text-success">
@@ -58,7 +60,7 @@
 
             <hr />
 
-            <div class="d-flex gap-2">
+            <div v-if="hasPermission('transport_setting', 'update')" class="d-flex gap-2">
               <button class="btn btn-primary px-4" @click="saveSettings" :disabled="saving">
                 <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
                 <i v-else class="bi bi-check-circle me-1"></i>
@@ -67,6 +69,9 @@
               <button class="btn btn-outline-secondary" @click="resetForm" :disabled="saving">
                 <i class="bi bi-arrow-clockwise me-1"></i> Reset
               </button>
+            </div>
+            <div v-else class="alert alert-warning small mb-0 shadow-sm border-0 bg-warning opacity-75">
+              <i class="bi bi-lock-fill me-1"></i> Mode Read-Only: Anda tidak memiliki izin untuk mengubah pengaturan ini.
             </div>
           </div>
         </div>
@@ -174,7 +179,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useTransportSettings } from '~/composables/useTransportSettings'
+import { useAuth } from '~/composables/useAuth'
 
+const { hasPermission } = useAuth()
 const { settings, updateSettings, formatCurrency, fetchSettings, loading, error } = useTransportSettings()
 
 const localSettings = ref({ base_fare: 2000, is_active: true })
@@ -183,6 +190,9 @@ const saveError = ref<string | null>(null)
 const saveSuccess = ref(false)
 
 onMounted(async () => {
+  if (!hasPermission('transport_setting', 'read')) {
+    return navigateTo('/')
+  }
   await fetchSettings()
   localSettings.value = {
     base_fare: settings.value.base_fare || 2000,
