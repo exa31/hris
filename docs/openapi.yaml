@@ -1,0 +1,614 @@
+openapi: 3.0.3
+info:
+  title: JMC API
+  version: 1.0.0
+  description: |
+    OpenAPI ringkas untuk endpoint utama aplikasi JMC.
+servers:
+  - url: http://localhost:3000
+    description: Local
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    BaseSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+          example: OK
+        success:
+          type: boolean
+          example: true
+        code:
+          type: string
+          example: SUCCESS
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          nullable: true
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+          example: false
+        code:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          nullable: true
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Dashboard
+  - name: Users
+  - name: Roles
+  - name: Employees
+  - name: Educations
+  - name: Transport
+  - name: Locations
+  - name: Activity Logs
+  - name: Upload
+
+paths:
+  /api/auth/credentials:
+    post:
+      tags: [Auth]
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login sukses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccess'
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Ambil profil user saat ini
+      responses:
+        '200':
+          description: Sukses
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      responses:
+        '200':
+          description: Sukses
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      responses:
+        '200':
+          description: Sukses
+
+  /api/dashboard/stats:
+    get:
+      tags: [Dashboard]
+      summary: Statistik dashboard
+      responses:
+        '200':
+          description: Sukses
+
+  /api/dashboard/new-employees:
+    get:
+      tags: [Dashboard]
+      summary: Daftar pegawai terbaru
+      responses:
+        '200':
+          description: Sukses
+
+  /api/users:
+    get:
+      tags: [Users]
+      summary: List users
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: offset
+          schema:
+            type: integer
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: role_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+    post:
+      tags: [Users]
+      summary: Buat user baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employee_id, username, password, role_id, is_active]
+              properties:
+                employee_id:
+                  type: integer
+                username:
+                  type: string
+                password:
+                  type: string
+                role_id:
+                  type: integer
+                is_active:
+                  type: boolean
+      responses:
+        '201':
+          description: Created
+
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      summary: Detail user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+    put:
+      tags: [Users]
+      summary: Update user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Sukses
+    delete:
+      tags: [Users]
+      summary: Hapus user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+
+  /api/users/roles:
+    get:
+      tags: [Users]
+      summary: List role untuk user form
+      responses:
+        '200':
+          description: Sukses
+
+  /api/users/check-username:
+    get:
+      tags: [Users]
+      summary: Cek ketersediaan username
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+        - in: query
+          name: excludeId
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+
+  /api/users/employee-search:
+    get:
+      tags: [Users]
+      summary: Cari pegawai tanpa akun
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sukses
+
+  /api/roles:
+    get:
+      tags: [Roles]
+      summary: List role
+      responses:
+        '200':
+          description: Sukses
+
+  /api/roles/{id}:
+    put:
+      tags: [Roles]
+      summary: Update role
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Sukses
+
+  /api/roles/permissions:
+    get:
+      tags: [Roles]
+      summary: List permissions
+      responses:
+        '200':
+          description: Sukses
+
+  /api/employees:
+    get:
+      tags: [Employees]
+      summary: List pegawai
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: offset
+          schema:
+            type: integer
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sukses
+    post:
+      tags: [Employees]
+      summary: Buat pegawai
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Created
+
+  /api/employees/{id}:
+    get:
+      tags: [Employees]
+      summary: Detail pegawai
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+    put:
+      tags: [Employees]
+      summary: Update pegawai
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Sukses
+    delete:
+      tags: [Employees]
+      summary: Hapus pegawai
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+
+  /api/employees/bulk-delete:
+    post:
+      tags: [Employees]
+      summary: Hapus banyak pegawai
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Sukses
+
+  /api/employees/bulk-status:
+    post:
+      tags: [Employees]
+      summary: Ubah status banyak pegawai
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Sukses
+
+  /api/employees/export-excel:
+    get:
+      tags: [Employees]
+      summary: Export Excel
+      responses:
+        '200':
+          description: File excel
+
+  /api/employees/export-pdf:
+    get:
+      tags: [Employees]
+      summary: Export PDF
+      responses:
+        '200':
+          description: File pdf
+
+  /api/educations:
+    get:
+      tags: [Educations]
+      summary: List pendidikan
+      responses:
+        '200':
+          description: Sukses
+    post:
+      tags: [Educations]
+      summary: Tambah pendidikan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Created
+
+  /api/educations/{id}:
+    delete:
+      tags: [Educations]
+      summary: Hapus pendidikan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+
+  /api/educations/{employeeId}:
+    get:
+      tags: [Educations]
+      summary: Detail/list pendidikan per pegawai
+      parameters:
+        - in: path
+          name: employeeId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+    put:
+      tags: [Educations]
+      summary: Update pendidikan pegawai
+      parameters:
+        - in: path
+          name: employeeId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Sukses
+
+  /api/transport-allowance:
+    get:
+      tags: [Transport]
+      summary: List tunjangan transport
+      responses:
+        '200':
+          description: Sukses
+
+  /api/transport-allowance/generate:
+    post:
+      tags: [Transport]
+      summary: Generate tunjangan transport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                month:
+                  type: integer
+                year:
+                  type: integer
+                force:
+                  type: boolean
+      responses:
+        '200':
+          description: Sukses
+
+  /api/transport-allowance/settings:
+    get:
+      tags: [Transport]
+      summary: Ambil setting transport
+      responses:
+        '200':
+          description: Sukses
+    put:
+      tags: [Transport]
+      summary: Simpan setting transport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                base_fare:
+                  type: number
+                is_active:
+                  type: boolean
+      responses:
+        '200':
+          description: Sukses
+
+  /api/locations/regencies:
+    get:
+      tags: [Locations]
+      summary: Cari kabupaten/kota
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sukses
+
+  /api/locations/districts:
+    get:
+      tags: [Locations]
+      summary: Cari kecamatan
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sukses
+
+  /api/activity-logs:
+    get:
+      tags: [Activity Logs]
+      summary: List activity log
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: offset
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+
+  /api/activity-logs/log-access:
+    post:
+      tags: [Activity Logs]
+      summary: Simpan log akses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Sukses
+
+  /api/upload:
+    post:
+      tags: [Upload]
+      summary: Upload file gambar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: URL file upload
