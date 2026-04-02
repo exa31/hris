@@ -88,6 +88,7 @@ export const up = (pgm) => {
         phone: {
             type: 'varchar(20)',
             notNull: true,
+            unique: true,
         },
         birth_date: {
             type: 'date',

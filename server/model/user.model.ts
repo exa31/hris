@@ -23,6 +23,7 @@ export const userModel = z.object({
     username: usernameSchema,
     is_active: userStatusEnum,
     role_id: z.number().positive(),
+    password_hash: z.string(),
     created_at: z.string(),
     updated_at: z.string(),
     // Added for convenience in lists

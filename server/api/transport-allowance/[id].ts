@@ -1,6 +1,7 @@
 import { withAuth } from '~~/server/utils/withAuth'
 import { withTransaction } from '~~/server/db/postgres'
 import * as transportAllowanceService from '~~/server/services/transport-allowance.service'
+import { logActivity } from '~~/server/services/activity-log.service'
 
 export default withAuth(async (event) => {
     try {
@@ -15,7 +16,18 @@ export default withAuth(async (event) => {
 
         if (method === 'DELETE') {
             return withTransaction(async (client) => {
-                return transportAllowanceService.deleteTransportAllowance(client, id)
+                const data = await transportAllowanceService.deleteTransportAllowance(client, id)
+                
+                // Log Activity
+                await logActivity(client, {
+                    user_id: event.context.user.id,
+                    action: 'DELETE',
+                    module: 'TRANSPORT_ALLOWANCE',
+                    description: `Menghapus catatan tunjangan transport ID: ${id}`,
+                    metadata: { allowance_id: id }
+                })
+
+                return data
             })
         }
     } catch (e: any) {

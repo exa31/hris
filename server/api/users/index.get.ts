@@ -5,6 +5,7 @@ import { sendSuccess } from '~~/server/utils/response'
 import { searchUsersSchema } from '~~/server/model/user.model'
 import { HttpError } from '~~/server/errors/HttpError'
 import z from 'zod'
+import { logActivity } from '~~/server/services/activity-log.service'
 
 export default withAuth(async (event) => {
     const query = getQuery(event)
@@ -21,6 +22,15 @@ export default withAuth(async (event) => {
 
     return withTransaction(async (client) => {
         const data = await userService.getUsers(client, validation.data)
+        
+        // Log Activity
+        await logActivity(client, {
+            user_id: event.context.user.id,
+            action: 'ACCESS',
+            module: 'USER_MANAGEMENT',
+            description: 'Melihat daftar user'
+        })
+
         return sendSuccess(event, data)
     })
 })

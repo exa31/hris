@@ -2,6 +2,7 @@ import { withAuth } from '~~/server/utils/withAuth'
 import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
 import ExcelJS from 'exceljs'
+import { logActivity } from '~~/server/services/activity-log.service'
 
 export default withAuth(async (event) => {
     const query = getQuery(event)
@@ -19,7 +20,16 @@ export default withAuth(async (event) => {
     return withTransaction(async (client) => {
         const { employees } = await employeeService.getEmployees(client, params)
         
+        // Log Activity
+        await logActivity(client, {
+            user_id: event.context.user.id,
+            action: 'ACCESS',
+            module: 'EMPLOYEE_MANAGEMENT',
+            description: `Ekspor data pegawai ke Excel (${employees.length} data)`
+        })
+
         const workbook = new ExcelJS.Workbook()
+// ... (rest of Excel generation)
         const worksheet = workbook.addWorksheet('Data Pegawai')
 
         // Define columns

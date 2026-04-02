@@ -2,6 +2,7 @@ import { HttpError } from '~~/server/errors/HttpError'
 import { withAuth } from '~~/server/utils/withAuth'
 import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
+import { logActivity } from '~~/server/services/activity-log.service'
 import { sendSuccess } from '~~/server/utils/response'
 
 export default withAuth(async (event) => {
@@ -16,6 +17,16 @@ export default withAuth(async (event) => {
 
     return withTransaction(async (client) => {
         const data = await employeeService.updateEmployee(client, id, body)
+        
+        // Log Activity
+        await logActivity(client, {
+            user_id: event.context.user.id,
+            action: 'UPDATE',
+            module: 'EMPLOYEE_MANAGEMENT',
+            description: `Memperbarui data pegawai: ${data.name}`,
+            metadata: { employee_id: data.id }
+        })
+
         return sendSuccess(event, data, 'Data pegawai berhasil diperbarui')
     })
 })

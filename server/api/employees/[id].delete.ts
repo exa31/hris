@@ -2,6 +2,7 @@ import { HttpError } from '~~/server/errors/HttpError'
 import { withAuth } from '~~/server/utils/withAuth'
 import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
+import { logActivity } from '~~/server/services/activity-log.service'
 import { sendSuccess } from '~~/server/utils/response'
 
 export default withAuth(async (event) => {
@@ -12,7 +13,19 @@ export default withAuth(async (event) => {
     }
 
     return withTransaction(async (client) => {
+        // Fetch employee info before delete for logging
+        const employee = await employeeService.getEmployeeById(client, id)
         const data = await employeeService.deleteEmployee(client, id)
+        
+        // Log Activity
+        await logActivity(client, {
+            user_id: event.context.user.id,
+            action: 'DELETE',
+            module: 'EMPLOYEE_MANAGEMENT',
+            description: `Menghapus pegawai: ${employee?.name || id} (NIP: ${employee?.nip || '-'})`,
+            metadata: { employee_id: id }
+        })
+
         return sendSuccess(event, data, 'Pegawai berhasil dihapus')
     })
 })

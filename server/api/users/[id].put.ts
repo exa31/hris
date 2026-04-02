@@ -5,6 +5,7 @@ import { sendSuccess } from '~~/server/utils/response'
 import { updateUserSchema } from '~~/server/model/user.model'
 import { HttpError } from '~~/server/errors/HttpError'
 import z from 'zod'
+import { logActivity } from '~~/server/services/activity-log.service'
 
 export default withAuth(async (event) => {
     const id = parseInt(getRouterParam(event, 'id') || '0')
@@ -27,6 +28,16 @@ export default withAuth(async (event) => {
 
     return withTransaction(async (client) => {
         const data = await userService.updateUser(client, id, validation.data)
+        
+        // Log Activity
+        await logActivity(client, {
+            user_id: event.context.user.id,
+            action: 'UPDATE',
+            module: 'USER_MANAGEMENT',
+            description: `Memperbarui data user: ${data.username}`,
+            metadata: { target_user_id: data.id }
+        })
+
         return sendSuccess(event, data, 'User berhasil diperbarui')
     })
 })

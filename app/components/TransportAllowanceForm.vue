@@ -122,7 +122,7 @@
                   </div>
 
                   <div class="text-center pt-3 mt-auto">
-                    <div class="text-muted small mb-2">Total Tunjangan Transpor</div>
+                    <div class="text-muted small mb-2">Total Tunjangan Transport</div>
                     <div class="display-6 fw-bold text-primary">{{ formatCurrency(calculatedAmount) }}</div>
                   </div>
               </div>

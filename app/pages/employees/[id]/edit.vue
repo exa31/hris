@@ -15,6 +15,7 @@
     <div class="card">
       <div class="card-body">
         <EmployeeForm 
+          ref="formRef"
           :initialData="employee"
           @submit="handleFormSubmit" 
         />
@@ -43,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import type { Employee } from '~/composables/useEmployees'
 import { useEmployees } from '~/composables/useEmployees'
 import { useEducations } from '~/composables/useEducations'
@@ -54,6 +55,7 @@ const router = useRouter()
 const employeeId = computed(() => parseInt(route.params.id as string))
 const employee = ref<Partial<Employee> | null>(null)
 const loading = ref(false)
+const formRef = ref<any>(null)
 
 // Modal State
 const modalConfig = reactive({
@@ -81,12 +83,32 @@ const handleFormSubmit = async (data: any) => {
     setTimeout(() => {
         router.push(`/employees/${employeeId.value}`)
     }, 1500)
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error updating employee:', error)
+    
+    // Handle Duplicate Resource Specific Error
+    const errorData = error.response?.data
+    if (errorData?.code === 'DUPLICATE_RESOURCE' && errorData.data?.field) {
+        const fieldMap: Record<string, string> = {
+            'phone': 'Nomor HP sudah terdaftar di sistem',
+            'nip': 'NIP sudah digunakan oleh pegawai lain',
+            'email': 'Alamat email sudah terdaftar'
+        }
+        
+        const field = errorData.data.field
+        const message = fieldMap[field] || errorData.message
+        
+        formRef.value?.setExternalErrors({
+            [field]: message
+        })
+        
+        return
+    }
+
     modalConfig.title = 'Error'
-    modalConfig.message = 'Gagal memperbarui data pegawai!'
+    modalConfig.message = errorData?.message || 'Gagal memperbarui data pegawai!'
     modalConfig.type = 'danger'
     modalConfig.isOpen = true
-    console.error(error)
   }
 }
 

@@ -14,7 +14,7 @@
     <!-- Form Card -->
     <div class="card shadow-sm border-0">
       <div class="card-body p-4">
-        <EmployeeForm @submit="handleFormSubmit" />
+        <EmployeeForm ref="formRef" @submit="handleFormSubmit" />
       </div>
     </div>
 
@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import type { Employee } from '~/composables/useEmployees'
 import { useEmployees } from '~/composables/useEmployees'
 import { useEducations } from '~/composables/useEducations'
@@ -48,6 +48,8 @@ const modalConfig = reactive({
   message: '',
   type: 'primary' as 'primary' | 'danger' | 'warning' | 'success'
 })
+
+const formRef = ref<any>(null)
 
 const handleFormSubmit = async (data: any) => {
   try {
@@ -69,8 +71,28 @@ const handleFormSubmit = async (data: any) => {
     }, 1500)
   } catch (error: any) {
     console.error('Error adding employee:', error)
+    
+    // Handle Duplicate Resource Specific Error
+    const errorData = error.response?.data
+    if (errorData?.code === 'DUPLICATE_RESOURCE' && errorData.data?.field) {
+        const fieldMap: Record<string, string> = {
+            'phone': 'Nomor HP sudah terdaftar di sistem',
+            'nip': 'NIP sudah digunakan oleh pegawai lain',
+            'email': 'Alamat email sudah terdaftar'
+        }
+        
+        const field = errorData.data.field
+        const message = fieldMap[field] || errorData.message
+        
+        formRef.value?.setExternalErrors({
+            [field]: message
+        })
+        
+        return // Stop here, no need to show modal if it's field-specific
+    }
+
     modalConfig.title = 'Terjadi Kesalahan'
-    modalConfig.message = error.response?.data?.message || 'Gagal menambahkan data pegawai.'
+    modalConfig.message = errorData?.message || 'Gagal menambahkan data pegawai.'
     modalConfig.type = 'danger'
     modalConfig.isOpen = true
   }

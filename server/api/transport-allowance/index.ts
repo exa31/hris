@@ -1,6 +1,7 @@
 import { withAuth } from '~~/server/utils/withAuth'
 import { withTransaction } from '~~/server/db/postgres'
 import * as transportAllowanceService from '~~/server/services/transport-allowance.service'
+import { logActivity } from '~~/server/services/activity-log.service'
 
 export default withAuth(async (event) => {
     const method = event.method
@@ -23,7 +24,18 @@ export default withAuth(async (event) => {
     if (method === 'POST') {
         const body = await readBody(event)
         return withTransaction(async (client) => {
-            return transportAllowanceService.createTransportAllowance(client, body)
+            const data = await transportAllowanceService.createTransportAllowance(client, body)
+            
+            // Log Activity
+            await logActivity(client, {
+                user_id: event.context.user.id,
+                action: 'CREATE',
+                module: 'TRANSPORT_ALLOWANCE',
+                description: `Mencatat tunjangan transport untuk Pegawai ID: ${data.employee_id} (Periode: ${data.month}/${data.year})`,
+                metadata: { allowance_id: data.id }
+            })
+
+            return data
         })
     }
 })

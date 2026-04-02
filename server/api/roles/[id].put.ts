@@ -3,6 +3,7 @@ import { withTransaction } from '~~/server/db/postgres'
 import * as userService from '~~/server/services/user.service'
 import { sendSuccess } from '~~/server/utils/response'
 import { HttpError } from '~~/server/errors/HttpError'
+import { logActivity } from '~~/server/services/activity-log.service'
 
 export default withAuth(async (event) => {
     const id = Number(event.context.params?.id)
@@ -19,6 +20,16 @@ export default withAuth(async (event) => {
 
     return withTransaction(async (client) => {
         const data = await userService.updateRolePermissions(client, id, name, permissionIds)
+        
+        // Log Activity
+        await logActivity(client, {
+            user_id: event.context.user.id,
+            action: 'UPDATE',
+            module: 'USER_MANAGEMENT',
+            description: `Memperbarui role & hak akses: ${name}`,
+            metadata: { role_id: id, permissions_count: permissionIds.length }
+        })
+
         return sendSuccess(event, data)
     })
 })

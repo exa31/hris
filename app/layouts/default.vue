@@ -69,9 +69,9 @@
             <span>Kelola Role</span>
           </NuxtLink>
           <NuxtLink 
-            to="/audit-log" 
+            to="/activity-logs" 
             class="nav-item" 
-            :class="{ active: isActive('/audit-log') }"
+            :class="{ active: isActive('/activity-logs') }"
           >
             <i class="bi bi-clock-history"></i>
             <span>Log Aktivitas</span>

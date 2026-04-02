@@ -649,6 +649,11 @@ const submitForm = () => {
     } as any)
   }
 }
+const setExternalErrors = (apiErrors: Record<string, string>) => {
+  errors.value = { ...errors.value, ...apiErrors }
+}
+
+defineExpose({ setExternalErrors })
 </script>
 
 <style scoped>

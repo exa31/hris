@@ -3,6 +3,7 @@ import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { logActivity } from '~~/server/services/activity-log.service'
 
 export default withAuth(async (event) => {
     const query = getQuery(event)
@@ -19,8 +20,17 @@ export default withAuth(async (event) => {
 
     return withTransaction(async (client) => {
         const { employees } = await employeeService.getEmployees(client, params)
+        
+        // Log Activity
+        await logActivity(client, {
+            user_id: event.context.user.id,
+            action: 'ACCESS',
+            module: 'EMPLOYEE_MANAGEMENT',
+            description: `Ekspor data pegawai ke PDF (${employees.length} data)`
+        })
 
         const doc = new jsPDF()
+// ... (rest of PDF generation)
 
         doc.setFontSize(18)
         doc.text('Laporan Data Pegawai', 14, 22)
