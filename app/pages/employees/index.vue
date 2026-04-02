@@ -68,19 +68,26 @@
         </div>
 
         <!-- Filter Jabatan (Multi select) -->
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label small fw-bold">Jabatan</label>
-          <select
-            v-model="selectedPositions"
-            class="form-select form-select-sm"
-            multiple
-            size="3"
-          >
-            <option value="Manager">Manager</option>
-            <option value="Staf">Staf</option>
-            <option value="Magang">Magang</option>
-          </select>
-          <small class="text-muted" style="font-size: 0.7em;">Tahan Ctrl/Cmd untuk memilih lebih dari satu</small>
+          <div class="d-flex flex-wrap gap-2">
+            <div v-for="pos in ['Manager', 'Staf', 'Magang']" :key="pos">
+              <input 
+                type="checkbox" 
+                class="btn-check" 
+                :id="'filterPos' + pos" 
+                :value="pos"
+                v-model="selectedPositions"
+                autocomplete="off"
+              >
+              <label 
+                class="btn btn-outline-primary btn-sm px-3 rounded-pill" 
+                :for="'filterPos' + pos"
+              >
+                {{ pos }}
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- Filter Masa Kerja -->

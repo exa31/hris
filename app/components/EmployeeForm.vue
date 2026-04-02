@@ -57,7 +57,7 @@
       </div>
     </div>
 
-    <!-- Birth Date & Gender -->
+    <!-- Row 3: Birth Date, Birth Place, Gender -->
     <div class="row mb-3">
       <div class="col-md-4">
         <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
@@ -93,7 +93,7 @@
         </div>
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
         <select
           v-model="form.gender"
@@ -199,16 +199,16 @@
     <div class="row mb-3">
       <div class="col-md-6">
         <label class="form-label">Jabatan <span class="text-danger">*</span></label>
-        <select
-          v-model="form.position"
-          class="form-select"
-          :class="{ 'is-invalid': errors.position }"
-        >
-          <option value="">Pilih Jabatan</option>
-          <option value="Manager">Manager</option>
-          <option value="Staf">Staf</option>
-          <option value="Magang">Magang</option>
-        </select>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" v-model="form.position" value="Manager" id="posManager" autocomplete="off">
+          <label class="btn btn-outline-primary" for="posManager">Manager</label>
+
+          <input type="radio" class="btn-check" v-model="form.position" value="Staf" id="posStaf" autocomplete="off">
+          <label class="btn btn-outline-primary" for="posStaf">Staf</label>
+
+          <input type="radio" class="btn-check" v-model="form.position" value="Magang" id="posMagang" autocomplete="off">
+          <label class="btn btn-outline-primary" for="posMagang">Magang</label>
+        </div>
         <small v-if="errors.position" class="text-danger d-block mt-1">{{ errors.position }}</small>
       </div>
 
@@ -255,16 +255,16 @@
 
       <div class="col-md-4">
         <label class="form-label">Tipe Kontrak <span class="text-danger">*</span></label>
-        <select
-          v-model="form.type"
-          class="form-control form-select"
-          :class="{ 'is-invalid': errors.type }"
-        >
-          <option value="">Pilih Tipe</option>
-          <option value="Tetap">Tetap</option>
-          <option value="Kontrak">Kontrak</option>
-          <option value="Magang">Magang</option>
-        </select>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" v-model="form.type" value="Tetap" id="typeTetap" autocomplete="off">
+          <label class="btn btn-outline-success" for="typeTetap">Tetap</label>
+
+          <input type="radio" class="btn-check" v-model="form.type" value="Kontrak" id="typeKontrak" autocomplete="off">
+          <label class="btn btn-outline-success" for="typeKontrak">Kontrak</label>
+
+          <input type="radio" class="btn-check" v-model="form.type" value="Magang" id="typeMagang" autocomplete="off">
+          <label class="btn btn-outline-success" for="typeMagang">Magang</label>
+        </div>
         <small v-if="errors.type" class="text-danger d-block mt-1">{{ errors.type }}</small>
       </div>
     </div>
@@ -272,60 +272,62 @@
     <!-- Educations -->
     <div class="row mb-3">
       <div class="col-12">
-        <label class="form-label">Pendidikan</label>
+        <label class="form-label d-flex justify-content-between align-items-center">
+          Pendidikan
+          <span class="badge bg-secondary rounded-pill" v-if="selectedEducations.length">{{ selectedEducations.length }} terpilih</span>
+        </label>
         
-        <!-- Add Education Section -->
-        <div class="card mb-3 border-light">
-          <div class="card-body">
-            <div class="d-flex gap-2 mb-3">
-              <select v-model="selectedEducationId" class="form-select form-select-sm">
-                <option value="">-- Pilih Pendidikan --</option>
-                <option v-for="edu in availableEducations" :key="edu.id" :value="edu.id">
-                  {{ edu.name }}
-                </option>
-              </select>
-              <button type="button" class="btn btn-sm btn-primary" @click="addSelectedEducation" :disabled="!selectedEducationId">
-                <i class="bi bi-check-circle"></i> Pilih
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteGlobalEducation" :disabled="!selectedEducationId" title="Hapus Pendidikan dari Daftar Utama">
-                <i class="bi bi-trash"></i> Hapus Master
-              </button>
+        <div class="card bg-light border-0">
+          <div class="card-body p-3">
+            <!-- Add/Selection Logic -->
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                  <select v-model="selectedEducationId" class="form-select">
+                    <option value="">-- Pilih Master Data --</option>
+                    <option v-for="edu in availableEducations" :key="edu.id" :value="edu.id">
+                      {{ edu.name }}
+                    </option>
+                  </select>
+                  <button type="button" class="btn btn-primary" @click="addSelectedEducation" :disabled="!selectedEducationId">
+                    Tambah
+                  </button>
+                  <button type="button" class="btn btn-outline-danger" @click="deleteGlobalEducation" :disabled="!selectedEducationId" title="Hapus dari Master">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                  <input 
+                    v-model="newEducationName" 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Nama pendidikan baru..."
+                    @keyup.enter="createNewEducation"
+                  />
+                  <button type="button" class="btn btn-success" @click="createNewEducation" :disabled="!newEducationName">
+                    Buat Baru
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- Create New Education -->
-            <div class="d-flex gap-2">
-              <input 
-                v-model="newEducationName" 
-                type="text" 
-                class="form-control form-control-sm" 
-                placeholder="Atau buat pendidikan baru..."
-                @keyup.enter="createNewEducation"
-              />
-              <button type="button" class="btn btn-sm btn-outline-success" @click="createNewEducation" :disabled="!newEducationName">
-                <i class="bi bi-plus-lg"></i> Buat
-              </button>
+            <!-- Chips Display -->
+            <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+              <div v-for="edu in selectedEducations" :key="edu.id" 
+                class="badge bg-white text-dark border d-flex align-items-center gap-2 p-2 shadow-sm"
+                style="font-weight: 500; font-size: 0.85rem;"
+              >
+                <i class="bi bi-mortarboard text-primary"></i>
+                {{ edu.name }}
+                <button type="button" class="btn-close" style="font-size: 0.6rem;" @click="removeSelectedEducation(edu.id)"></button>
+              </div>
+              <div v-if="selectedEducations.length === 0" class="text-muted small py-1">
+                <i class="bi bi-info-circle me-1"></i> Belum ada riwayat pendidikan yang ditambahkan
+              </div>
             </div>
           </div>
-        </div>
-
-        <!-- Selected Educations -->
-        <div v-if="selectedEducations.length > 0" class="list-group">
-          <div v-for="edu in selectedEducations" :key="edu.id" class="list-group-item d-flex justify-content-between align-items-center">
-            <label class="form-check-label mb-0 flex-grow-1">
-              <input type="checkbox" class="form-check-input me-2" :checked="true" disabled />
-              {{ edu.name }}
-            </label>
-            <button 
-              type="button" 
-              class="btn btn-sm btn-outline-danger" 
-              @click="removeSelectedEducation(edu.id)"
-            >
-              <i class="bi bi-trash"></i>
-            </button>
-          </div>
-        </div>
-        <div v-else class="alert alert-light mb-0">
-          <small class="text-muted">Belum ada pendidikan dipilih</small>
         </div>
       </div>
     </div>
