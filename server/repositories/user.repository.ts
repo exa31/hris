@@ -124,8 +124,44 @@ export async function deleteUser(client: PoolClient, id: number) {
 }
 
 export async function getRoles(client: PoolClient) {
-    const { rows } = await client.query(`SELECT id, name FROM roles ORDER BY name ASC`)
+    const rolesQuery = `SELECT id, name FROM roles ORDER BY name ASC`
+    const { rows: roles } = await client.query(rolesQuery)
+
+    // Parallel fetch permissions for each role
+    const rolesWithPermissions = await Promise.all(roles.map(async (role: any) => {
+        const permsQuery = `
+            SELECT p.* 
+            FROM permissions p
+            INNER JOIN role_permissions rp ON p.id = rp.permission_id
+            WHERE rp.role_id = $1
+        `
+        const { rows: perms } = await client.query(permsQuery, [role.id])
+        return { ...role, permissions: perms }
+    }))
+
+    return rolesWithPermissions
+}
+
+export async function getPermissions(client: PoolClient) {
+    const { rows } = await client.query(`SELECT * FROM permissions ORDER BY module ASC, name ASC`)
     return rows
+}
+
+export async function updateRolePermissions(client: PoolClient, roleId: number, name: string, permissionIds: number[]) {
+    // 1. Update role name if provided
+    await client.query(`UPDATE roles SET name = $1 WHERE id = $2`, [name, roleId])
+
+    // 2. Delete existing permissions
+    await client.query(`DELETE FROM role_permissions WHERE role_id = $1`, [roleId])
+
+    // 3. Insert new permissions
+    if (permissionIds.length > 0) {
+        const values = permissionIds.map((pid, idx) => `($1, $${idx + 2})`).join(', ')
+        const query = `INSERT INTO role_permissions (role_id, permission_id) VALUES ${values}`
+        await client.query(query, [roleId, ...permissionIds])
+    }
+
+    return getRoles(client).then(roles => roles.find(r => r.id === roleId))
 }
 
 export async function isEmployeeAlreadyUser(client: PoolClient, employeeId: number, excludeUserId?: number) {

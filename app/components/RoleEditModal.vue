@@ -94,6 +94,11 @@
               </div>
             </div>
 
+            <!-- Submit Error -->
+            <div v-if="errors.submit" class="alert alert-danger py-2 small mb-3">
+              <i class="bi bi-exclamation-circle me-1"></i> {{ errors.submit }}
+            </div>
+
             <!-- Submit Buttons -->
             <div class="d-flex gap-2 justify-content-end border-top pt-3">
               <button type="button" class="btn btn-outline-secondary" @click="closeModal">
@@ -220,13 +225,17 @@ const handleSubmit = async () => {
   try {
     isSubmitting.value = true
     if (selectedRole.value) {
-      await updateRolePermissions(selectedRole.value.id, formData.value.selectedPermissions)
+      await updateRolePermissions(
+        selectedRole.value.id, 
+        formData.value.selectedPermissions,
+        formData.value.name
+      )
       emit('save', selectedRole.value.id, formData.value.selectedPermissions)
     }
     closeModal()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving role:', error)
-    errors.value.submit = 'Gagal menyimpan role'
+    errors.value.submit = error.response?.data?.message || 'Gagal menyimpan role'
   } finally {
     isSubmitting.value = false
   }

@@ -87,6 +87,14 @@ export async function getRoles(client: PoolClient) {
     return userRepository.getRoles(client)
 }
 
+export async function getPermissions(client: PoolClient) {
+    return userRepository.getPermissions(client)
+}
+
+export async function updateRolePermissions(client: PoolClient, roleId: number, name: string, permissionIds: number[]) {
+    return userRepository.updateRolePermissions(client, roleId, name, permissionIds)
+}
+
 export async function checkUsername(client: PoolClient, username: string, excludeId?: number) {
     const user = await userRepository.getUserByUsername(client, username)
     if (!user) return true

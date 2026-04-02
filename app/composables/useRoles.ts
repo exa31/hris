@@ -61,23 +61,27 @@ dummyRoles.forEach(role => {
     ).filter(p => p) as Permission[]
 })
 
-const roles = ref<Role[]>(dummyRoles)
-const permissions = ref<Permission[]>(dummyPermissions)
+const roles = ref<Role[]>([])
+const permissions = ref<Permission[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
 
 export const useRoles = () => {
-    /**
-     * Fetch All Roles
-     * TODO: Replace with API call to /api/roles
-     */
+    const { $axios } = useNuxtApp()
+
     const getRoles = async (): Promise<Role[]> => {
+        loading.value = true
+        error.value = null
         try {
-            const { $axios } = useNuxtApp()
-            const response = await $axios.get('/api/users/roles')
-            // result is in response.data based on my useUsers update
+            const response = await $axios.get('/api/roles')
+            roles.value = response.data
             return response.data
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error fetching roles:', err)
-            return roles.value // fallback to dummy
+            error.value = 'Gagal memuat data role'
+            return []
+        } finally {
+            loading.value = false
         }
     }
 
@@ -85,40 +89,51 @@ export const useRoles = () => {
         return roles.value.find(r => r.id === id)
     }
 
-    /**
-     * Get all available permissions
-     * TODO: Replace with API call to /api/permissions
-     */
     const getPermissions = async (): Promise<Permission[]> => {
-        // return await $fetch('/api/permissions')
-        return permissions.value
+        loading.value = true
+        try {
+            const response = await $axios.get('/api/roles/permissions')
+            permissions.value = response.data
+            return response.data
+        } catch (err) {
+            console.error('Error fetching permissions:', err)
+            return []
+        } finally {
+            loading.value = false
+        }
     }
 
-    /**
-     * Get permissions for a role
-     */
     const getRolePermissions = (roleId: number): Permission[] => {
         const role = getRoleById(roleId)
         return role?.permissions || []
     }
 
-    /**
-     * Update role permissions
-     */
-    const updateRolePermissions = async (roleId: number, permissionIds: number[]): Promise<Role | null> => {
-        const role = getRoleById(roleId)
-        if (!role) return null
-
-        role.permissions = permissionIds
-            .map(id => permissions.value.find(p => p.id === id))
-            .filter(p => p) as Permission[]
-
-        return role
+    const updateRolePermissions = async (roleId: number, permissionIds: number[], name?: string): Promise<Role | null> => {
+        loading.value = true
+        try {
+            const role = getRoleById(roleId)
+            const roleName = name || role?.name || ''
+            
+            const response = await $axios.put(`/api/roles/${roleId}`, {
+                name: roleName,
+                permissionIds
+            })
+            
+            // Update local state
+            const index = roles.value.findIndex(r => r.id === roleId)
+            if (index !== -1) {
+                roles.value[index] = response.data
+            }
+            
+            return response.data
+        } catch (err) {
+            console.error('Error updating role:', err)
+            throw err
+        } finally {
+            loading.value = false
+        }
     }
 
-    /**
-     * Get permissions grouped by module
-     */
     const getPermissionsByModule = computed(() => {
         const grouped: Record<string, Permission[]> = {}
         permissions.value.forEach(permission => {
@@ -138,6 +153,8 @@ export const useRoles = () => {
         updateRolePermissions,
         getPermissionsByModule,
         roles: computed(() => roles.value),
-        permissions: computed(() => permissions.value)
+        permissions: computed(() => permissions.value),
+        loading: computed(() => loading.value),
+        error: computed(() => error.value)
     }
 }

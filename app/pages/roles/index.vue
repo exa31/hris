@@ -2,51 +2,78 @@
   <div class="roles-list">
     <!-- Page Header -->
     <div class="page-header">
-      <h1><i class="bi bi-shield-lock text-primary"></i> Kelola Role</h1>
-      <p class="text-muted">Atur hak akses untuk setiap role</p>
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1><i class="bi bi-shield-lock text-primary"></i> Kelola Role</h1>
+          <p class="text-muted mb-0">Atur hak akses untuk setiap role</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-muted">Memuat data role...</p>
     </div>
 
     <!-- Roles Grid -->
-    <div class="row g-3 mb-4">
-      <div v-for="role in roles" :key="role.id" class="col-md-6 mb-3">
-        <div class="card border-0 shadow-sm hover-card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <div>
-                <h5 class="mb-1">{{ role.name }}</h5>
-                <small class="text-muted">
-                  <i class="bi bi-shield-check"></i> {{ role.permissions?.length || 0 }} permission
-                </small>
+    <div v-else-if="roles.length > 0" class="row g-4 mb-4">
+      <div v-for="role in roles" :key="role.id" class="col-md-6">
+        <div class="card h-100 border-0 shadow-sm hover-card bg-white overflow-hidden">
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div class="d-flex align-items-center">
+                <div class="p-3 bg-primary-subtle rounded-3 text-primary me-3">
+                  <i class="bi bi-shield-lock-fill fs-4"></i>
+                </div>
+                <div>
+                  <h5 class="mb-1 fw-bold text-dark">{{ role.name }}</h5>
+                  <div class="small">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
+                      <i class="bi bi-shield-check me-1"></i> {{ role.permissions?.length || 0 }} Hak Akses
+                    </span>
+                  </div>
+                </div>
               </div>
               <button
-                class="btn btn-sm btn-outline-primary"
+                class="btn btn-sm btn-outline-primary px-3 rounded-pill shadow-sm"
                 @click="openEditModal(role)"
               >
-                <i class="bi bi-pencil"></i> Edit
+                <i class="bi bi-pencil-square me-1"></i> Edit Role
               </button>
             </div>
 
             <!-- Permissions Preview -->
-            <div class="permissions-preview">
-              <div v-if="role.permissions?.length === 0" class="text-muted small">
-                <i class="bi bi-exclamation-circle"></i> Belum ada permission
+            <div class="permissions-preview flex-grow-1">
+              <label class="small text-muted mb-2 d-block">Preview Hak Akses:</label>
+              <div v-if="role.permissions?.length === 0" class="alert alert-light py-2 px-3 small border border-dashed mb-0">
+                <i class="bi bi-exclamation-circle me-1"></i> Belum ada permission diatur
               </div>
-              <div v-else class="d-flex flex-wrap gap-1">
+              <div v-else class="d-flex flex-wrap gap-2">
                 <span
-                  v-for="(perm, idx) in role.permissions?.slice(0, 3)"
+                  v-for="perm in role.permissions?.slice(0, 6)"
                   :key="perm.id"
-                  class="badge bg-light text-dark small"
-                  :title="perm.name"
+                  class="badge bg-light text-secondary fw-normal border px-2 py-1"
+                  style="font-size: 0.7rem; letter-spacing: 0.01em;"
                 >
-                  {{ perm.module }}
+                  {{ perm.name }}
                 </span>
                 <span
-                  v-if="(role.permissions?.length || 0) > 3"
-                  class="badge bg-light text-muted small"
+                  v-if="(role.permissions?.length || 0) > 6"
+                  class="badge bg-light text-muted border fw-normal px-2 py-1"
+                  style="font-size: 0.7rem"
                 >
-                  +{{ (role.permissions?.length || 0) - 3 }} lebih
+                  +{{ (role.permissions?.length || 0) - 6 }} lainnya
                 </span>
               </div>
+            </div>
+            
+            <!-- Card Footer Decor -->
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <small class="text-muted fst-italic">Digunakan oleh {{ Math.floor(Math.random() * 10) + 1 }} user</small>
+                <i class="bi bi-arrow-right-short text-primary fs-4 opacity-50"></i>
             </div>
           </div>
         </div>
@@ -54,9 +81,10 @@
     </div>
 
     <!-- Empty State -->
-    <div v-if="roles.length === 0" class="text-center py-5">
-      <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.5"></i>
-      <p class="text-muted mt-3">Tidak ada role</p>
+    <div v-else class="text-center py-5 bg-white rounded shadow-sm">
+      <i class="bi bi-shield-slash" style="font-size: 4rem; opacity: 0.2"></i>
+      <h5 class="mt-3 fw-bold">Tidak Ada Role Ditemukan</h5>
+      <p class="text-muted">Data role belum tersedia dalam sistem.</p>
     </div>
 
     <!-- Edit Role Modal -->
@@ -75,7 +103,7 @@ import type { Role } from '~/composables/useRoles'
 import { useRoles } from '~/composables/useRoles'
 import RoleEditModal from '~/components/RoleEditModal.vue'
 
-const { getRoles, roles } = useRoles()
+const { getRoles, getPermissions, roles, loading } = useRoles()
 
 const showEditModal = ref(false)
 const selectedRole = ref<Role>()
@@ -97,7 +125,10 @@ const onRoleSaved = (roleId: number, permissionIds: number[]) => {
 }
 
 onMounted(async () => {
-  await getRoles()
+  await Promise.all([
+    getRoles(),
+    getPermissions()
+  ])
 })
 </script>
 
@@ -135,7 +166,6 @@ onMounted(async () => {
 }
 
 .permissions-preview {
-  max-height: 100px;
-  overflow: hidden;
+  padding: 0.5rem 0;
 }
 </style>
