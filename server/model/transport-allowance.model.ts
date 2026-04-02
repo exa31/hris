@@ -5,9 +5,6 @@
 
 import z from 'zod'
 
-export const paymentStatusEnum = z.enum(['pending', 'paid', 'rejected'])
-export type PaymentStatus = z.infer<typeof paymentStatusEnum>
-
 export const transportAllowanceModel = z.object({
     id: z.number(),
     employee_id: z.number(),

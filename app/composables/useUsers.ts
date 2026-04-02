@@ -145,3 +145,5 @@ export const useUsers = () => {
         getRoles
     }
 }
+
+export type { User }
