@@ -2,198 +2,167 @@
   <div class="transport-settings">
     <!-- Header -->
     <div class="page-header">
-      <h1>Pengaturan Tunjangan Transport</h1>
-      <p class="text-muted">Atur tarif dasar dan batas jarak untuk tunjangan transport pegawai</p>
+      <h1><i class="bi bi-gear-fill text-primary me-2"></i>Pengaturan Tunjangan Transport</h1>
+      <p class="text-muted">Atur base fare dan status aktif untuk perhitungan tunjangan transport pegawai</p>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="alert alert-info">
-      <i class="bi bi-hourglass-split"></i> Memuat pengaturan...
-    </div>
-
-    <!-- Error Alert -->
-    <div v-if="error && !loading" class="alert alert-warning alert-dismissible fade show" role="alert">
-      <i class="bi bi-exclamation-triangle"></i> {{ error }}
-      <button type="button" class="btn-close" @click="error = null"></button>
-    </div>
-
-    <!-- Success Alert -->
-    <div v-if="saveSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
-      <i class="bi bi-check-circle"></i> Pengaturan berhasil disimpan!
-      <button type="button" class="btn-close" @click="saveSuccess = false"></button>
-    </div>
-
-    <!-- Save Error Alert -->
-    <div v-if="saveError" class="alert alert-danger alert-dismissible fade show" role="alert">
-      <i class="bi bi-exclamation-circle"></i> {{ saveError }}
-      <button type="button" class="btn-close" @click="saveError = null"></button>
-    </div>
-
-    <!-- Settings Form -->
-    <div class="row"> 
+    <div class="row g-4">
+      <!-- Settings Form -->
       <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title mb-4">Konfigurasi Tarif</h5>
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="card-title mb-4 d-flex align-items-center">
+              <i class="bi bi-sliders text-primary me-2"></i> Konfigurasi Tarif
+            </h5>
 
-            <div class="mb-3">
-              <label class="form-label fw-bold">Base Fare (Rp)</label>
-              <input
-                v-model.number="localSettings.baseFare"
-                type="number"
-                class="form-control form-control-lg"
-                placeholder="Tarif dasar per hari"
-                min="0"
-                step="500"
-              />
-              <small class="text-muted">Tarif dasar untuk tunjangan transport</small>
+            <!-- Base Fare -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">Base Fare (Rp) <span class="text-danger">*</span></label>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-white fw-bold text-primary">Rp</span>
+                <input
+                  v-model.number="localSettings.base_fare"
+                  type="number"
+                  class="form-control form-control-lg"
+                  placeholder="Contoh: 2000"
+                  min="0"
+                  step="500"
+                />
+              </div>
+              <small class="text-muted">Base fare per kilometer per hari kerja. Rumus: <code>base_fare × km × hari_kerja</code></small>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label fw-bold">Tarif Per KM (Rp)</label>
-              <input
-                v-model.number="localSettings.tariffPerKm"
-                type="number"
-                class="form-control form-control-lg"
-                placeholder="Tarif per kilometer"
-                min="0"
-                step="500"
-              />
-              <small class="text-muted">Besaran tunjangan untuk setiap 1 km perjalanan</small>
+            <!-- Is Active -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">Status Pengaturan</label>
+              <div class="form-check form-switch">
+                <input
+                  id="isActiveSwitch"
+                  v-model="localSettings.is_active"
+                  type="checkbox"
+                  class="form-check-input"
+                  role="switch"
+                  style="width: 3em; height: 1.5em;"
+                />
+                <label class="form-check-label ms-2 fw-medium" for="isActiveSwitch">
+                  <span v-if="localSettings.is_active" class="text-success">
+                    <i class="bi bi-check-circle-fill me-1"></i> Aktif
+                  </span>
+                  <span v-else class="text-danger">
+                    <i class="bi bi-x-circle-fill me-1"></i> Nonaktif
+                  </span>
+                </label>
+              </div>
+              <small class="text-muted">Jika nonaktif, fitur Generate Tunjangan tidak dapat digunakan</small>
             </div>
 
             <hr />
 
-            <h5 class="card-title mb-3">Batas Jarak</h5>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Jarak Minimum (km)</label>
-                <input
-                  v-model.number="localSettings.minDistance"
-                  type="number"
-                  class="form-control"
-                  placeholder="Minimal jarak"
-                  min="0"
-                  step="0.5"
-                />
-                <small class="text-muted">Jarak kurang dari ini tidak mendapat tunjangan</small>
-              </div>
-
-              <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Jarak Maksimal (km)</label>
-                <input
-                  v-model.number="localSettings.maxDistance"
-                  type="number"
-                  class="form-control"
-                  placeholder="Maksimal jarak"
-                  min="0"
-                  step="0.5"
-                />
-                <small class="text-muted">Jarak lebih dari ini hanya dihitung sampai maksimal</small>
-              </div>
-            </div>
-
-            <hr />
-
-            <h5 class="card-title mb-3">Hari Kerja Minimum</h5>
-
-            <div class="mb-3">
-              <label class="form-label fw-bold">Minimal Hari Masuk Kerja (hari)</label>
-              <input
-                v-model.number="localSettings.minWorkingDays"
-                type="number"
-                class="form-control"
-                placeholder="Minimal hari masuk"
-                min="1"
-                max="31"
-              />
-              <small class="text-muted">Pegawai harus masuk minimal ini hari agar mendapat tunjangan</small>
-            </div>
-
-            <div class="d-flex gap-2 mt-4">
-              <button 
-                class="btn btn-primary" 
-                @click="saveSettings"
-                :disabled="loading"
-              >
-                <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-                <i v-else class="bi bi-check-circle"></i> 
-                {{ loading ? 'Menyimpan...' : 'Simpan Pengaturan' }}
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary px-4" @click="saveSettings" :disabled="saving">
+                <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
+                <i v-else class="bi bi-check-circle me-1"></i>
+                {{ saving ? 'Menyimpan...' : 'Simpan Pengaturan' }}
               </button>
-              <button 
-                class="btn btn-outline-secondary" 
-                @click="resetSettings"
-                :disabled="loading"
-              >
-                <i class="bi bi-arrow-clockwise"></i> Reset
+              <button class="btn btn-outline-secondary" @click="resetForm" :disabled="saving">
+                <i class="bi bi-arrow-clockwise me-1"></i> Reset
               </button>
             </div>
           </div>
         </div>
+
+        <!-- Alerts -->
+        <div v-if="saveSuccess" class="alert alert-success alert-dismissible fade show mt-3 shadow-sm">
+          <i class="bi bi-check-circle-fill me-2"></i> Pengaturan berhasil disimpan!
+          <button type="button" class="btn-close" @click="saveSuccess = false"></button>
+        </div>
+        <div v-if="saveError" class="alert alert-danger alert-dismissible fade show mt-3 shadow-sm">
+          <i class="bi bi-exclamation-circle-fill me-2"></i> {{ saveError }}
+          <button type="button" class="btn-close" @click="saveError = null"></button>
+        </div>
       </div>
 
-      <!-- Preview / Info -->
+      <!-- Preview & Business Rules -->
       <div class="col-md-6">
-        <div class="card bg-light">
-          <div class="card-body">
-            <h5 class="card-title mb-4">Informasi Pengaturan</h5>
+        <div class="card border-0 shadow-sm rounded-3 bg-light">
+          <div class="card-body p-4">
+            <h5 class="card-title mb-4 d-flex align-items-center">
+              <i class="bi bi-info-circle text-primary me-2"></i> Informasi & Aturan Bisnis
+            </h5>
 
+            <!-- Current Rate -->
             <div class="info-group mb-4">
-              <h6 class="text-muted">Tarif Saat Ini</h6>
-              <p class="h5 mb-1">
-                <strong>{{ formatCurrency(settings.baseFare) }} × KM × Hari Masuk</strong>
+              <h6 class="text-muted">Base Fare Saat Ini</h6>
+              <p class="h4 mb-1 fw-bold text-primary">
+                {{ formatCurrency(localSettings.base_fare) }} <small class="text-muted fs-6">/ km / hari</small>
               </p>
-              <small class="text-muted d-block mb-2">
-                Tarif per km: {{ formatCurrency(settings.tariffPerKm) }}
-              </small>
             </div>
 
             <hr />
 
+            <!-- Business Rules -->
             <div class="info-group mb-4">
-              <h6 class="text-muted">Batas Jarak</h6>
-              <p class="mb-1">
-                <strong>{{ settings.minDistance }} km - {{ settings.maxDistance }} km</strong>
-              </p>
-              <small class="text-muted">
-                Pegawai yang perjalanan kurang dari {{ settings.minDistance }} km atau lebih dari {{ settings.maxDistance }} km akan disesuaikan perhitungannya
-              </small>
-            </div>
-
-            <hr />
-
-            <div class="info-group mb-4">
-              <h6 class="text-muted">Minimum Hari Kerja</h6>
-              <p class="h5 mb-1">
-                <strong>{{ settings.minWorkingDays }} hari</strong>
-              </p>
-              <small class="text-muted">
-                Pegawai yang masuk kurang dari {{ settings.minWorkingDays }} hari tidak mendapat tunjangan transport bulan tersebut
-              </small>
-            </div>
-
-            <hr />
-
-            <div class="info-group">
-              <h6 class="text-muted">Contoh Perhitungan</h6>
-              <small class="text-muted d-block mb-2">
-                <strong>Asumsi:</strong>
-              </small>
-              <ul class="small text-muted" style="margin-left: 1rem">
-                <li>Jarak: 12 km</li>
-                <li>Hari masuk: 22 hari</li>
-                <li>Base fare: {{ formatCurrency(settings.baseFare) }}</li>
+              <h6 class="text-muted">Aturan Perhitungan</h6>
+              <ul class="list-unstyled small mb-0">
+                <li class="mb-2 d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                  <span>Hanya pegawai <strong>Tetap</strong> yang eligible (Kontrak/Magang = Rp0)</span>
+                </li>
+                <li class="mb-2 d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                  <span>Minimum <strong>19 hari kerja</strong> → kurang dari itu = Rp0</span>
+                </li>
+                <li class="mb-2 d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                  <span>Jarak ≤ <strong>5 km</strong> → tunjangan = Rp0</span>
+                </li>
+                <li class="mb-2 d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                  <span>Jarak > <strong>25 km</strong> → dibatasi maksimal 25 km</span>
+                </li>
+                <li class="mb-2 d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                  <span>Pembulatan: desimal < 0.5 → bulatkan ke bawah, ≥ 0.5 → ke atas</span>
+                </li>
               </ul>
-              <small class="text-muted mt-2">
-                <strong>Rumus:</strong> {{ formatCurrency(settings.baseFare) }} × 12 km × 22 hari = 
-                <strong>{{ formatCurrency(settings.baseFare * 12 * 22) }}</strong>
-              </small>
             </div>
 
-            <div class="alert alert-info mt-4 small">
-              <i class="bi bi-info-circle"></i>
-              <strong>Info:</strong> Pengaturan ini akan mempengaruhi perhitungan tunjangan transport untuk semua pegawai di sistem
+            <hr />
+
+            <!-- Example Calculation -->
+            <div class="info-group mb-3">
+              <h6 class="text-muted">Contoh Perhitungan</h6>
+              <div class="bg-white rounded-3 p-3 border">
+                <div class="d-flex flex-column gap-2 small">
+                  <div class="d-flex justify-content-between">
+                    <span class="text-muted">Base fare</span>
+                    <span class="fw-bold">{{ formatCurrency(localSettings.base_fare) }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between">
+                    <span class="text-muted">Jarak tempuh</span>
+                    <span class="fw-bold">12.3 km → 12 km (pembulatan)</span>
+                  </div>
+                  <div class="d-flex justify-content-between">
+                    <span class="text-muted">Hari kerja</span>
+                    <span class="fw-bold">22 hari</span>
+                  </div>
+                  <hr class="my-1" />
+                  <div class="d-flex justify-content-between">
+                    <span class="fw-bold text-muted">Total Tunjangan</span>
+                    <span class="fw-bold text-success fs-5">{{ formatCurrency(localSettings.base_fare * 12 * 22) }}</span>
+                  </div>
+                </div>
+                <div class="mt-3 small text-muted bg-light rounded p-2">
+                  <strong>Rumus:</strong> base_fare × km × hari_kerja<br/>
+                  {{ formatCurrency(localSettings.base_fare) }} × 12 × 22 = <strong>{{ formatCurrency(localSettings.base_fare * 12 * 22) }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-info small mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              Pengaturan ini digunakan saat fitur <strong>Generate Tunjangan</strong> dijalankan. 
+              Setiap pegawai dihitung: <code>base_fare × calculated_km × working_days</code>
             </div>
           </div>
         </div>
@@ -208,94 +177,58 @@ import { useTransportSettings } from '~/composables/useTransportSettings'
 
 const { settings, updateSettings, formatCurrency, fetchSettings, loading, error } = useTransportSettings()
 
-// Local state untuk form
-const localSettings = ref({ ...settings.value })
+const localSettings = ref({ base_fare: 2000, is_active: true })
+const saving = ref(false)
 const saveError = ref<string | null>(null)
 const saveSuccess = ref(false)
 
-// Fetch settings on component mount
 onMounted(async () => {
   await fetchSettings()
-  localSettings.value = { ...settings.value }
+  localSettings.value = {
+    base_fare: settings.value.base_fare || 2000,
+    is_active: settings.value.is_active ?? true,
+  }
 })
 
 const saveSettings = async () => {
   saveError.value = null
   saveSuccess.value = false
+  saving.value = true
 
-  // Validate
-  if (
-    localSettings.value.baseFare <= 0 ||
-    localSettings.value.tariffPerKm <= 0 ||
-    localSettings.value.minDistance < 0 ||
-    localSettings.value.maxDistance <= 0 ||
-    localSettings.value.minWorkingDays < 1
-  ) {
-    saveError.value = 'Nilai harus valid (positif)'
-    return
-  }
-
-  if (localSettings.value.minDistance >= localSettings.value.maxDistance) {
-    saveError.value = 'Jarak minimum harus kurang dari jarak maksimal'
+  if (!localSettings.value.base_fare || localSettings.value.base_fare <= 0) {
+    saveError.value = 'Base fare harus lebih dari 0'
+    saving.value = false
     return
   }
 
   try {
-    await updateSettings(localSettings.value)
-    saveSuccess.value = true
-
-    const { useAuditLog } = await import('~/composables/useAuditLog')
-    const auditLog = useAuditLog()
-    auditLog.addLog({
-      userId: 'current_user',
-      userName: 'Admin',
-      timestamp: new Date().toISOString(),
-      modul: 'Pengaturan Tunjangan Transport',
-      aksi: 'update',
-      deskripsi: 'Update pengaturan tarif tunjangan transport'
+    await updateSettings({
+      base_fare: localSettings.value.base_fare,
+      is_active: localSettings.value.is_active,
     })
-
-    setTimeout(() => {
-      saveSuccess.value = false
-    }, 3000)
+    saveSuccess.value = true
+    setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (err: any) {
-    saveError.value = error.value || 'Gagal menyimpan pengaturan'
+    saveError.value = err.response?.data?.message || error.value || 'Gagal menyimpan pengaturan'
+  } finally {
+    saving.value = false
   }
 }
 
-const resetSettings = () => {
-  if (confirm('Apakah Anda yakin ingin membatalkan perubahan?')) {
-    localSettings.value = { ...settings.value }
-    saveError.value = null
+const resetForm = () => {
+  localSettings.value = {
+    base_fare: settings.value.base_fare || 2000,
+    is_active: settings.value.is_active ?? true,
   }
+  saveError.value = null
 }
 
-definePageMeta({
-  layout: 'default'
-})
+definePageMeta({ layout: 'default' })
 </script>
 
 <style scoped>
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.info-group h6 {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-}
-
-.card {
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
+.transport-settings { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+.page-header { margin-bottom: 2rem; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
+.info-group h6 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
 </style>

@@ -42,7 +42,7 @@ export const withPermission = <T extends EventHandlerRequest, D>(
 
             // 3️⃣ Cek user masih aktif
             const { query: dbQuery } = await import('~~/server/db/postgres')
-            const dbUser = await dbQuery('SELECT is_active FROM users WHERE id = $1', [userId])
+            const dbUser = await dbQuery('SELECT is_active, employee_id FROM users WHERE id = $1', [userId])
             if (dbUser.rows.length === 0 || !dbUser.rows[0].is_active) {
                 return sendError(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus.')
             }
@@ -50,6 +50,7 @@ export const withPermission = <T extends EventHandlerRequest, D>(
             // 4️⃣ Attach user ke context
             event.context.user = {
                 id: userId,
+                employee_id: dbUser.rows[0].employee_id,
                 role_id: roleId,
                 raw: payload,
             }
@@ -67,9 +68,28 @@ export const withPermission = <T extends EventHandlerRequest, D>(
                 const userPermissions: { module: string; action: string }[] = permResult.rows
 
                 for (const required of requiredPermissions) {
-                    const hasPermission = userPermissions.some(
+                    let hasPermission = userPermissions.some(
                         p => p.module === required.module && p.action === required.action
                     )
+
+                    // Pengecekan otomatis untuk update_own
+                    if (!hasPermission && ['update', 'delete', 'manage'].includes(required.action)) {
+                        const hasUpdateOwn = userPermissions.some(
+                            p => p.module === required.module && p.action === 'update_own'
+                        )
+
+                        if (hasUpdateOwn) {
+                            const targetId = getRouterParam(event, 'id') || getRouterParam(event, 'employeeId')
+                            if (targetId) {
+                                if (required.module === 'users' && String(targetId) === String(userId)) {
+                                    hasPermission = true
+                                } else if (required.module === 'employees' && event.context.user.employee_id && String(targetId) === String(event.context.user.employee_id)) {
+                                    hasPermission = true
+                                }
+                            }
+                        }
+                    }
+
                     if (!hasPermission) {
                         return sendError(
                             event,

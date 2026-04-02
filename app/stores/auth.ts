@@ -88,8 +88,9 @@ export const useAuthStore = defineStore('auth', () => {
             fetchInProgress.value = true;
             loading.value = true;
             const response = await $axios.get('/api/auth/me');
-            user.value = response.data;
-            permissions.value = response.data?.permissions || [];
+            const res = response.data?.data || response.data;
+            user.value = res;
+            permissions.value = res?.permissions || [];
 
             // Start connection if authenticated
             if (user.value) initSSE();
@@ -128,6 +129,7 @@ export const useAuthStore = defineStore('auth', () => {
 
             user.value = response.data?.user;
             initSSE();
+            fetchUser(true);
             return response.data;
         } catch (error: any) {
             throw error;

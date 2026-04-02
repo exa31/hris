@@ -1,5 +1,4 @@
 import { ref, computed } from 'vue'
-import { useEmployees } from './useEmployees'
 
 export interface TransportAllowance {
     id: number
@@ -7,18 +6,22 @@ export interface TransportAllowance {
     employeeName: string
     nip: string
     departemen: string
+    employee_type: string
     month: number
     year: number
-    distance_km: number
     working_days: number
-    total_allowance: number
-    created_at: string
+    base_fare: number
+    distance_km: number
+    calculated_km: number
+    amount: number
+    generated_at: string
 }
 
 // State
 const allowances = ref<TransportAllowance[]>([])
 const totalAllowances = ref(0)
 const loading = ref(false)
+const generating = ref(false)
 const error = ref<string | null>(null)
 
 const searchQuery = ref('')
@@ -42,8 +45,8 @@ export const useTransportAllowance = () => {
                 offset: (currentPage.value - 1) * itemsPerPage.value
             }
             const response = await $axios.get('/api/transport-allowance', { params })
-            allowances.value = response.data.rows
-            totalAllowances.value = response.data.total
+            allowances.value = response.data.rows || response.data?.data?.rows || []
+            totalAllowances.value = response.data.total || response.data?.data?.total || 0
         } catch (err: any) {
             error.value = err.response?.data?.message || 'Gagal memuat data'
         } finally {
@@ -51,39 +54,23 @@ export const useTransportAllowance = () => {
         }
     }
 
-    const addAllowance = async (data: any) => {
-        loading.value = true
+    const generateAllowances = async (month: number, year: number, force: boolean = false) => {
+        generating.value = true
+        error.value = null
         try {
-            await $axios.post('/api/transport-allowance', data)
+            const response = await $axios.post('/api/transport-allowance/generate', {
+                month,
+                year,
+                force,
+            })
             await fetchAllowances()
+            return response.data
         } catch (err: any) {
+            const msg = err.response?.data?.message || 'Gagal generate data tunjangan'
+            error.value = msg
             throw err
         } finally {
-            loading.value = false
-        }
-    }
-
-    const updateAllowance = async (id: number, data: any) => {
-        loading.value = true
-        try {
-            await $axios.put(`/api/transport-allowance/${id}`, data)
-            await fetchAllowances()
-        } catch (err: any) {
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
-
-    const deleteAllowance = async (id: number) => {
-        loading.value = true
-        try {
-            await $axios.delete(`/api/transport-allowance/${id}`)
-            await fetchAllowances()
-        } catch (err: any) {
-             throw err
-        } finally {
-            loading.value = false
+            generating.value = false
         }
     }
 
@@ -111,6 +98,7 @@ export const useTransportAllowance = () => {
         // State
         allowances,
         loading,
+        generating,
         error,
         searchQuery,
         filterMonth,
@@ -121,10 +109,8 @@ export const useTransportAllowance = () => {
         totalPages,
         // Methods
         fetchAllowances,
-        addAllowance,
-        updateAllowance,
-        deleteAllowance,
+        generateAllowances,
         getMonthYear,
-        formatCurrency
+        formatCurrency,
     }
 }

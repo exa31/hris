@@ -2,18 +2,25 @@
   <div class="transport-allowance-list">
     <!-- Page Header -->
     <div class="page-header">
-      <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h1><i class="bi bi-truck text-primary"></i> Tunjangan Transport</h1>
-          <p class="text-muted mb-0">Kelola tunjangan transport pegawai berdasarkan jarak tempuh dan hari masuk kerja</p>
+          <p class="text-muted mb-0">Data tunjangan transport pegawai — dihitung otomatis berdasarkan base fare × km × hari kerja</p>
         </div>
-        <NuxtLink v-if="hasPermission('transport', 'create')" to="/transport-allowance/new" class="btn btn-primary shadow-sm rounded-pill px-4">
-          <i class="bi bi-plus-lg"></i> Tambah Data
-        </NuxtLink>
+        <button
+          v-if="hasPermission('transport_setting', 'create')"
+          class="btn btn-primary shadow-sm rounded-pill px-4 d-flex align-items-center gap-2"
+          @click="openGenerateModal"
+          :disabled="generating"
+        >
+          <span v-if="generating" class="spinner-border spinner-border-sm"></span>
+          <i v-else class="bi bi-lightning-charge-fill"></i>
+          Generate Tunjangan
+        </button>
       </div>
     </div>
 
-    <!-- Filters & Actions -->
+    <!-- Filters -->
     <div class="row g-3 mb-4 align-items-end">
       <div class="col-md-4">
         <label class="form-label small fw-bold">Cari Nama / NIP</label>
@@ -21,15 +28,9 @@
           <span class="input-group-text bg-white border-end-0">
             <i class="bi bi-search text-muted"></i>
           </span>
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="form-control border-start-0"
-            placeholder="Ketik nama pegawai..."
-          />
+          <input v-model="searchQuery" type="text" class="form-control border-start-0" placeholder="Ketik nama pegawai..." />
         </div>
       </div>
-
       <div class="col-md-2">
         <label class="form-label small fw-bold">Bulan</label>
         <select v-model.number="filterMonth" class="form-select">
@@ -38,23 +39,13 @@
           </option>
         </select>
       </div>
-
       <div class="col-md-2">
         <label class="form-label small fw-bold">Tahun</label>
         <input v-model.number="filterYear" type="number" class="form-control" />
       </div>
-
       <div class="col-md-2">
-        <label class="form-label small fw-bold">Aksi</label>
         <button class="btn btn-outline-secondary w-100" @click="resetFilters">
           <i class="bi bi-arrow-clockwise"></i> Reset
-        </button>
-      </div>
-      
-      <div class="col-md-2">
-        <label class="form-label small fw-bold">Export</label>
-        <button class="btn btn-success w-100" @click="downloadExcel">
-          <i class="bi bi-file-earmark-excel"></i> Excel
         </button>
       </div>
     </div>
@@ -62,59 +53,73 @@
     <!-- Table -->
     <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
       <div class="table-responsive">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0 align-middle">
           <thead class="bg-light">
             <tr>
-              <th class="px-4 py-3" style="width: 100px">NIP</th>
-              <th class="py-3">Nama Lengkap</th>
-              <th class="py-3">Departemen</th>
+              <th class="px-3 py-3" style="width: 50px">No</th>
+              <th class="py-3" style="width: 110px">NIP</th>
+              <th class="py-3">Nama</th>
+              <th class="py-3">Tipe</th>
+              <th class="py-3 text-center">Hari Kerja</th>
               <th class="py-3 text-center">Jarak (km)</th>
-              <th class="py-3 text-center">Hari Masuk</th>
+              <th class="py-3 text-center">KM Hitung</th>
+              <th class="py-3 text-end">Base Fare</th>
               <th class="py-3 text-end px-4">Tunjangan</th>
-              <th v-if="hasPermission('transport', 'delete')" class="py-3 text-center" style="width: 150px">Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="7" class="text-center py-5 text-muted">
-                <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
+              <td colspan="9" class="text-center py-5 text-muted">
+                <div class="spinner-border text-primary spinner-border-sm me-2"></div>
                 Memuat data...
               </td>
             </tr>
             <tr v-else-if="allowances.length === 0">
-              <td colspan="7" class="text-center py-5 text-muted">
+              <td colspan="9" class="text-center py-5 text-muted">
                 <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                Tidak ada data tunjangan transport ditemukan
+                Tidak ada data tunjangan transport untuk periode ini.
+                <div v-if="hasPermission('transport_setting', 'create')" class="mt-3">
+                  <button class="btn btn-outline-primary btn-sm rounded-pill px-3" @click="openGenerateModal">
+                    <i class="bi bi-lightning-charge-fill me-1"></i> Generate Sekarang
+                  </button>
+                </div>
               </td>
             </tr>
-            <tr v-else v-for="allowance in allowances" :key="allowance.id">
-              <td class="px-4">
-                <small class="text-monospace fw-bold text-primary">{{ allowance.nip }}</small>
+            <tr v-else v-for="(a, idx) in allowances" :key="a.id" :class="{ 'table-warning': Number(a.amount) === 0 }">
+              <td class="px-3 text-muted small">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
+              <td>
+                <small class="text-monospace fw-bold text-primary">{{ a.nip }}</small>
               </td>
               <td>
-                <span class="fw-medium text-dark">{{ allowance.employeeName }}</span>
+                <span class="fw-medium text-dark">{{ a.employeeName }}</span>
               </td>
               <td>
-                <span class="badge bg-secondary-subtle text-secondary small">{{ allowance.departemen }}</span>
-              </td>
-              <td class="text-center">
-                <span class="text-dark small">{{ allowance.distance_km }} km</span>
+                <span :class="[
+                  'badge rounded-pill px-2',
+                  a.employee_type === 'Tetap' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'
+                ]">
+                  {{ a.employee_type }}
+                </span>
               </td>
               <td class="text-center">
                 <span :class="[
                   'badge rounded-pill px-3',
-                  allowance.working_days >= 19 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle'
+                  Number(a.working_days) >= 19 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle'
                 ]">
-                  {{ allowance.working_days }} Hari
+                  {{ a.working_days }}
                 </span>
               </td>
-              <td class="text-end px-4 fw-bold text-dark">
-                {{ formatCurrency(allowance.total_allowance) }}
+              <td class="text-center small">
+                {{ Number(a.distance_km).toFixed(1) }}
               </td>
-              <td v-if="hasPermission('transport', 'delete')" class="text-center px-4">
-                <button class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-none" @click="handleDelete(allowance.id)" title="Hapus">
-                  <i class="bi bi-trash me-1"></i> Hapus
-                </button>
+              <td class="text-center">
+                <span class="fw-bold">{{ Number(a.calculated_km) }}</span>
+              </td>
+              <td class="text-end small text-muted">
+                {{ formatCurrency(Number(a.base_fare)) }}
+              </td>
+              <td class="text-end px-4 fw-bold" :class="Number(a.amount) === 0 ? 'text-danger' : 'text-dark'">
+                {{ formatCurrency(Number(a.amount)) }}
               </td>
             </tr>
           </tbody>
@@ -125,107 +130,143 @@
     <!-- Pagination -->
     <div class="d-flex justify-content-between align-items-center mt-4 px-1">
       <small class="text-muted">
-        Total <span class="fw-bold">{{ totalAllowances }}</span> data ditemukan
+        Total <span class="fw-bold">{{ totalAllowances }}</span> data
       </small>
       <nav v-if="totalPages > 1">
         <ul class="pagination pagination-sm mb-0">
           <li class="page-item" :class="{ disabled: currentPage === 1 }">
-            <button class="page-link shadow-none" @click="currentPage--">
-              <i class="bi bi-chevron-left"></i>
-            </button>
+            <button class="page-link shadow-none" @click="currentPage--"><i class="bi bi-chevron-left"></i></button>
           </li>
           <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
-            <button class="page-link shadow-none" @click="currentPage = page">
-              {{ page }}
-            </button>
+            <button class="page-link shadow-none" @click="currentPage = page">{{ page }}</button>
           </li>
           <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-            <button class="page-link shadow-none" @click="currentPage++">
-              <i class="bi bi-chevron-right"></i>
-            </button>
+            <button class="page-link shadow-none" @click="currentPage++"><i class="bi bi-chevron-right"></i></button>
           </li>
         </ul>
       </nav>
     </div>
 
-    <!-- Info Summary Card -->
+    <!-- Summary -->
     <div v-if="allowances.length > 0" class="card mt-4 border-0 bg-primary-subtle rounded-3 p-3">
-        <div class="row align-items-center">
-            <div class="col-md-4 border-end border-primary-subtle text-center">
-                <div class="small text-primary-emphasis mb-1">Periode</div>
-                <div class="h5 mb-0 fw-bold">{{ getMonthYear() }}</div>
-            </div>
-            <div class="col-md-4 border-end border-primary-subtle text-center">
-                <div class="small text-primary-emphasis mb-1">Total Dana Tunjangan</div>
-                <div class="h5 mb-0 fw-bold">{{ formatCurrency(totalAmount) }}</div>
-            </div>
-            <div class="col-md-4 text-center">
-                <div class="small text-primary-emphasis mb-1">Rata-rata per Orang</div>
-                <div class="h5 mb-0 fw-bold">{{ formatCurrency(avgAmount) }}</div>
-            </div>
+      <div class="row align-items-center text-center">
+        <div class="col-md-3 border-end border-primary-subtle">
+          <div class="small text-primary-emphasis mb-1">Periode</div>
+          <div class="h6 mb-0 fw-bold">{{ getMonthYear() }}</div>
         </div>
+        <div class="col-md-3 border-end border-primary-subtle">
+          <div class="small text-primary-emphasis mb-1">Total Dana</div>
+          <div class="h6 mb-0 fw-bold">{{ formatCurrency(totalAmount) }}</div>
+        </div>
+        <div class="col-md-3 border-end border-primary-subtle">
+          <div class="small text-primary-emphasis mb-1">Eligible</div>
+          <div class="h6 mb-0 fw-bold text-success">{{ eligibleCount }} pegawai</div>
+        </div>
+        <div class="col-md-3">
+          <div class="small text-primary-emphasis mb-1">Tidak Eligible</div>
+          <div class="h6 mb-0 fw-bold text-danger">{{ skippedCount }} pegawai</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Confirm Modal -->
-    <ConfirmModal
-      :is-open="modalConfig.isOpen"
-      :title="modalConfig.title"
-      :message="modalConfig.message"
-      :type="modalConfig.type"
-      :is-confirm="modalConfig.isConfirm"
-      @close="modalConfig.isOpen = false"
-      @confirm="executeAction"
-    />
+    <!-- Generate Modal -->
+    <div class="modal fade" :class="{ show: showGenerateModal }" :style="{ display: showGenerateModal ? 'block' : 'none' }" @click.self="showGenerateModal = false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+          <div class="modal-header border-0 bg-primary text-white py-3 px-4">
+            <h5 class="modal-title"><i class="bi bi-lightning-charge-fill me-2"></i>Generate Tunjangan Transport</h5>
+            <button type="button" class="btn-close btn-close-white" @click="showGenerateModal = false"></button>
+          </div>
+          <div class="modal-body px-4 py-4">
+            <p class="small text-muted mb-3">Sistem akan menghitung tunjangan untuk semua pegawai aktif berdasarkan aturan bisnis yang berlaku.</p>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label fw-bold small">Bulan</label>
+                <select v-model.number="genMonth" class="form-select">
+                  <option v-for="m in 12" :key="m" :value="m">
+                    {{ new Date(2026, m - 1).toLocaleDateString('id-ID', { month: 'long' }) }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-bold small">Tahun</label>
+                <input v-model.number="genYear" type="number" class="form-control" />
+              </div>
+            </div>
+
+            <div class="form-check mt-3">
+              <input id="forceRegenerate" v-model="genForce" type="checkbox" class="form-check-input" />
+              <label class="form-check-label small" for="forceRegenerate">
+                <strong>Regenerate</strong> — Hapus data lama dan hitung ulang untuk periode ini
+              </label>
+            </div>
+
+            <div class="alert alert-light border small mt-3 mb-0">
+              <strong>Aturan yang diterapkan:</strong>
+              <ul class="mb-0 mt-1 ps-3">
+                <li>Tipe pegawai ≠ Tetap → Rp0</li>
+                <li>Hari kerja &lt; 19 → Rp0</li>
+                <li>Jarak ≤ 5 km → Rp0</li>
+                <li>Jarak &gt; 25 km → dibatasi 25 km</li>
+              </ul>
+            </div>
+
+            <div v-if="genError" class="alert alert-danger small mt-3 mb-0 py-2">
+              <i class="bi bi-exclamation-circle me-1"></i>{{ genError }}
+            </div>
+            <div v-if="genSuccess" class="alert alert-success small mt-3 mb-0 py-2">
+              <i class="bi bi-check-circle me-1"></i>{{ genSuccess }}
+            </div>
+          </div>
+          <div class="modal-footer border-0 px-4 pb-4">
+            <button type="button" class="btn btn-outline-secondary" @click="showGenerateModal = false">Batal</button>
+            <button type="button" class="btn btn-primary" :disabled="generating" @click="handleGenerate">
+              <span v-if="generating" class="spinner-border spinner-border-sm me-1"></span>
+              <i v-else class="bi bi-lightning-charge-fill me-1"></i>
+              {{ generating ? 'Memproses...' : (genForce ? 'Regenerate' : 'Generate') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="showGenerateModal" class="modal-backdrop fade show" @click="showGenerateModal = false"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch, reactive } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useTransportAllowance } from '~/composables/useTransportAllowance'
 import { useAuth } from '~/composables/useAuth'
 
 const { hasPermission } = useAuth()
 
 const {
-  allowances,
-  loading,
-  searchQuery,
-  filterMonth,
-  filterYear,
-  currentPage,
-  totalAllowances,
-  totalPages,
-  fetchAllowances,
-  deleteAllowance,
-  getMonthYear,
-  formatCurrency
+  allowances, loading, generating, error,
+  searchQuery, filterMonth, filterYear, currentPage, itemsPerPage,
+  totalAllowances, totalPages,
+  fetchAllowances, generateAllowances, getMonthYear, formatCurrency
 } = useTransportAllowance()
 
-// Modal state
-const modalConfig = reactive({
-  isOpen: false,
-  title: '',
-  message: '',
-  type: 'primary' as any,
-  isConfirm: true,
-  action: null as any,
-  payload: null as any
-})
+// Generate modal state
+const showGenerateModal = ref(false)
+const genMonth = ref(new Date().getMonth() + 1)
+const genYear = ref(new Date().getFullYear())
+const genForce = ref(false)
+const genError = ref<string | null>(null)
+const genSuccess = ref<string | null>(null)
 
-const totalAmount = computed(() => {
-    return allowances.value.reduce((sum, a) => sum + parseFloat(a.total_allowance as any), 0)
-})
+const totalAmount = computed(() =>
+  allowances.value.reduce((sum, a) => sum + parseFloat(a.amount as any), 0)
+)
+const eligibleCount = computed(() =>
+  allowances.value.filter(a => parseFloat(a.amount as any) > 0).length
+)
+const skippedCount = computed(() =>
+  allowances.value.filter(a => parseFloat(a.amount as any) === 0).length
+)
 
-const avgAmount = computed(() => {
-    return allowances.value.length > 0 ? totalAmount.value / allowances.value.length : 0
-})
-
-const fetch = () => {
-    fetchAllowances()
-}
-
-onMounted(() => fetch())
-watch([filterMonth, filterYear, currentPage, searchQuery], () => fetch())
+onMounted(() => fetchAllowances())
+watch([filterMonth, filterYear, currentPage, searchQuery], () => fetchAllowances())
 
 const resetFilters = () => {
   searchQuery.value = ''
@@ -234,46 +275,42 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-const handleDelete = (id: number) => {
-    modalConfig.title = 'Konfirmasi Hapus'
-    modalConfig.message = 'Apakah Anda yakin ingin menghapus catatan tunjangan transport ini?'
-    modalConfig.type = 'danger'
-    modalConfig.isConfirm = true
-    modalConfig.action = 'delete'
-    modalConfig.payload = id
-    modalConfig.isOpen = true
+const openGenerateModal = () => {
+  genMonth.value = filterMonth.value
+  genYear.value = filterYear.value
+  genForce.value = false
+  genError.value = null
+  genSuccess.value = null
+  showGenerateModal.value = true
 }
 
-const executeAction = async () => {
-    modalConfig.isOpen = false
-    if (modalConfig.action === 'delete') {
-        try {
-            await deleteAllowance(modalConfig.payload)
-        } catch (err: any) {
-            modalConfig.title = 'Terjadi Kesalahan'
-            modalConfig.message = 'Gagal menghapus data: ' + (err.response?.data?.message || err.message)
-            modalConfig.type = 'danger'
-            modalConfig.isConfirm = false
-            modalConfig.isOpen = true
-        }
-    }
-}
+const handleGenerate = async () => {
+  genError.value = null
+  genSuccess.value = null
+  try {
+    const result = await generateAllowances(genMonth.value, genYear.value, genForce.value)
+    const data = result?.data || result
+    genSuccess.value = result?.message || `Berhasil! ${data?.eligible_count || 0} eligible, ${data?.skipped_count || 0} tidak eligible.`
 
-const downloadExcel = () => {
-    modalConfig.title = 'Excel Export'
-    modalConfig.message = 'Fitur ekspor Excel sedang disiapkan.'
-    modalConfig.type = 'success'
-    modalConfig.isConfirm = false
-    modalConfig.isOpen = true
+    filterMonth.value = genMonth.value
+    filterYear.value = genYear.value
+    currentPage.value = 1
+
+    setTimeout(() => { showGenerateModal.value = false }, 1500)
+  } catch (err: any) {
+    genError.value = err.response?.data?.message || 'Gagal generate data tunjangan transport'
+  }
 }
 
 definePageMeta({ layout: 'default' })
 </script>
 
 <style scoped>
-.transport-allowance-list { max-width: 1300px; margin: 0 auto; padding: 2rem 1rem; }
+.transport-allowance-list { max-width: 1400px; margin: 0 auto; padding: 2rem 1rem; }
 .page-header h1 { font-size: 2rem; }
 .table-responsive { border-radius: 12px; }
 .text-monospace { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.05rem; }
 .page-link:hover { background-color: var(--bs-primary-bg-subtle); color: var(--bs-primary); }
+.modal { z-index: 1050; }
+.modal-backdrop { z-index: 1040; }
 </style>

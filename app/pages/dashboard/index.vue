@@ -232,6 +232,13 @@ const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+// Re-fetch data whenever user becomes available or changes to Manager HRD
+watch(() => currentUser.value, (newUser) => {
+  if (newUser?.role?.name === 'Manager HRD') {
+    fetchDashboardData();
+  }
+}, { immediate: true });
+
 onMounted(() => {
   if (currentUser.value?.role?.name === 'Manager HRD') {
     fetchDashboardData();
