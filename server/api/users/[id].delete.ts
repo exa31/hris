@@ -5,6 +5,8 @@ import { sendSuccess } from '~~/server/utils/response'
 import { HttpError } from '~~/server/errors/HttpError'
 import { logActivity } from '~~/server/services/activity-log.service'
 
+import { sseEmitter } from '~~/server/utils/sse'
+
 export default withAuth(async (event) => {
     const id = parseInt(getRouterParam(event, 'id') || '0')
 
@@ -25,6 +27,9 @@ export default withAuth(async (event) => {
             description: `Menghapus user: ${user?.username || id}`,
             metadata: { target_user_id: id }
         })
+
+        // Keluarkan user secara real-time
+        sseEmitter.emit('user_logout', id)
 
         return sendSuccess(event, null, 'User berhasil dihapus')
     })

@@ -22,9 +22,13 @@ export const useAuth = () => {
             const response = await $axios.get('/api/auth/me');
             user.value = response.data;
             permissions.value = response.data?.permissions || [];
+            
+            // Start connection if authenticated
+            if (user.value) initSSE();
         } catch (error) {
             user.value = null;
             permissions.value = [];
+            closeSSE();
         } finally {
             loading.value = false;
         }
@@ -56,6 +60,7 @@ export const useAuth = () => {
             });
 
             user.value = response.data?.user;
+            initSSE();
             return response.data;
         } catch (error: any) {
             throw error;
@@ -65,12 +70,15 @@ export const useAuth = () => {
     };
 
     // Logout
-    const logout = async () => {
+    const logout = async (silent: boolean = false) => {
         try {
             loading.value = true;
-            await $axios.post('/api/auth/logout');
+            if (!silent) {
+                await $axios.post('/api/auth/logout');
+            }
             user.value = null;
             permissions.value = [];
+            closeSSE();
             navigateTo('/');
         } catch (error) {
             console.error('Logout error:', error);
@@ -78,6 +86,45 @@ export const useAuth = () => {
             loading.value = false;
         }
     };
+
+    // SSE Management
+    const initSSE = () => {
+        if (import.meta.client) {
+            closeSSE(); // close any existing connection first
+            
+            // Note: withCredentials is required to send cookies if the auth is cookie-based
+            const eventSource = new EventSource('/api/auth/stream', { withCredentials: true });
+            
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'force_logout') {
+                        // User inactivated or session revoked
+                        alert('Sesi Anda telah berakhir atau akun dinonaktifkan.');
+                        logout(true); // silent logout locally
+                    }
+                } catch (e) {
+                    console.error('SSE Error parsing data:', e);
+                }
+            };
+
+            eventSource.onerror = (error) => {
+                console.error('SSE Connection Error:', error);
+                // Optionally handle retries or let EventSource auto-reconnect
+            };
+
+            // Store onto window to avoid multiple composable instances spawning multiple SSEs
+            (window as any)._authSSE = eventSource;
+        }
+    };
+
+    const closeSSE = () => {
+        if (import.meta.client && (window as any)._authSSE) {
+            (window as any)._authSSE.close();
+            (window as any)._authSSE = null;
+        }
+    };
+
 
     // Initialize on mount
     onMounted(() => {

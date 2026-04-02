@@ -7,6 +7,8 @@ import { HttpError } from '~~/server/errors/HttpError'
 import z from 'zod'
 import { logActivity } from '~~/server/services/activity-log.service'
 
+import { sseEmitter } from '~~/server/utils/sse'
+
 export default withAuth(async (event) => {
     const id = parseInt(getRouterParam(event, 'id') || '0')
     const body = await readBody(event)
@@ -37,6 +39,11 @@ export default withAuth(async (event) => {
             description: `Memperbarui data user: ${data.username}`,
             metadata: { target_user_id: data.id }
         })
+
+        // Jika user dinonaktifkan atau diubah role-nya, tendang dari session
+        if (validation.data.is_active === false) {
+            sseEmitter.emit('user_logout', id);
+        }
 
         return sendSuccess(event, data, 'User berhasil diperbarui')
     })
