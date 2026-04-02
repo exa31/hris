@@ -43,6 +43,9 @@ export default withAuth(async (event) => {
         // Jika user dinonaktifkan atau diubah role-nya, tendang dari session
         if (validation.data.is_active === false) {
             sseEmitter.emit('user_logout', id);
+        } else {
+            // Beri tahu klien untuk memuat ulang permission/state-nya
+            sseEmitter.emit('user_updated', id);
         }
 
         return sendSuccess(event, data, 'User berhasil diperbarui')

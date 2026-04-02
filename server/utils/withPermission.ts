@@ -54,8 +54,8 @@ export const withPermission = <T extends EventHandlerRequest, D>(
                 raw: payload,
             }
 
-            // 5️⃣ Cek permission jika ada yang diwajibkan
-            if (requiredPermissions.length > 0) {
+            // 5️⃣ Cek permission jika ada yang diwajibkan (Bypass untuk role_id 1 / Superadmin)
+            if (requiredPermissions.length > 0 && roleId !== 1) {
                 const permResult = await dbQuery(
                     `SELECT p.module, p.action
                      FROM permissions p

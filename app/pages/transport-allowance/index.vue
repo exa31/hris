@@ -7,7 +7,7 @@
           <h1><i class="bi bi-truck text-primary"></i> Tunjangan Transport</h1>
           <p class="text-muted mb-0">Kelola tunjangan transport pegawai berdasarkan jarak tempuh dan hari masuk kerja</p>
         </div>
-        <NuxtLink to="/transport-allowance/new" class="btn btn-primary shadow-sm rounded-pill px-4">
+        <NuxtLink v-if="hasPermission('transport', 'create')" to="/transport-allowance/new" class="btn btn-primary shadow-sm rounded-pill px-4">
           <i class="bi bi-plus-lg"></i> Tambah Data
         </NuxtLink>
       </div>
@@ -71,7 +71,7 @@
               <th class="py-3 text-center">Jarak (km)</th>
               <th class="py-3 text-center">Hari Masuk</th>
               <th class="py-3 text-end px-4">Tunjangan</th>
-              <th class="py-3 text-center" style="width: 150px">Aksi</th>
+              <th v-if="hasPermission('transport', 'delete')" class="py-3 text-center" style="width: 150px">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -111,7 +111,7 @@
               <td class="text-end px-4 fw-bold text-dark">
                 {{ formatCurrency(allowance.total_allowance) }}
               </td>
-              <td class="text-center px-4">
+              <td v-if="hasPermission('transport', 'delete')" class="text-center px-4">
                 <button class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-none" @click="handleDelete(allowance.id)" title="Hapus">
                   <i class="bi bi-trash me-1"></i> Hapus
                 </button>
@@ -182,6 +182,9 @@
 <script setup lang="ts">
 import { computed, onMounted, watch, reactive } from 'vue'
 import { useTransportAllowance } from '~/composables/useTransportAllowance'
+import { useAuth } from '~/composables/useAuth'
+
+const { hasPermission } = useAuth()
 
 const {
   allowances,

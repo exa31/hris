@@ -254,7 +254,8 @@ const formatModuleName = (module: string) => {
     'employees': 'Data Pegawai',
     'transport': 'Tunjangan Transport',
     'logs': 'Log Aktivitas',
-    'settings': 'Pengaturan'
+    'transport_setting': 'Pengaturan Transport',
+    'roles': 'Kelola Role'
   }
   return map[module] || (module.charAt(0).toUpperCase() + module.slice(1))
 }

@@ -37,14 +37,15 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="mb-3">
+    <div class="mb-3" v-if="hasPermission('employees', 'update') || hasPermission('employees', 'delete')">
       <NuxtLink 
+        v-if="hasPermission('employees', 'update')"
         :to="`/employees/${employee.id}/edit`"
         class="btn btn-primary"
       >
         <i class="bi bi-pencil"></i> Edit
       </NuxtLink>
-      <button class="btn btn-outline-danger ms-2" @click="deleteThisEmployee">
+      <button v-if="hasPermission('employees', 'delete')" class="btn btn-outline-danger ms-2" @click="deleteThisEmployee">
         <i class="bi bi-trash"></i> Hapus
       </button>
     </div>
@@ -175,6 +176,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useEmployees } from '~/composables/useEmployees'
+import { useAuth } from '~/composables/useAuth'
+
+const { hasPermission } = useAuth()
 
 const route = useRoute()
 const router = useRouter()

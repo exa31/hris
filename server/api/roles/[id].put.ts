@@ -5,6 +5,8 @@ import { sendSuccess } from '~~/server/utils/response'
 import { HttpError } from '~~/server/errors/HttpError'
 import { logActivity } from '~~/server/services/activity-log.service'
 
+import { sseEmitter } from '~~/server/utils/sse'
+
 export default withAuth(async (event) => {
     const id = Number(event.context.params?.id)
     if (isNaN(id)) {
@@ -29,6 +31,9 @@ export default withAuth(async (event) => {
             description: `Memperbarui role & hak akses: ${name}`,
             metadata: { role_id: id, permissions_count: permissionIds.length }
         })
+
+        // Beri tahu clients (semua user yang menggunakan role_id ini) untuk me-refresh permission
+        sseEmitter.emit('role_updated', id);
 
         return sendSuccess(event, data)
     })

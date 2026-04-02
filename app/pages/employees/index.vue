@@ -11,7 +11,7 @@
       <div class="row g-3">
         <!-- Left Actions -->
         <div class="col-auto">
-          <NuxtLink to="/employees/new" class="btn btn-primary">
+          <NuxtLink v-if="hasPermission('employees', 'create')" to="/employees/new" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> Data Baru
           </NuxtLink>
           <button class="btn btn-success ms-2" @click="downloadExcel" title="Download Excel">
@@ -23,15 +23,15 @@
         </div>
 
         <!-- Right Actions -->
-        <div class="col-auto ms-auto">
+        <div class="col-auto ms-auto" v-if="hasPermission('employees', 'delete') || hasPermission('employees', 'update')">
           <button
-            v-if="selectedEmployees.length > 0"
+            v-if="selectedEmployees.length > 0 && hasPermission('employees', 'delete')"
             class="btn btn-outline-danger me-2"
             @click="confirmBulkDelete"
           >
             <i class="bi bi-trash"></i> Hapus ({{ selectedEmployees.length }})
           </button>
-          <div v-if="selectedEmployees.length > 0" class="btn-group" role="group">
+          <div v-if="selectedEmployees.length > 0 && hasPermission('employees', 'update')" class="btn-group" role="group">
             <button
               class="btn btn-outline-warning"
               @click="updateStatusBulk(true)"
@@ -167,10 +167,10 @@
                 <NuxtLink :to="`/employees/${emp.id}`" class="btn btn-outline-primary" title="Detail">
                   <i class="bi bi-eye"></i>
                 </NuxtLink>
-                <NuxtLink :to="`/employees/${emp.id}/edit`" class="btn btn-outline-warning" title="Edit">
+                <NuxtLink v-if="hasPermission('employees', 'update')" :to="`/employees/${emp.id}/edit`" class="btn btn-outline-warning" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </NuxtLink>
-                <button class="btn btn-outline-danger" @click="deleteEmployee(emp.id)" title="Hapus">
+                <button v-if="hasPermission('employees', 'delete')" class="btn btn-outline-danger" @click="deleteEmployee(emp.id)" title="Hapus">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -214,6 +214,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, reactive } from 'vue'
 import { useEmployees } from '~/composables/useEmployees'
+import { useAuth } from '~/composables/useAuth'
+
+// Auth Context
+const { hasPermission } = useAuth()
 
 // Modal State
 const modalConfig = reactive({

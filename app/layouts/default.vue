@@ -134,6 +134,17 @@
         <slot />
       </main>
     </div>
+    <!-- Global Auth Modal -->
+    <ConfirmModal
+      :is-open="authModal.isOpen"
+      :title="authModal.title"
+      :message="authModal.message"
+      :type="authModal.type"
+      :is-confirm="false"
+      cancel-text="Tutup"
+      @close="handleModalConfirm"
+      @confirm="handleModalConfirm"
+    />
   </div>
 </template>
 
@@ -144,7 +155,7 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const sidebarCollapsed = ref(false);
 
-const { user, hasPermission } = useAuth();
+const { user, hasPermission, authModal, handleModalConfirm } = useAuth();
 
 const userName = computed(() => user.value?.employee?.name || 'User');
 const userRole = computed(() => user.value?.role?.name || '');

@@ -7,7 +7,7 @@
           <h1><i class="bi bi-people-fill text-primary"></i> Manajemen User</h1>
           <p class="text-muted mb-0">Kelola user dan hak akses sistem</p>
         </div>
-        <NuxtLink to="/user-management/new" class="btn btn-primary">
+        <NuxtLink v-if="hasPermission('users', 'create')" to="/user-management/new" class="btn btn-primary">
           <i class="bi bi-plus-lg"></i> Tambah User
         </NuxtLink>
       </div>
@@ -86,7 +86,7 @@
               <th>Nama Pegawai</th>
               <th>Role</th>
               <th>Status</th>
-              <th style="width: 10%">Aksi</th>
+              <th v-if="hasPermission('users', 'update') || hasPermission('users', 'delete')" style="width: 10%">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -137,12 +137,12 @@
                   {{ user.is_active ? 'Aktif' : 'Non-Aktif' }}
                 </span>
               </td>
-              <td>
+              <td v-if="hasPermission('users', 'update') || hasPermission('users', 'delete')">
                 <div class="btn-group btn-group-sm">
-                  <NuxtLink :to="`/user-management/${user.id}`" class="btn btn-outline-primary" title="Edit User">
+                  <NuxtLink v-if="hasPermission('users', 'update')" :to="`/user-management/${user.id}`" class="btn btn-outline-primary" title="Edit User">
                     <i class="bi bi-pencil"></i>
                   </NuxtLink>
-                  <button type="button" class="btn btn-outline-danger" @click="confirmDelete(user.id)" title="Hapus User">
+                  <button v-if="hasPermission('users', 'delete')" type="button" class="btn btn-outline-danger" @click="confirmDelete(user.id)" title="Hapus User">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
@@ -193,6 +193,9 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
+import { useAuth } from '~/composables/useAuth'
+
+const { hasPermission } = useAuth()
 
 const { 
   users, 

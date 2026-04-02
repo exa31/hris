@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
     }
     
     const userId = payload.email; // user_id is stored in 'email' field based on setup
+    const roleId = Number(payload.sub); // role_id is stored in 'sub' field based on setup
 
     // Provide SSE Headers
     setHeader(event, 'Content-Type', 'text/event-stream');
@@ -52,7 +53,22 @@ export default defineEventHandler(async (event) => {
         }
     };
 
+    // Listener for permission / role changes
+    const updateListener = (targetUserId: any) => {
+        if (String(targetUserId) === String(userId)) {
+            sendEvent({ type: 'fetch_user' });
+        }
+    };
+
+    const roleUpdateListener = (targetRoleId: any) => {
+        if (Number(targetRoleId) === roleId) {
+            sendEvent({ type: 'fetch_user' });
+        }
+    };
+
     sseEmitter.on('user_logout', logoutListener);
+    sseEmitter.on('user_updated', updateListener);
+    sseEmitter.on('role_updated', roleUpdateListener);
 
     // Lightweight heartbeat to prevent browser/proxy dropped connection
     const pingInterval = setInterval(() => {
@@ -63,5 +79,7 @@ export default defineEventHandler(async (event) => {
     event.node.req.on('close', () => {
         clearInterval(pingInterval);
         sseEmitter.off('user_logout', logoutListener);
+        sseEmitter.off('user_updated', updateListener);
+        sseEmitter.off('role_updated', roleUpdateListener);
     });
 });
