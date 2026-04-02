@@ -32,7 +32,7 @@ export async function getUsers(client: PoolClient, params: SearchUsersInput) {
     const validSortColumns = ['id', 'username', 'created_at', 'employee_name', 'role_name']
     const sort = validSortColumns.includes(sortColumn as string) ? sortColumn : 'created_at'
     const direction = sortDirection === 'asc' ? 'ASC' : 'DESC'
-    
+
     // Total count before limit/offset
     const totalQuery = `SELECT COUNT(*) as total FROM (${query}) as count_query`
     const { rows: countRows } = await client.query(totalQuery, values)
@@ -59,7 +59,9 @@ export async function getUserById(client: PoolClient, id: number) {
 }
 
 export async function getUserByUsername(client: PoolClient, username: string) {
-    const query = `SELECT * FROM users WHERE LOWER(username) = LOWER($1)`
+    const query = `SELECT u.*, e.name as employee_name, r.name as role_name FROM users u
+        INNER JOIN employees e ON u.employee_id = e.id
+        INNER JOIN roles r ON u.role_id = r.id WHERE u.username = $1 OR e.email = $1 OR e.phone = $1`
     const { rows } = await client.query(query, [username])
     return rows[0] as User || null
 }
@@ -179,12 +181,12 @@ export async function updateRolePermissions(client: PoolClient, roleId: number, 
 export async function isEmployeeAlreadyUser(client: PoolClient, employeeId: number, excludeUserId?: number) {
     let query = `SELECT id FROM users WHERE employee_id = $1`
     const values = [employeeId]
-    
+
     if (excludeUserId) {
         query += ` AND id != $2`
         values.push(excludeUserId)
     }
-    
+
     const { rows } = await client.query(query, values)
     return rows.length > 0
 }
