@@ -141,3 +141,35 @@ export async function getDashboardStats(client: PoolClient) {
 export async function getNewContractEmployees(client: PoolClient) {
     return employeeRepository.getNewContractEmployees(client)
 }
+
+/**
+ * Get deleted employees (for recovery)
+ */
+export async function getDeletedEmployees(client: PoolClient, params: any) {
+    const limit = params.limit || 10
+    const offset = params.offset || 0
+    const search = params.search
+
+    const { rows, total } = await employeeRepository.getDeletedEmployees(client, { limit, offset, search })
+
+    return {
+        employees: rows,
+        pagination: {
+            total,
+            limit,
+            offset,
+            pages: Math.ceil(total / limit),
+        },
+    }
+}
+
+/**
+ * Restore a deleted employee
+ */
+export async function restoreEmployee(client: PoolClient, id: number) {
+    const restored = await employeeRepository.restoreEmployee(client, id)
+    if (!restored) {
+        throw new HttpError(404, 'NOT_FOUND', 'Employee not found or not deleted')
+    }
+    return { success: true, message: 'Employee restored successfully' }
+}

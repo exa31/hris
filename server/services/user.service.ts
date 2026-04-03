@@ -114,3 +114,35 @@ export async function checkUsername(client: PoolClient, username: string, exclud
 export async function searchEmployeesWithoutAccount(client: PoolClient, search: string) {
     return userRepository.searchEmployeesWithoutAccount(client, search)
 }
+
+/**
+ * Get deleted users (for recovery)
+ */
+export async function getDeletedUsers(client: PoolClient, params: any) {
+    const limit = params.limit || 10
+    const offset = params.offset || 0
+    const search = params.search
+
+    const { rows, total } = await userRepository.getDeletedUsers(client, { limit, offset, search })
+
+    return {
+        users: rows,
+        pagination: {
+            total,
+            limit,
+            offset,
+            pages: Math.ceil(total / limit),
+        },
+    }
+}
+
+/**
+ * Restore a deleted user
+ */
+export async function restoreUser(client: PoolClient, id: number) {
+    const restored = await userRepository.restoreUser(client, id)
+    if (!restored) {
+        throw new HttpError(404, 'NOT_FOUND', 'User not found or not deleted')
+    }
+    return { success: true, message: 'User restored successfully' }
+}

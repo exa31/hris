@@ -292,6 +292,55 @@ export const bulkDeleteEmployees = async (client: PoolClient, ids: number[]): Pr
 }
 
 /**
+ * Get deleted employees
+ */
+export const getDeletedEmployees = async (
+    client: PoolClient,
+    options?: { limit?: number; offset?: number; search?: string }
+): Promise<{ rows: any[]; total: number }> => {
+    let query = `SELECT * FROM employees WHERE deleted_at IS NOT NULL`
+    let countQuery = 'SELECT COUNT(*) as total FROM employees WHERE deleted_at IS NOT NULL'
+    const params: any[] = []
+    let paramCount = 1
+
+    if (options?.search) {
+        const cond = ` AND (name ILIKE $${paramCount} OR nip::text ILIKE $${paramCount})`
+        query += cond
+        countQuery += cond
+        params.push(`%${options.search}%`)
+        paramCount++
+    }
+
+    const { rows: countRows } = await client.query(countQuery, params)
+    const total = parseInt(countRows[0].total)
+
+    query += ` ORDER BY deleted_at DESC`
+
+    if (options?.limit) {
+        query += ` LIMIT $${paramCount}`
+        params.push(options.limit)
+        paramCount++
+    }
+    if (options?.offset) {
+        query += ` OFFSET $${paramCount}`
+        params.push(options.offset)
+        paramCount++
+    }
+
+    const { rows } = await client.query(query, params)
+    return { rows, total }
+}
+
+/**
+ * Restore deleted employee
+ */
+export const restoreEmployee = async (client: PoolClient, id: number): Promise<boolean> => {
+    const query = 'UPDATE employees SET deleted_at = NULL, status = true WHERE id = $1'
+    const result = await client.query(query, [id])
+    return result.rowCount! > 0
+}
+
+/**
  * Get dashboard status
  */
 export const getDashboardStats = async (client: PoolClient) => {

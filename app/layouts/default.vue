@@ -84,6 +84,15 @@
             <span>Log Aktivitas</span>
           </NuxtLink>
           <NuxtLink 
+            v-if="hasPermission('users', 'read') || hasPermission('employees', 'read')"
+            to="/recovery" 
+            class="nav-item" 
+            :class="{ active: isActive('/recovery') }"
+          >
+            <i class="bi bi-recycle"></i>
+            <span>Pemulihan Data</span>
+          </NuxtLink>
+          <NuxtLink 
             v-if="hasPermission('transport_setting', 'read')"
             to="/settings/transport-settings" 
             class="nav-item" 

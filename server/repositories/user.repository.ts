@@ -180,7 +180,7 @@ export async function updateRolePermissions(client: PoolClient, roleId: number, 
 }
 
 export async function isEmployeeAlreadyUser(client: PoolClient, employeeId: number, excludeUserId?: number) {
-    let query = `SELECT id FROM users WHERE employee_id = $1 AND deleted_at IS NULL`
+    let query = `SELECT id FROM users WHERE employee_id = $1`
     const values = [employeeId]
 
     if (excludeUserId) {
@@ -195,8 +195,9 @@ export async function searchEmployeesWithoutAccount(client: PoolClient, search: 
     const query = `
         SELECT e.id, e.name, e.nip, e.position, e.department
         FROM employees e
-        LEFT JOIN users u ON e.id = u.employee_id AND u.deleted_at IS NULL
+        LEFT JOIN users u ON e.id = u.employee_id
         WHERE u.id IS NULL
+        AND e.deleted_at IS NULL
         AND (LOWER(e.name) LIKE $1 OR CAST(e.nip AS TEXT) LIKE $1)
         LIMIT 10
     `
@@ -212,4 +213,55 @@ export async function countSuperAdmins(client: PoolClient) {
     `
     const { rows } = await client.query(query)
     return parseInt(rows[0].total)
+}
+
+/**
+ * Get deleted users
+ */
+export async function getDeletedUsers(
+    client: PoolClient,
+    options?: { limit?: number; offset?: number; search?: string }
+) {
+    let query = `
+        SELECT u.*, e.name as employee_name, r.name as role_name 
+        FROM users u
+        INNER JOIN employees e ON u.employee_id = e.id
+        INNER JOIN roles r ON u.role_id = r.id
+        WHERE u.deleted_at IS NOT NULL
+    `
+    let countQuery = 'SELECT COUNT(*) as total FROM users WHERE deleted_at IS NOT NULL'
+    const values: any[] = []
+
+    if (options?.search) {
+        values.push(`%${options.search.toLowerCase()}%`)
+        const cond = ` AND (LOWER(u.username) LIKE $${values.length} OR LOWER(e.name) LIKE $${values.length})`
+        query += cond
+        countQuery += cond
+    }
+
+    const { rows: countRows } = await client.query(countQuery, values)
+    const total = parseInt(countRows[0].total)
+
+    query += ` ORDER BY u.deleted_at DESC`
+
+    if (options?.limit) {
+        values.push(options.limit || 10)
+        query += ` LIMIT $${values.length}`
+    }
+    if (options?.offset) {
+        values.push(options.offset || 0)
+        query += ` OFFSET $${values.length}`
+    }
+
+    const { rows } = await client.query(query, values)
+    return { rows, total }
+}
+
+/**
+ * Restore deleted user
+ */
+export async function restoreUser(client: PoolClient, id: number) {
+    const query = `UPDATE users SET deleted_at = NULL, is_active = true WHERE id = $1`
+    const result = await client.query(query, [id])
+    return result.rowCount! > 0
 }
