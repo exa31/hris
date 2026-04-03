@@ -61,13 +61,13 @@ export default withPermission(async (event) => {
 
         // 3. Cakupan Update (Own Data vs Full)
         if (currentUser.role_id !== 1 && !hasFullUpdate) {
-            if (id !== currentUser.id) {
+            if (Number(id) !== Number(currentUser.id)) {
                 throw new HttpError(403, 'FORBIDDEN', 'Anda hanya dapat memperbarui data Anda sendiri')
             }
         }
 
         const data = await userService.updateUser(client, id, validation.data)
-        
+
         // Log Activity
         await logActivity(client, {
             user_id: event.context.user.id,
