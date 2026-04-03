@@ -174,14 +174,20 @@
         </div>
       </div>
 
-      <!-- ===== FALLBACK ===== -->
+      <!-- ===== FALLBACK (WELCOME CARD) ===== -->
       <div v-else class="welcome-wrapper">
         <div class="welcome-card">
-          <div class="welcome-icon text-muted">
+          <div class="welcome-icon">
             <i class="bi bi-person-circle"></i>
           </div>
-          <h2 class="welcome-title">Selamat Datang</h2>
-          <p class="text-muted">Dashboard untuk role <strong>{{ currentUser?.role?.name }}</strong> belum tersedia.</p>
+          <div class="welcome-badge">{{ currentUser?.role?.name }}</div>
+          <h1 class="welcome-title">
+            Selamat Datang, <span class="gradient-text">{{ currentUser?.employee?.name }}</span>
+          </h1>
+          <p class="welcome-subtitle">
+            Anda masuk sebagai <strong>{{ currentUser?.role?.name }}</strong>.
+            Gunakan menu di sebelah kiri untuk mulai bekerja.
+          </p>
         </div>
       </div>
     </div>
@@ -195,7 +201,7 @@ import GenderChart from '~/components/dashboard/GenderChart.vue';
 
 definePageMeta({ layout: 'default' });
 
-const { user: currentUser, loading: authLoading } = useAuth();
+const { user: currentUser, loading: authLoading, hasPermission } = useAuth();
 const loading = ref(false);
 
 interface DashboardStats {

@@ -21,6 +21,13 @@ export default withPermission(async (event) => {
     }
 
     return withTransaction(async (client) => {
+        const currentUser = event.context.user
+        
+        // Aturan: Hanya Super Admin yang boleh membuat user dengan role Super Admin
+        if (validation.data.role_id === 1 && currentUser.role_id !== 1) {
+            throw new HttpError(403, 'FORBIDDEN', 'Hanya Super Admin yang dapat membuat user dengan role Super Admin')
+        }
+
         const data = await userService.createUser(client, validation.data)
         
         // Log Activity

@@ -216,7 +216,7 @@ export const upsertTransportSettings = async (
  */
 export const getAllEmployees = async (client: PoolClient): Promise<{ id: number; name: string; type: string }[]> => {
     const result = await client.query(
-        `SELECT id, name, type FROM employees WHERE status = true ORDER BY name ASC`
+        `SELECT id, name, type FROM employees WHERE status = true AND deleted_at IS NULL ORDER BY name ASC`
     )
     return result.rows
 }

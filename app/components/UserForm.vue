@@ -256,8 +256,15 @@ const form = ref({
 
 // Mount
 onMounted(async () => {
+  const { user: currentUser } = useAuth()
   const rolesData = await getRoles()
-  allRoles.value = rolesData
+  
+  // Jika bukan Super Admin, sembunyikan role Super Admin (ID 1) dari pilihan
+  if (currentUser.value?.role?.id !== 1) {
+    allRoles.value = rolesData.filter((r: any) => r.id !== 1)
+  } else {
+    allRoles.value = rolesData
+  }
   
   // Generate password for new user
   if (!props.isEdit) {
