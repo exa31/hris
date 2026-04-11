@@ -1,4 +1,101 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
+const csvToSqlValues = (csvPath, options = {}) => {
+    const {
+        columns,
+        numericColumns = [],
+        hasHeader = true,
+    } = options
+
+    const content = fs.readFileSync(csvPath, 'utf8').trim()
+    const lines = content.split(/\r?\n/)
+
+    if (!lines.length) {
+        throw new Error(`CSV file is empty or has no rows: ${csvPath}`)
+    }
+
+    const headers = hasHeader
+        ? lines[0].split(',').map(h => h.trim())
+        : columns
+
+    if (!headers || headers.length === 0) {
+        throw new Error(`CSV columns are missing for file: ${csvPath}`)
+    }
+
+    const dataLines = hasHeader ? lines.slice(1) : lines
+
+    if (dataLines.length === 0) {
+        throw new Error(`CSV file has no data rows: ${csvPath}`)
+    }
+
+    const numericCols = new Set(numericColumns)
+
+    const rows = dataLines.filter(Boolean).map((line) => {
+        const cols = line.split(',').map(c => c.trim())
+        if (cols.length !== headers.length) {
+            throw new Error(`Invalid CSV row in ${csvPath}: ${line}`)
+        }
+
+        return `(${cols.map((value, index) => {
+            const key = headers[index]
+            if (numericCols.has(key)) return Number(value)
+            return `'${value.replace(/'/g, "''")}'`
+        }).join(', ')})`
+    })
+
+    return {
+        columns: headers.join(', '),
+        values: rows.join(',\n        '),
+    }
+}
+
 export const up = (pgm) => {
+    const dataDir = path.resolve(process.cwd(), 'migrations', 'data')
+
+    const provincesSeed = csvToSqlValues(
+        path.join(dataDir, 'provinces.csv'),
+        {
+            columns: ['id', 'name'],
+            numericColumns: ['id'],
+            hasHeader: false,
+        }
+    )
+    const regenciesSeed = csvToSqlValues(
+        path.join(dataDir, 'regencies.csv'),
+        {
+            columns: ['id', 'province_id', 'name'],
+            numericColumns: ['id', 'province_id'],
+            hasHeader: false,
+        }
+    )
+    const districtsSeed = csvToSqlValues(
+        path.join(dataDir, 'districts.csv'),
+        {
+            columns: ['id', 'regency_id', 'name'],
+            numericColumns: ['id', 'regency_id'],
+            hasHeader: false,
+        }
+    )
+
+    // ========================
+    // LOCATIONS (MINIMUM SEED FOR FK)
+    // ========================
+    pgm.sql(`
+        INSERT INTO provinces (${provincesSeed.columns}) VALUES
+        ${provincesSeed.values};
+    `);
+
+    pgm.sql(`
+        INSERT INTO regencies (${regenciesSeed.columns}) VALUES
+        ${regenciesSeed.values};
+    `);
+
+    pgm.sql(`
+        INSERT INTO districts (${districtsSeed.columns}) VALUES
+        ${districtsSeed.values};
+    `);
+
     // ========================
     // ROLES
     // ========================
@@ -106,9 +203,9 @@ export const up = (pgm) => {
     pgm.sql(`
         INSERT INTO employee_addresses (employee_id, district_id, full_address)
         VALUES
-        (1, 3328150, 'Jl. Merdeka No. 1'),
-        (2, 3328150, 'Jl. Merdeka No. 2'),
-        (3, 3328150, 'Jl. Merdeka No. 3');
+        (1, 1101010, 'Jl. Merdeka No. 1'),
+        (2, 1101010, 'Jl. Merdeka No. 2'),
+        (3, 1101010, 'Jl. Merdeka No. 3');
     `);
 
     // ========================
@@ -130,6 +227,9 @@ export const up = (pgm) => {
         SELECT setval('permissions_id_seq', (SELECT MAX(id) FROM permissions), true);
         SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees), true);
         SELECT setval('users_id_seq', (SELECT MAX(id) FROM users), true);
+        SELECT setval('provinces_id_seq', (SELECT MAX(id) FROM provinces), true);
+        SELECT setval('regencies_id_seq', (SELECT MAX(id) FROM regencies), true);
+        SELECT setval('districts_id_seq', (SELECT MAX(id) FROM districts), true);
     `);
 };
 
