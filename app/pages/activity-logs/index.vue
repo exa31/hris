@@ -170,19 +170,54 @@ const getActionClass = (action: string) => {
     }
 }
 
+const monthNamesId = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+const parseRawTimestamp = (dateStr: string) => {
+  const raw = String(dateStr || '').trim()
+  if (!raw) return null
+
+  // Supports: "YYYY-MM-DD HH:mm:ss(.sss)", "YYYY-MM-DDTHH:mm:ss(.sss)", with optional timezone suffix.
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?$/)
+  if (!match) return null
+
+  return {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3]),
+    hour: match[4],
+    minute: match[5],
+    second: Number(match[6] || '0'),
+  }
+}
+
+const toWibDate = (dateStr: string) => {
+  const parsed = parseRawTimestamp(dateStr)
+  if (!parsed) return null
+
+  // Source timestamp is treated as UTC and shifted to WIB (UTC+7).
+  const utcMs = Date.UTC(
+    parsed.year,
+    parsed.month - 1,
+    parsed.day,
+    Number(parsed.hour),
+    Number(parsed.minute),
+    parsed.second,
+  )
+  return new Date(utcMs + (7 * 60 * 60 * 1000))
+}
+
 const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    })
+  const wibDate = toWibDate(dateStr)
+  if (!wibDate) return dateStr || '-'
+  return `${wibDate.getUTCDate()} ${monthNamesId[wibDate.getUTCMonth()] || '-'} ${wibDate.getUTCFullYear()}`
 }
 
 const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit'
-    })
+  const wibDate = toWibDate(dateStr)
+  if (!wibDate) return '-'
+  const h = String(wibDate.getUTCHours()).padStart(2, '0')
+  const m = String(wibDate.getUTCMinutes()).padStart(2, '0')
+  return `${h}:${m}`
 }
 
 onMounted(fetchLogs)

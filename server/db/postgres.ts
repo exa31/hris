@@ -1,7 +1,11 @@
-import {Pool, type PoolClient, type QueryResult, type  QueryResultRow} from 'pg';
+import {Pool, types, type PoolClient, type QueryResult, type QueryResultRow} from 'pg';
 import {useAppConfig} from '~~/server/utils/config';
 import {formatPgError} from "~~/server/utils/pgError";
 import {HttpError} from "~~/server/errors/HttpError";
+
+// Keep PostgreSQL timestamp values as raw strings to avoid implicit JS Date timezone conversion.
+types.setTypeParser(1114, (value: string) => value); // timestamp without time zone
+types.setTypeParser(1184, (value: string) => value); // timestamp with time zone
 
 const Config = useAppConfig();
 

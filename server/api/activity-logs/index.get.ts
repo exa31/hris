@@ -8,7 +8,7 @@ export default withPermission(async (event) => {
         limit: query.limit ? parseInt(query.limit as string) : 50,
         offset: query.offset ? parseInt(query.offset as string) : 0
     }
-
+    
     return withTransaction(async (client) => {
         return activityLogService.getActivityLogs(client, options)
     })

@@ -54,7 +54,7 @@ export async function getLogs(client: PoolClient, options: ActivityLogOptions) {
         client.query(query, [options.limit, options.offset]),
         client.query(countQuery)
     ])
-
+    console.log('Fetched logs:', logsRes.rows)
     return {
         rows: logsRes.rows,
         total: parseInt(countRes.rows[0].total)
