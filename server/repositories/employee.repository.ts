@@ -31,13 +31,13 @@ export const getEmployees = async (
         LEFT JOIN roles r ON u.role_id = r.id
         WHERE e.deleted_at IS NULL
     `
-    let countQuery = 'SELECT COUNT(*) as total FROM employees WHERE deleted_at IS NULL'
+    let countQuery = 'SELECT COUNT(*) as total FROM employees e WHERE e.deleted_at IS NULL'
     const params: any[] = []
     let paramCount = 1
 
     // Filter by status
     if (options?.status !== undefined) {
-        const cond = ` AND status = $${paramCount}`
+        const cond = ` AND e.status = $${paramCount}`
         query += cond
         countQuery += cond
         params.push(options.status)
@@ -46,7 +46,7 @@ export const getEmployees = async (
 
     // Filter by department
     if (options?.department) {
-        const cond = ` AND department = $${paramCount}`
+        const cond = ` AND e.department = $${paramCount}`
         query += cond
         countQuery += cond
         params.push(options.department)
@@ -55,7 +55,7 @@ export const getEmployees = async (
 
     // Filter by positions
     if (options?.positions && options.positions.length > 0) {
-        const cond = ` AND position = ANY($${paramCount})`
+        const cond = ` AND e.position = ANY($${paramCount})`
         query += cond
         countQuery += cond
         params.push(options.positions)
@@ -65,7 +65,7 @@ export const getEmployees = async (
     // Filter by tenure
     if (options?.tenureOperator && options?.tenureValue !== undefined && options?.tenureValue !== null) {
         const operator = options.tenureOperator === '>' || options.tenureOperator === '<' || options.tenureOperator === '=' ? options.tenureOperator : '='
-        const cond = ` AND EXTRACT(YEAR FROM age(CURRENT_DATE, join_date::date)) ${operator} $${paramCount}`
+        const cond = ` AND EXTRACT(YEAR FROM age(CURRENT_DATE, e.join_date::date)) ${operator} $${paramCount}`
         query += cond
         countQuery += cond
         params.push(options.tenureValue)
@@ -74,7 +74,7 @@ export const getEmployees = async (
 
     // Search by name, email, or NIP
     if (options?.search) {
-        const cond = ` AND (name ILIKE $${paramCount} OR email ILIKE $${paramCount} OR nip::text ILIKE $${paramCount} OR position ILIKE $${paramCount} OR department ILIKE $${paramCount})`
+        const cond = ` AND (e.name ILIKE $${paramCount} OR e.email ILIKE $${paramCount} OR e.nip::text ILIKE $${paramCount} OR e.position::text ILIKE $${paramCount} OR e.department::text ILIKE $${paramCount})`
         query += cond
         countQuery += cond
         params.push(`%${options.search}%`)
@@ -86,10 +86,17 @@ export const getEmployees = async (
     const total = parseInt(countResult.rows[0].total)
 
     // Order
-    const allowedSortColumns = ['nip', 'name', 'position', 'join_date', 'created_at']
-    let sortCol = 'join_date'
-    if (options?.sortColumn && allowedSortColumns.includes(options.sortColumn)) {
-        sortCol = options.sortColumn
+    const allowedSortColumns: Record<string, string> = {
+        nip: 'e.nip',
+        name: 'e.name',
+        position: 'e.position',
+        join_date: 'e.join_date',
+        created_at: 'e.created_at',
+    }
+    let sortCol = 'e.join_date'
+    const mappedSortCol = options?.sortColumn ? allowedSortColumns[options.sortColumn] : undefined
+    if (mappedSortCol) {
+        sortCol = mappedSortCol
     }
     const sortDir = options?.sortDirection === 'asc' ? 'ASC' : 'DESC'
     

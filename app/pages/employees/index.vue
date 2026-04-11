@@ -236,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, reactive } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, reactive } from 'vue'
 import { useEmployees } from '~/composables/useEmployees'
 import { useAuth } from '~/composables/useAuth'
 
@@ -384,8 +384,28 @@ const downloadPdf = () => {
     window.open(`/api/employees/export-pdf?${params.toString()}`, '_blank')
 }
 
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
 onMounted(() => fetchEmployees())
-watch([currentPage, searchQuery, selectedPositions, tenureOperator, tenureValue, sortColumn, sortDirection], () => fetchEmployees())
+
+watch(searchQuery, () => {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+
+  searchDebounceTimer = setTimeout(() => {
+    currentPage.value = 1
+    fetchEmployees()
+  }, 400)
+})
+
+watch([currentPage, selectedPositions, tenureOperator, tenureValue, sortColumn, sortDirection], () => fetchEmployees())
+
+onBeforeUnmount(() => {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+})
 
 definePageMeta({ layout: 'default' })
 </script>
