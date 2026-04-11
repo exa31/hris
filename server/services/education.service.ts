@@ -48,31 +48,6 @@ export async function getEmployeeEducations(client: PoolClient, employeeId: numb
     return educationRepository.getEmployeeEducations(client, employeeId)
 }
 
-export async function syncEmployeeEducations(
-    client: PoolClient,
-    employeeId: number,
-    educationIds: number[]
-) {
-    // Validate that all education IDs exist
-    if (educationIds.length > 0) {
-        const placeholders = educationIds.map((_, i) => `$${i + 1}`).join(',')
-        const result = await client.query(
-            `SELECT id FROM educations WHERE id IN (${placeholders})`,
-            educationIds
-        )
-
-        if (result.rows.length !== educationIds.length) {
-            throw new HttpError(
-                400,
-                'INVALID_EDUCATION_ID',
-                'Beberapa ID pendidikan tidak valid'
-            )
-        }
-    }
-
-    return educationRepository.syncEmployeeEducations(client, employeeId, educationIds)
-}
-
 export async function deleteEducation(client: PoolClient, id: number) {
     const inUse = await educationRepository.isEducationInUse(client, id)
     if (inUse) {

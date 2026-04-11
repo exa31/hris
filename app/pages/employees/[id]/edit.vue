@@ -68,12 +68,7 @@ const modalConfig = reactive({
 
 const handleFormSubmit = async (data: any) => {
   try {
-    await useEmployees().updateEmployee(employeeId.value, data)
-    
-    // Sync educations if provided
-    if (data.educationIds) {
-      await useEducations().syncEmployeeEducations(employeeId.value, data.educationIds)
-    }
+    await useEmployees().updateEmployee(employeeId.value, data)    
     
     modalConfig.title = 'Berhasil'
     modalConfig.message = 'Data pegawai berhasil diperbarui!'

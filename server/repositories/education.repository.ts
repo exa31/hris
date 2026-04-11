@@ -76,28 +76,6 @@ export async function detachEducationFromEmployee(
     await client.query(query, [employeeId, educationId])
 }
 
-export async function syncEmployeeEducations(
-    client: PoolClient,
-    employeeId: number,
-    educationIds: number[]
-): Promise<void> {
-    // Delete all existing
-    await client.query(
-        'DELETE FROM employee_educations WHERE employee_id = $1',
-        [employeeId]
-    )
-
-    // Insert new ones
-    if (educationIds.length > 0) {
-        const values = educationIds.map((id, idx) => `($1, $${idx + 2})`).join(',')
-        const query = `
-      INSERT INTO employee_educations (employee_id, education_id)
-      VALUES ${values}
-    `
-        await client.query(query, [employeeId, ...educationIds])
-    }
-}
-
 export async function isEducationInUse(client: PoolClient, educationId: number): Promise<boolean> {
     const query = 'SELECT 1 FROM employee_educations WHERE education_id = $1 LIMIT 1'
     const result = await client.query(query, [educationId])

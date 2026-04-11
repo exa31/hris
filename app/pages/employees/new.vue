@@ -55,11 +55,6 @@ const handleFormSubmit = async (data: any) => {
   try {
     const createdEmployee = await addEmployee(data)
     
-    // Sync educations if provided
-    if (data.educationIds && data.educationIds.length > 0) {
-      await syncEmployeeEducations(createdEmployee.id, data.educationIds)
-    }
-    
     // Show success message or redirect
     modalConfig.title = 'Berhasil'
     modalConfig.message = 'Data pegawai baru berhasil ditambahkan!'
