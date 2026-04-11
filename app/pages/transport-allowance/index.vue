@@ -312,6 +312,6 @@ definePageMeta({ layout: 'default' })
 .table-responsive { border-radius: 12px; }
 .text-monospace { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.05rem; }
 .page-link:hover { background-color: var(--bs-primary-bg-subtle); color: var(--bs-primary); }
-.modal { z-index: 1050; }
-.modal-backdrop { z-index: 1040; }
+.modal { z-index: 2300; }
+.modal-backdrop { z-index: 2200; }
 </style>
