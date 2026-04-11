@@ -6,7 +6,7 @@
         <label class="form-label d-block mb-3 small fw-bold text-muted">FOTO PROFIL</label>
         <div 
           class="position-relative profile-photo-container mb-2 mx-auto cursor-pointer"
-          @click="$refs.fileInput.click()"
+          @click="fileInput?.click()"
           :class="{ 'opacity-50': uploadingPhoto }"
         >
           <img 
@@ -332,7 +332,7 @@
                 <div class="input-group input-group-sm">
                   <select v-model="selectedEducationId" class="form-select">
                     <option value="">-- Pilih Master Data --</option>
-                    <option v-for="edu in availableEducations" :key="edu.id" :value="edu.id">
+                    <option v-for="edu in educationOptions" :key="edu.id" :value="edu.id">
                       {{ edu.name }}
                     </option>
                   </select>
@@ -484,6 +484,11 @@ const newEducationName = ref<string>('')
 const educationLoading = ref(false)
 const educationError = ref<string>('')
 const uploadingPhoto = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+const educationOptions = computed(() => {
+  const selectedIds = new Set(selectedEducations.value.map(e => e.id))
+  return availableEducations.value.filter(edu => !selectedIds.has(edu.id))
+})
 const deleteEduModal = ref({
   isOpen: false,
   title: 'Konfirmasi Hapus',

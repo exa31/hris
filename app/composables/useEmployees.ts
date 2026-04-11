@@ -27,6 +27,7 @@ export interface Employee {
     educations?: any[]
     created_at: string
     updated_at: string
+    photo_url?: string | null
 }
 
 export const useEmployees = () => {
