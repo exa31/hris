@@ -133,8 +133,18 @@
               />
             </th>
             <th>No.</th>
-            <th class="sortable" @click="handleSort('nip')">NIP</th>
-            <th class="sortable" @click="handleSort('name')">Nama</th>
+            <th class="sortable" @click="handleSort('nip')">
+              <span class="d-inline-flex align-items-center gap-1">
+                NIP
+                <i class="bi" :class="getSortIconClass('nip')"></i>
+              </span>
+            </th>
+            <th class="sortable" @click="handleSort('name')">
+              <span class="d-inline-flex align-items-center gap-1">
+                Nama
+                <i class="bi" :class="getSortIconClass('name')"></i>
+              </span>
+            </th>
             <th>Jabatan</th>
             <th>Masa Kerja</th>
             <th style="width: 15%">Aksi</th>
@@ -329,6 +339,11 @@ const handleSort = (column: string) => {
   }
 }
 
+const getSortIconClass = (column: string) => {
+  if (sortColumn.value !== column) return 'bi-arrow-down-up text-muted'
+  return sortDirection.value === 'asc' ? 'bi-sort-up text-primary' : 'bi-sort-down text-primary'
+}
+
 const calculateTenure = (joinDate: string) => {
   if (!joinDate) return 0
   const join = new Date(joinDate)
@@ -380,4 +395,5 @@ definePageMeta({ layout: 'default' })
 .actions-panel { background: #f8fafc; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; }
 .sortable { cursor: pointer; }
 .sortable:hover { color: #0d6efd; }
+.sortable i { font-size: 0.8rem; transition: color 0.2s ease; }
 </style>
