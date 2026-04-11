@@ -5,14 +5,14 @@ import * as educationService from '~~/server/services/education.service'
 import { sendSuccess } from '~~/server/utils/response'
 
 export default withPermission(async (event) => {
-    const id = parseInt(getRouterParam(event, 'id') || '0')
+    const employeeId = parseInt(getRouterParam(event, 'employeeId') || '0')
 
-    if (!id) {
+    if (!employeeId) {
         throw new HttpError(400, 'INVALID_ID', 'Invalid employee ID')
     }
 
     return withTransaction(async (client) => {
-        const educations = await educationService.getEmployeeEducations(client, id)
+        const educations = await educationService.getEmployeeEducations(client, employeeId)
         return sendSuccess(event, educations)
     })
 }, [{ module: 'employees', action: 'read' }])

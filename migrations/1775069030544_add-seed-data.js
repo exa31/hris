@@ -184,15 +184,15 @@ export const up = (pgm) => {
             birth_place_id, status
         )
         VALUES
-        (1, 2024001121, 'superadmin', 'superadmin@company.com', '08123456789',
+        (1, 2024001121, 'superadmin', 'superadmin@company.com', '+628123456789',
             '1990-05-20', 'Married', 'Male', 2,
             '2020-01-15', 'Manager', 'HRD', 'Tetap', 1101, true),
 
-        (2, 2024002221, 'Siti Nurhaliza', 'siti@company.com', '08234567890',
+        (2, 2024002221, 'Siti Nurhaliza', 'siti@company.com', '+628234567890',
             '1995-08-15', 'Single', 'Female', 0,
             '2021-03-10', 'Staf', 'HRD', 'Tetap', 1101, true),
 
-        (3, 2024003312, 'Ahmad Rahman', 'ahmad@company.com', '08345678901',
+        (3, 2024003312, 'Ahmad Rahman', 'ahmad@company.com', '+628345678901',
             '1998-03-25', 'Single', 'Male', 0,
             '2024-01-10', 'Staf', 'HRD', 'Kontrak', 1101, true);
     `);

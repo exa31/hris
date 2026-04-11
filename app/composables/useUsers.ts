@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue'
 import type { User, SearchUsersInput } from '~~/server/model/user.model'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export const useUsers = () => {
     const { $axios } = useNuxtApp()
@@ -36,7 +37,7 @@ export const useUsers = () => {
             totalCount.value = result.pagination.total
             return result
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal memuat data user'
+            error.value = getErrorMessageAxios(err) || 'Gagal memuat data user'
             console.error('Error fetching users:', err)
             throw err
         } finally {
@@ -50,8 +51,9 @@ export const useUsers = () => {
             const response = await $axios.get(`/api/users/${id}`)
             return response.data
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal memuat detail user'
-            throw err
+            const message = getErrorMessageAxios(err) || 'Gagal memuat detail user'
+            error.value = message
+            throw new Error(message)
         } finally {
             loading.value = false
         }
@@ -63,8 +65,9 @@ export const useUsers = () => {
             const response = await $axios.post('/api/users', data)
             return response.data
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal membuat user'
-            throw err
+            const message = getErrorMessageAxios(err) || 'Gagal membuat user'
+            error.value = message
+            throw new Error(message)
         } finally {
             loading.value = false
         }
@@ -76,8 +79,9 @@ export const useUsers = () => {
             const response = await $axios.put(`/api/users/${id}`, data)
             return response.data
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal memperbarui user'
-            throw err
+            const message = getErrorMessageAxios(err) || 'Gagal memperbarui user'
+            error.value = message
+            throw new Error(message)
         } finally {
             loading.value = false
         }
@@ -89,8 +93,9 @@ export const useUsers = () => {
             await $axios.delete(`/api/users/${id}`)
             await getUsers() // Refresh list
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal menghapus user'
-            throw err
+            const message = getErrorMessageAxios(err) || 'Gagal menghapus user'
+            error.value = message
+            throw new Error(message)
         } finally {
             loading.value = false
         }
@@ -101,6 +106,7 @@ export const useUsers = () => {
             const response = await $axios.get('/api/users/roles')
             return response.data
         } catch (err) {
+            error.value = getErrorMessageAxios(err) || 'Gagal memuat role user'
             console.error('Failed to fetch roles:', err)
             return []
         }

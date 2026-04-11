@@ -180,6 +180,7 @@
 import { ref, onMounted } from 'vue'
 import { useTransportSettings } from '~/composables/useTransportSettings'
 import { useAuth } from '~/composables/useAuth'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 const { hasPermission } = useAuth()
 const { settings, updateSettings, formatCurrency, fetchSettings, loading, error } = useTransportSettings()
@@ -219,7 +220,7 @@ const saveSettings = async () => {
     saveSuccess.value = true
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (err: any) {
-    saveError.value = err.response?.data?.message || error.value || 'Gagal menyimpan pengaturan'
+    saveError.value = getErrorMessageAxios(err) || error.value || 'Gagal menyimpan pengaturan'
   } finally {
     saving.value = false
   }

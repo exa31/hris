@@ -237,6 +237,7 @@
 import { computed, onMounted, watch } from 'vue'
 import { useTransportAllowance } from '~/composables/useTransportAllowance'
 import { useAuth } from '~/composables/useAuth'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 const { hasPermission } = useAuth()
 
@@ -298,7 +299,7 @@ const handleGenerate = async () => {
 
     setTimeout(() => { showGenerateModal.value = false }, 1500)
   } catch (err: any) {
-    genError.value = err.response?.data?.message || 'Gagal generate data tunjangan transport'
+    genError.value = getErrorMessageAxios(err) || 'Gagal generate data tunjangan transport'
   }
 }
 

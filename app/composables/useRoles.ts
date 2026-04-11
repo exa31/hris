@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export interface Permission {
     id: number
@@ -78,7 +79,7 @@ export const useRoles = () => {
             return response.data
         } catch (err: any) {
             console.error('Error fetching roles:', err)
-            error.value = 'Gagal memuat data role'
+            error.value = getErrorMessageAxios(err) || 'Gagal memuat data role'
             return []
         } finally {
             loading.value = false
@@ -96,6 +97,7 @@ export const useRoles = () => {
             permissions.value = response.data
             return response.data
         } catch (err) {
+            error.value = getErrorMessageAxios(err) || 'Gagal memuat data permission'
             console.error('Error fetching permissions:', err)
             return []
         } finally {
@@ -127,8 +129,9 @@ export const useRoles = () => {
             
             return response.data
         } catch (err) {
+            error.value = getErrorMessageAxios(err) || 'Gagal memperbarui role'
             console.error('Error updating role:', err)
-            throw err
+            throw new Error(error.value)
         } finally {
             loading.value = false
         }

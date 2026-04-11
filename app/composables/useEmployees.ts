@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export interface Employee {
     id: number
@@ -73,7 +74,7 @@ export const useEmployees = () => {
             employees.value = response.data.employees
             totalEmployees.value = response.data.pagination.total
         } catch (err: any) {
-            error.value = err.message || 'Failed to fetch employees'
+            error.value = getErrorMessageAxios(err) || 'Failed to fetch employees'
             console.error('Error fetching employees:', err)
         } finally {
             loading.value = false
@@ -89,7 +90,7 @@ export const useEmployees = () => {
             const response = await $axios.get(`/api/employees/${id}`)
             return response.data
         } catch (err: any) {
-            error.value = err.message || 'Failed to fetch employee'
+            error.value = getErrorMessageAxios(err) || 'Failed to fetch employee'
             console.error('Error fetching employee:', err)
             return null
         } finally {
@@ -107,7 +108,7 @@ export const useEmployees = () => {
             employees.value.push(response.data)
             return response.data
         } catch (err: any) {
-            error.value = err.message || 'Failed to create employee'
+            error.value = getErrorMessageAxios(err) || 'Failed to create employee'
             console.error('Error creating employee:', err)
             throw err
         } finally {
@@ -130,7 +131,7 @@ export const useEmployees = () => {
 
             return response.data
         } catch (err: any) {
-            error.value = err.message || 'Failed to update employee'
+            error.value = getErrorMessageAxios(err) || 'Failed to update employee'
             console.error('Error updating employee:', err)
             throw err
         } finally {
@@ -150,7 +151,7 @@ export const useEmployees = () => {
             selectedEmployees.value = selectedEmployees.value.filter(empId => empId !== id)
             return true
         } catch (err: any) {
-            error.value = err.message || 'Failed to delete employee'
+            error.value = getErrorMessageAxios(err) || 'Failed to delete employee'
             console.error('Error deleting employee:', err)
             throw err
         } finally {
@@ -174,7 +175,7 @@ export const useEmployees = () => {
             selectedEmployees.value = []
             return true
         } catch (err: any) {
-            error.value = err.message || 'Failed to delete employees'
+            error.value = getErrorMessageAxios(err) || 'Failed to delete employees'
             console.error('Error deleting employees:', err)
             throw err
         } finally {
@@ -203,7 +204,7 @@ export const useEmployees = () => {
             selectedEmployees.value = []
             return true
         } catch (err: any) {
-            error.value = err.message || 'Failed to update status'
+            error.value = getErrorMessageAxios(err) || 'Failed to update status'
             console.error('Error updating status:', err)
             throw err
         } finally {

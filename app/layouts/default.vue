@@ -120,7 +120,9 @@
       <!-- Header -->
       <header class="app-header main-header">
         <div class="header-left">
-          
+          <button class="btn-menu btn-sidebar-toggle" @click="sidebarCollapsed = false" aria-label="Buka menu">
+            <i class="bi bi-list"></i>
+          </button>
         </div>
 
         <div class="header-right">
@@ -222,8 +224,8 @@ const handleLogout = async () => {
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 25px rgba(0, 0, 0, 0.08);
-  z-index: 100;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1100;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
   border-right: 1px solid rgba(0, 0, 0, 0.06);
   position: relative;
 }
@@ -236,7 +238,7 @@ const handleLogout = async () => {
   right: 0;
   bottom: 0;
   background: rgba(15, 23, 42, 0.4);
-  z-index: 90;
+  z-index: 1050;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   opacity: 0;
@@ -301,7 +303,7 @@ const handleLogout = async () => {
   min-width: 0;
 }
 
-.logo-section i {
+.logo-section i { 
   font-size: 1.75rem;
   animation: logoFloat 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   color: var(--primary-light);
@@ -463,7 +465,7 @@ const handleLogout = async () => {
 
 .sidebar.sidebar-collapsed .nav-item i {
   margin-right: 0;
-}
+ }
 
 .nav-item::before {
   content: '';

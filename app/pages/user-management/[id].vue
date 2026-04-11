@@ -38,6 +38,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
 import { useAuth } from '~/composables/useAuth'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 const route = useRoute()
 const { hasPermission, user: currentUser } = useAuth()
@@ -74,7 +75,7 @@ const handleSubmit = async (formData: any) => {
   } catch (error: any) {
     console.error('Error updating user:', error)
     modal.title = 'Gagal Update User'
-    modal.message = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.'
+    modal.message = getErrorMessageAxios(error) || 'Terjadi kesalahan saat menyimpan data.'
     modal.type = 'danger'
     modal.isOpen = true
   }

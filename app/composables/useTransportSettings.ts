@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export interface TransportSettingsData {
     id: number | null
@@ -32,7 +33,7 @@ export const useTransportSettings = () => {
                 updated_at: data.updated_at,
             }
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal memuat pengaturan'
+            error.value = getErrorMessageAxios(err) || 'Gagal memuat pengaturan'
         } finally {
             loading.value = false
         }
@@ -52,8 +53,9 @@ export const useTransportSettings = () => {
             }
             return result
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal menyimpan pengaturan'
-            throw err
+            const message = getErrorMessageAxios(err) || 'Gagal menyimpan pengaturan'
+            error.value = message
+            throw new Error(message)
         } finally {
             loading.value = false
         }

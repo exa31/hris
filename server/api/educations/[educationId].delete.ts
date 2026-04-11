@@ -4,10 +4,13 @@ import { withTransaction } from '~~/server/db/postgres'
 import * as educationService from '~~/server/services/education.service'
 import { sendSuccess } from '~~/server/utils/response'
 
-export default withPermission(async (event) => {
-    const id = parseInt(getRouterParam(event, 'id') || '0')
+export default withPermission(async (event) => {    
+    const rawId = getRouterParam(event, 'educationId')       
+    console.log('Received request to delete education with ID:', rawId)
 
-    if (!id) {
+    const id = Number(rawId)
+
+    if (!Number.isInteger(id) || id <= 0) {
         throw new HttpError(400, 'INVALID_ID', 'Invalid education ID')
     }
 

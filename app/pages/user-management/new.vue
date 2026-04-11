@@ -26,6 +26,7 @@
 import { reactive } from 'vue'
 import { useUsers } from '~/composables/useUsers'
 import { useAuth } from '~/composables/useAuth'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 const { createUser } = useUsers()
 const { user: currentUser } = useAuth()
@@ -45,7 +46,7 @@ const handleSubmit = async (formData: any) => {
   } catch (error: any) {
     console.error('Error creating user:', error)
     modal.title = 'Gagal Membuat User'
-    modal.message = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.'
+    modal.message = getErrorMessageAxios(error) || 'Terjadi kesalahan saat menyimpan data.'
     modal.type = 'danger'
     modal.isOpen = true
   }

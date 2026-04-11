@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { UserWithDetails } from "~/types/models"
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export interface UserPermission {
     module: string
@@ -98,6 +99,7 @@ export const useAuthStore = defineStore('auth', () => {
             user.value = null;
             permissions.value = [];
             closeSSE();
+            console.error('Fetch user error:', getErrorMessageAxios(error));
         } finally {
             loading.value = false;
             fetchInProgress.value = false;
@@ -132,7 +134,7 @@ export const useAuthStore = defineStore('auth', () => {
             fetchUser(true);
             return response.data;
         } catch (error: any) {
-            throw error;
+            throw new Error(getErrorMessageAxios(error));
         } finally {
             loading.value = false;
         }
@@ -150,7 +152,7 @@ export const useAuthStore = defineStore('auth', () => {
             closeSSE();
             navigateTo('/');
         } catch (error) {
-            console.error('Logout error:', error);
+            console.error('Logout error:', getErrorMessageAxios(error));
         } finally {
             loading.value = false;
         }

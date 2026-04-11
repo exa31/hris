@@ -129,6 +129,7 @@
 import { ref, computed, watch } from 'vue'
 import type { Role, Permission } from '~/composables/useRoles'
 import { useRoles } from '~/composables/useRoles'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 interface Props {
   isOpen: boolean
@@ -237,7 +238,7 @@ const handleSubmit = async () => {
     closeModal()
   } catch (error: any) {
     console.error('Error saving role:', error)
-    errors.value.submit = error.response?.data?.message || 'Gagal menyimpan role'
+    errors.value.submit = getErrorMessageAxios(error) || 'Gagal menyimpan role'
   } finally {
     isSubmitting.value = false
   }

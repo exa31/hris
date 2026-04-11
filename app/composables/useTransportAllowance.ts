@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export interface TransportAllowance {
     id: number
@@ -48,7 +49,7 @@ export const useTransportAllowance = () => {
             allowances.value = response.data.rows || response.data?.data?.rows || []
             totalAllowances.value = response.data.total || response.data?.data?.total || 0
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Gagal memuat data'
+            error.value = getErrorMessageAxios(err) || 'Gagal memuat data'
         } finally {
             loading.value = false
         }
@@ -66,9 +67,9 @@ export const useTransportAllowance = () => {
             await fetchAllowances()
             return response.data
         } catch (err: any) {
-            const msg = err.response?.data?.message || 'Gagal generate data tunjangan'
+            const msg = getErrorMessageAxios(err) || 'Gagal generate data tunjangan'
             error.value = msg
-            throw err
+            throw new Error(msg)
         } finally {
             generating.value = false
         }

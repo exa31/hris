@@ -1,4 +1,5 @@
 import { ref, computed, watch } from 'vue'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export const useRecovery = () => {
     const { $axios } = useNuxtApp()
@@ -35,7 +36,7 @@ export const useRecovery = () => {
             deletedEmployees.value = result.employees
             totalEmployees.value = result.pagination.total
         } catch (err: any) {
-            employeesError.value = err.response?.data?.message || 'Gagal memuat data pegawai yang dihapus'
+            employeesError.value = getErrorMessageAxios(err) || 'Gagal memuat data pegawai yang dihapus'
         } finally {
             employeesLoading.value = false
         }
@@ -55,7 +56,7 @@ export const useRecovery = () => {
             deletedUsers.value = result.users
             totalUsers.value = result.pagination.total
         } catch (err: any) {
-            usersError.value = err.response?.data?.message || 'Gagal memuat data user yang dihapus'
+            usersError.value = getErrorMessageAxios(err) || 'Gagal memuat data user yang dihapus'
         } finally {
             usersLoading.value = false
         }
@@ -67,7 +68,7 @@ export const useRecovery = () => {
             await fetchDeletedEmployees()
             return response.data
         } catch (err: any) {
-            throw err.response?.data?.message || 'Gagal memulihkan pegawai'
+            throw new Error(getErrorMessageAxios(err) || 'Gagal memulihkan pegawai')
         }
     }
 
@@ -77,7 +78,7 @@ export const useRecovery = () => {
             await fetchDeletedUsers()
             return response.data
         } catch (err: any) {
-            throw err.response?.data?.message || 'Gagal memulihkan user'
+            throw new Error(getErrorMessageAxios(err) || 'Gagal memulihkan user')
         }
     }
 

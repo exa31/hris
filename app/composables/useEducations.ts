@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 export interface Education {
     id: number
@@ -10,6 +11,8 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 
 export const useEducations = () => {
+    const $axios = useNuxtApp().$axios
+
     /**
      * Fetch All Educations from API
      */
@@ -17,11 +20,11 @@ export const useEducations = () => {
         loading.value = true
         error.value = null
         try {
-            const response = await $fetch<any>('/api/educations')
+            const response = await $axios.get('/api/educations')
             educations.value = response.data || []
             return educations.value
         } catch (err: any) {
-            error.value = err.data?.message || 'Gagal mengambil data pendidikan'
+            error.value = getErrorMessageAxios(err) || 'Gagal mengambil data pendidikan'
             console.error('Failed to fetch educations:', err)
             return []
         } finally {
@@ -35,15 +38,12 @@ export const useEducations = () => {
     const createEducation = async (name: string): Promise<Education | null> => {
         error.value = null
         try {
-            const response = await $fetch<any>('/api/educations', {
-                method: 'POST',
-                body: { name },
-            })
+            const response = await $axios.post('/api/educations', { name })
             const education = response.data
             educations.value.push(education)
             return education
         } catch (err: any) {
-            error.value = err.data?.message || 'Gagal membuat pendidikan baru'
+            error.value = getErrorMessageAxios(err) || 'Gagal membuat pendidikan baru'
             console.error('Failed to create education:', err)
             return null
         }
@@ -70,13 +70,10 @@ export const useEducations = () => {
     const syncEmployeeEducations = async (employeeId: number, educationIds: number[]): Promise<boolean> => {
         error.value = null
         try {
-            await $fetch(`/api/educations/${employeeId}`, {
-                method: 'PUT',
-                body: { educationIds },
-            })
+            await $axios.put(`/api/educations/${employeeId}`, { educationIds })
             return true
         } catch (err: any) {
-            error.value = err.data?.message || 'Gagal menyimpan pendidikan pegawai'
+            error.value = getErrorMessageAxios(err) || 'Gagal menyimpan pendidikan pegawai'
             console.error('Failed to sync education:', err)
             return false
         }
@@ -88,13 +85,16 @@ export const useEducations = () => {
     const removeGlobalEducation = async (id: number): Promise<boolean> => {
         error.value = null
         try {
-            await $fetch(`/api/educations/${id}`, {
-                method: 'DELETE',
-            })
-            educations.value = educations.value.filter(e => e.id !== id)
+            const educationId = Number(id)
+            if (!Number.isInteger(educationId) || educationId <= 0) {
+                throw new Error('Invalid education ID')
+            }
+
+            await $axios.delete(`/api/educations/${educationId}`)
+            educations.value = educations.value.filter(e => e.id !== educationId)
             return true
         } catch (err: any) {
-            error.value = err.data?.message || 'Gagal menghapus pendidikan'
+            error.value = getErrorMessageAxios(err) || 'Gagal menghapus pendidikan'
             console.error('Failed to delete education:', err)
             throw new Error(error.value!)
         }

@@ -339,7 +339,7 @@
                   <button type="button" class="btn btn-primary" @click="addSelectedEducation" :disabled="!selectedEducationId">
                     Tambah
                   </button>
-                  <button type="button" class="btn btn-outline-danger" @click="deleteGlobalEducation" :disabled="!selectedEducationId" title="Hapus dari Master">
+                  <button type="button" class="btn btn-outline-danger" @click="openDeleteEducationModal" :disabled="!selectedEducationId" title="Hapus dari Master">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
@@ -410,6 +410,18 @@
         </NuxtLink>
       </div>
     </div>
+
+    <ConfirmModal
+      :is-open="deleteEduModal.isOpen"
+      :title="deleteEduModal.title"
+      :message="deleteEduModal.message"
+      :type="deleteEduModal.type"
+      :is-confirm="deleteEduModal.isConfirm"
+      :confirm-text="deleteEduModal.confirmText"
+      :cancel-text="deleteEduModal.cancelText"
+      @close="closeDeleteEducationModal"
+      @confirm="confirmDeleteEducation"
+    />
   </form>
 </template>
 
@@ -418,6 +430,7 @@ import { ref, computed, onMounted } from 'vue'
 import type { Employee } from '~/composables/useEmployees'
 import { useEducations } from '~/composables/useEducations'
 import type { Education } from '~/composables/useEducations'
+import { getErrorMessageAxios } from '~/utils/handleError'
 
 const props = defineProps<{
   initialData?: Partial<Employee>
@@ -466,10 +479,20 @@ const { fetchEducations, createEducation, syncEmployeeEducations, removeGlobalEd
 const availableEducations = ref<Education[]>([])
 const selectedEducations = ref<Education[]>(props.initialData?.educations || [])
 const selectedEducationId = ref<number | string>('')
+const pendingDeleteEducationId = ref<number | null>(null)
 const newEducationName = ref<string>('')
 const educationLoading = ref(false)
 const educationError = ref<string>('')
 const uploadingPhoto = ref(false)
+const deleteEduModal = ref({
+  isOpen: false,
+  title: 'Konfirmasi Hapus',
+  message: '',
+  type: 'danger' as 'primary' | 'danger' | 'warning' | 'success',
+  isConfirm: true,
+  confirmText: 'Hapus',
+  cancelText: 'Batal',
+})
 
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -492,7 +515,7 @@ const handleFileUpload = async (event: Event) => {
     })
     form.value.photo_url = res.data.url
   } catch (err: any) {
-    alert(err.response?.data?.message || 'Gagal upload foto')
+    alert(getErrorMessageAxios(err) || 'Gagal upload foto')
   } finally {
     uploadingPhoto.value = false
     // Reset file input value so it can be re-triggered for the same file
@@ -524,21 +547,73 @@ const addSelectedEducation = () => {
   }
 }
 
-const deleteGlobalEducation = async () => {
+const closeDeleteEducationModal = () => {
+  deleteEduModal.value.isOpen = false
+  pendingDeleteEducationId.value = null
+}
+
+const openDeleteEducationModal = () => {
   if (!selectedEducationId.value) return
-  const confirmed = confirm('Apakah Anda yakin ingin menghapus pendidikan ini dari data master?')
-  if (!confirmed) return
+  const selectedId = Number(selectedEducationId.value)
+  if (!Number.isInteger(selectedId) || selectedId <= 0) return
+
+  pendingDeleteEducationId.value = selectedId
+  const selectedEdu = availableEducations.value.find(e => e.id === selectedId)
+
+  deleteEduModal.value = {
+    isOpen: true,
+    title: 'Konfirmasi Hapus',
+    message: `Apakah Anda yakin ingin menghapus pendidikan "${selectedEdu?.name || '-'}" dari master data?`,
+    type: 'danger',
+    isConfirm: true,
+    confirmText: 'Hapus',
+    cancelText: 'Batal',
+  }
+}
+
+const confirmDeleteEducation = async () => {
+  const educationId = pendingDeleteEducationId.value
+  if (!educationId || !Number.isInteger(educationId) || educationId <= 0) {
+    deleteEduModal.value = {
+      isOpen: true,
+      title: 'Gagal Menghapus',
+      message: 'ID pendidikan tidak valid.',
+      type: 'warning',
+      isConfirm: false,
+      confirmText: 'OK',
+      cancelText: 'Tutup',
+    }
+    return
+  }
 
   educationLoading.value = true
   try {
-    await removeGlobalEducation(Number(selectedEducationId.value))
-    // Hapus jg dari dropdown dan dari selected jika ada
-    availableEducations.value = availableEducations.value.filter(e => e.id !== Number(selectedEducationId.value))
-    removeSelectedEducation(Number(selectedEducationId.value))
+    await removeGlobalEducation(educationId)
+    // Hapus juga dari dropdown dan dari selected jika ada
+    availableEducations.value = availableEducations.value.filter(e => e.id !== educationId)
+    removeSelectedEducation(educationId)
     selectedEducationId.value = ''
-    alert('Pendidikan berhasil dihapus')
+    pendingDeleteEducationId.value = null
+
+    deleteEduModal.value = {
+      isOpen: true,
+      title: 'Berhasil',
+      message: 'Pendidikan berhasil dihapus.',
+      type: 'success',
+      isConfirm: false,
+      confirmText: 'OK',
+      cancelText: 'Tutup',
+    }
   } catch (err: any) {
-    alert(err.message || 'Gagal menghapus pendidikan (mungkin sedang digunakan)')
+    deleteEduModal.value = {
+      isOpen: true,
+      title: 'Gagal Menghapus',
+      message: getErrorMessageAxios(err) || 'Gagal menghapus pendidikan (mungkin sedang digunakan)',
+      type: 'warning',
+      isConfirm: false,
+      confirmText: 'OK',
+      cancelText: 'Tutup',
+    }
   } finally {
     educationLoading.value = false
   }
@@ -708,7 +783,7 @@ const submitForm = () => {
   hasSubmitted.value = true
   if (validateForm()) {
     emit('submit', {
-      nip: form.value.nip,
+      nip: Number(form.value.nip),
       name: form.value.name,
       email: form.value.email,
       phone: form.value.phone,
