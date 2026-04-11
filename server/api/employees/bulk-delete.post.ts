@@ -3,6 +3,7 @@ import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
 import { logActivity } from '~~/server/services/activity-log.service'
 import { sendSuccess } from '~~/server/utils/response'
+import { sseEmitter } from '~~/server/utils/sse'
 
 export default withPermission(async (event) => {
     const body = await readBody(event)
@@ -10,6 +11,13 @@ export default withPermission(async (event) => {
 
     return withTransaction(async (client) => {
         const data = await employeeService.bulkDeleteEmployees(client, ids)
+
+        // Force logout for user accounts that were soft-deleted during bulk delete.
+        if (Array.isArray((data as any).deletedUserIds)) {
+            for (const userId of (data as any).deletedUserIds) {
+                sseEmitter.emit('user_logout', userId)
+            }
+        }
         
         // Log Activity
         await logActivity(client, {

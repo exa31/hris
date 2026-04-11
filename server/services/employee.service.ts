@@ -95,13 +95,16 @@ export async function deleteEmployee(client: PoolClient, id: number) {
         throw new HttpError(403, 'FORBIDDEN', 'Pegawai dengan role SuperAdmin tidak dapat dihapus')
     }
 
+    // Auto soft-delete linked user account(s) when deleting employee.
+    const deletedUserIds = await employeeRepository.softDeleteUsersByEmployeeIds(client, [id])
+
     const deleted = await employeeRepository.deleteEmployee(client, id)
 
     if (!deleted) {
         throw new HttpError(404, 'NOT_FOUND', 'Employee not found')
     }
 
-    return { success: true, message: 'Employee deleted successfully' }
+    return { success: true, message: 'Employee deleted successfully', deletedUserIds }
 }
 
 export async function bulkDeleteEmployees(client: PoolClient, ids: number[]) {
@@ -117,8 +120,11 @@ export async function bulkDeleteEmployees(client: PoolClient, ids: number[]) {
         throw new HttpError(403, 'FORBIDDEN', `Penghapusan massal gagal. Pegawai berikut memiliki role SuperAdmin dan tidak dapat dihapus: ${names}`)
     }
 
+    // Auto soft-delete linked user account(s) for bulk deletion as well.
+    const deletedUserIds = await employeeRepository.softDeleteUsersByEmployeeIds(client, ids)
+
     const count = await employeeRepository.bulkDeleteEmployees(client, ids)
-    return { success: true, deletedCount: count }
+    return { success: true, deletedCount: count, deletedUserIds }
 }
 
 export async function bulkUpdateStatus(client: PoolClient, ids: number[], status: boolean) {

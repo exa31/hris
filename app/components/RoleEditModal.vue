@@ -280,11 +280,11 @@ watch(
 
 <style scoped>
 .modal {
-  z-index: 1050;
+  z-index: 2300;
 }
 
 .modal-backdrop {
-  z-index: 1040;
+  z-index: 2200;
 }
 
 .permissions-scroll {

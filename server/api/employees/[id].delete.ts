@@ -4,6 +4,7 @@ import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
 import { logActivity } from '~~/server/services/activity-log.service'
 import { sendSuccess } from '~~/server/utils/response'
+import { sseEmitter } from '~~/server/utils/sse'
 
 export default withPermission(async (event) => {
     const id = parseInt(getRouterParam(event, 'id') || '0')
@@ -16,6 +17,13 @@ export default withPermission(async (event) => {
         // Fetch employee info before delete for logging
         const employee = await employeeService.getEmployeeById(client, id)
         const data = await employeeService.deleteEmployee(client, id)
+
+        // Force logout for user accounts that were soft-deleted with this employee.
+        if (Array.isArray((data as any).deletedUserIds)) {
+            for (const userId of (data as any).deletedUserIds) {
+                sseEmitter.emit('user_logout', userId)
+            }
+        }
         
         // Log Activity
         await logActivity(client, {

@@ -407,3 +407,34 @@ export const checkSuperAdminByIds = async (client: PoolClient, ids: number[]): P
     const { rows } = await client.query(query, [ids])
     return rows
 }
+
+/**
+ * Check employees that still have active user accounts.
+ */
+export const checkEmployeesWithActiveUsers = async (client: PoolClient, ids: number[]): Promise<any[]> => {
+    const query = `
+        SELECT e.id, e.name, u.id AS user_id, u.username
+        FROM employees e
+        JOIN users u ON e.id = u.employee_id
+        WHERE e.id = ANY($1)
+          AND e.deleted_at IS NULL
+          AND u.deleted_at IS NULL
+    `
+    const { rows } = await client.query(query, [ids])
+    return rows
+}
+
+/**
+ * Soft-delete user accounts linked to the provided employee IDs.
+ */
+export const softDeleteUsersByEmployeeIds = async (client: PoolClient, ids: number[]): Promise<number[]> => {
+    const query = `
+        UPDATE users
+        SET deleted_at = NOW(), is_active = false, updated_at = NOW()
+        WHERE employee_id = ANY($1)
+          AND deleted_at IS NULL
+        RETURNING id
+    `
+    const result = await client.query(query, [ids])
+    return result.rows.map((row: { id: number }) => row.id)
+}
