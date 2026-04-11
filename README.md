@@ -81,6 +81,10 @@ Dokumentasi API tersedia pada:
 
 - `docs/API_DOCUMENTATION.md`
 
+Dokumentasi login (alur login, validasi, dan akun seeded) tersedia pada:
+
+- `LOGIN_DOCUMENTATION.md`
+
 OpenAPI spec (untuk Swagger Editor):
 
 - `docs/openapi.yaml`
