@@ -175,6 +175,12 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
+useHead({
+  titleTemplate: (titleChunk) => {
+    return 'JMC System - HRIS';
+  },
+});
+
 const router = useRouter();
 const sidebarCollapsed = ref(false);
 const isSearchActive = ref(false);
