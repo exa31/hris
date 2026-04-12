@@ -5,7 +5,7 @@ export async function getUsers(client: PoolClient, params: SearchUsersInput) {
     const { limit, offset, search, role_id, is_active, sortColumn, sortDirection } = params
 
     let query = `
-        SELECT u.*, e.name as employee_name, r.name as role_name 
+        SELECT u.*, e.name as employee_name, e.photo_url as employee_photo_url, r.name as role_name 
         FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
         INNER JOIN roles r ON u.role_id = r.id
@@ -48,7 +48,7 @@ export async function getUsers(client: PoolClient, params: SearchUsersInput) {
 
 export async function getUserById(client: PoolClient, id: number) {
     const query = `
-        SELECT u.*, e.name as employee_name, r.name as role_name 
+        SELECT u.*, e.name as employee_name, e.photo_url as employee_photo_url, r.name as role_name 
         FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
         INNER JOIN roles r ON u.role_id = r.id
@@ -59,7 +59,7 @@ export async function getUserById(client: PoolClient, id: number) {
 }
 
 export async function getUserByUsername(client: PoolClient, username: string) {
-    const query = `SELECT u.*, e.name as employee_name, r.name as role_name FROM users u
+    const query = `SELECT u.*, e.name as employee_name, e.photo_url as employee_photo_url, r.name as role_name FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
         INNER JOIN roles r ON u.role_id = r.id 
         WHERE (u.username = $1 OR e.email = $1 OR e.phone = $1) AND u.deleted_at IS NULL`

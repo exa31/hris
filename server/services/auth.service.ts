@@ -220,6 +220,7 @@ export const getCurrentUserProfile = async (userId: number) => {
             employee: {
                 id: user.employee_id,
                 name: user.employee_name,
+                photo_url: user.employee_photo_url ?? null,
             },
             role: {
                 id: user.role_id,

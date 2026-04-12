@@ -137,7 +137,13 @@
               </div>
             </div>
             <div class="avatar-container">
-              <div class="avatar-circle">
+              <img
+                v-if="userPhotoUrl"
+                :src="userPhotoUrl"
+                alt="User avatar"
+                class="avatar-image"
+              />
+              <div v-else class="avatar-circle">
                 {{ userInitial }}
               </div>
               <div class="avatar-status online"></div>
@@ -177,6 +183,7 @@ const { user, hasPermission, authModal, handleModalConfirm } = useAuth();
 
 const userName = computed(() => user.value?.employee?.name || 'User');
 const userRole = computed(() => user.value?.role?.name || '');
+const userPhotoUrl = computed(() => (user.value?.employee as any)?.photo_url || '');
 const userInitial = computed(() => {
   const name = user.value?.employee?.name || 'U';
   return name.charAt(0).toUpperCase();
@@ -788,6 +795,15 @@ const handleLogout = async () => {
   font-weight: 800;
   font-size: 0.9rem;
   box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.avatar-image {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
 }
 
 .avatar-status {

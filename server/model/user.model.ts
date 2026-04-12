@@ -28,6 +28,7 @@ export const userModel = z.object({
     updated_at: z.string(),
     // Added for convenience in lists
     employee_name: z.string().optional(),
+    employee_photo_url: z.string().nullable().optional(),
     role_name: z.string().optional(),
 })
 
