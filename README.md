@@ -127,6 +127,7 @@ File compose tersedia di `docker-compose.yml` dan akan menjalankan:
 
 - `app` (Nuxt/Nitro) di port `3000`
 - `postgres` di port `10000` (host) -> `5432` (container)
+- Saat `app` start, migration otomatis dijalankan terlebih dahulu, lalu server Nuxt dijalankan.
 
 Jalankan service:
 
