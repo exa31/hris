@@ -6,13 +6,16 @@
       <Motion
         :initial="{ x: -280 }"
         :animate="{ x: sidebarCollapsed ? (isMobile ? -280 : 0) : 0 }"
-        :transition="{ type: 'spring', damping: 25, stiffness: 120 }"
-        class="fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-none"
+        :transition="{ type: 'spring', stiffness: 300, damping: 30 }"
+        class="fixed inset-y-0 left-0 z-[60] flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-none"
         :class="[sidebarCollapsed && !isMobile ? 'w-20' : 'w-[280px]', isMobile && sidebarCollapsed ? '-translate-x-full' : 'translate-x-0']"
       >
         <!-- Sidebar Header -->
-        <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-br from-indigo-50/50 dark:from-slate-900 to-white dark:to-slate-900">
-          <div class="flex items-center gap-3 overflow-hidden">
+        <div 
+          class="h-20 flex items-center border-b border-slate-100 dark:border-slate-800 bg-gradient-to-br from-indigo-50/50 dark:from-slate-900 to-white dark:to-slate-900 relative transition-all duration-300"
+          :class="sidebarCollapsed && !isMobile ? 'justify-center px-0' : 'justify-between px-6'"
+        >
+          <div class="flex items-center gap-3 overflow-hidden w-full" :class="sidebarCollapsed && !isMobile ? 'justify-center' : ''">
             <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
               <i class="bi bi-building text-xl"></i>
             </div>
@@ -24,7 +27,7 @@
           <button 
             v-if="!isMobile"
             @click="sidebarCollapsed = !sidebarCollapsed"
-            class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all duration-200"
+            class="absolute -right-4 top-6 z-50 w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 shadow-sm transition-colors"
           >
             <i class="bi" :class="sidebarCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
           </button>
@@ -89,7 +92,7 @@
       <div 
         v-if="isMobile && !sidebarCollapsed" 
         @click="sidebarCollapsed = true"
-        class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 transition-opacity duration-300"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[55] transition-opacity duration-300"
       ></div>
 
       <!-- Main Container -->
