@@ -1,6 +1,11 @@
 <template>
-  <div class="chart-container">
+  <div class="relative w-full h-full">
     <Doughnut :data="chartData" :options="chartOptions" />
+    <!-- Center Label -->
+    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+      <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Total</span>
+      <span class="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">{{ totalValue }}</span>
+    </div>
   </div>
 </template>
 
@@ -19,60 +24,65 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const totalValue = computed(() => props.kontrak + props.tetap + props.magang);
+
 const chartData = computed(() => ({
   labels: ['Kontrak', 'Tetap', 'Magang'],
   datasets: [
     {
       data: [props.kontrak, props.tetap, props.magang],
       backgroundColor: [
-        '#667eea',
-        '#764ba2',
-        '#f093fb',
+        '#f59e0b', // amber-500
+        '#6366f1', // indigo-500
+        '#8b5cf6', // violet-500
       ],
-      borderColor: [
-        '#667eea',
-        '#764ba2',
-        '#f093fb',
+      hoverBackgroundColor: [
+        '#d97706',
+        '#4f46e5',
+        '#7c3aed',
       ],
-      borderWidth: 2,
+      borderWidth: 0,
+      cutout: '82%',
+      borderRadius: 12,
+      spacing: 8,
     },
   ],
 }));
 
 const chartOptions: ChartOptions<'doughnut'> = {
   responsive: true,
-  maintainAspectRatio: true,
+  maintainAspectRatio: false,
   plugins: {
     legend: {
       position: 'bottom',
       labels: {
-        padding: 15,
+        padding: 24,
+        usePointStyle: true,
+        pointStyle: 'circle',
         font: {
-          size: 12,
+          size: 11,
+          weight: 'bold',
+          family: "'Plus Jakarta Sans', sans-serif",
         },
+        color: '#94a3b8',
       },
     },
     tooltip: {
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      padding: 12,
+      enabled: true,
+      backgroundColor: '#1e293b',
+      titleFont: { size: 12, weight: 'bold' },
+      bodyFont: { size: 11, weight: 'bold' },
+      padding: 16,
+      cornerRadius: 12,
+      displayColors: false,
       callbacks: {
-        label: function(context) {
-          const label = context.label || '';
-          const value = context.parsed || 0;
-          const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
-          const percentage = ((value / total) * 100).toFixed(1);
-          return `${label}: ${value} (${percentage}%)`;
-        },
-      },
+        label: (context) => {
+          const value = context.parsed;
+          const percentage = ((value / totalValue.value) * 100).toFixed(1);
+          return ` ${context.label}: ${value} (${percentage}%)`;
+        }
+      }
     },
   },
 };
 </script>
-
-<style scoped>
-.chart-container {
-  position: relative;
-  width: 100%;
-  height: 300px;
-}
-</style>

@@ -1,0 +1,63 @@
+/**
+ * Announcement Service
+ * Business logic for company announcements
+ */
+
+import { HttpError } from '~~/server/errors/HttpError'
+import * as announcementRepository from '~~/server/repositories/announcement.repository'
+import { type CreateAnnouncementInput, type UpdateAnnouncementInput, type SearchAnnouncementInput } from '~~/server/model/announcement.model'
+import type { PoolClient } from 'pg'
+
+export async function getAnnouncements(client: PoolClient, params: SearchAnnouncementInput) {
+    const limit = params.limit || 10
+    const offset = params.offset || 0
+
+    const { rows, total } = await announcementRepository.getAnnouncements(client, {
+        ...params,
+        limit,
+        offset,
+    })
+
+    return {
+        announcements: rows,
+        pagination: {
+            total,
+            limit,
+            offset,
+            pages: Math.ceil(total / limit),
+        },
+    }
+}
+
+export async function getAnnouncementById(client: PoolClient, id: number) {
+    const announcement = await announcementRepository.getAnnouncementById(client, id)
+    if (!announcement) {
+        throw new HttpError(404, 'NOT_FOUND', 'Pengumuman tidak ditemukan')
+    }
+    return announcement
+}
+
+export async function createAnnouncement(client: PoolClient, data: CreateAnnouncementInput, createdBy: number) {
+    const announcement = await announcementRepository.createAnnouncement(client, data, createdBy)
+    return announcement
+}
+
+export async function updateAnnouncement(client: PoolClient, id: number, data: UpdateAnnouncementInput) {
+    const announcement = await announcementRepository.updateAnnouncement(client, id, data)
+    if (!announcement) {
+        throw new HttpError(404, 'NOT_FOUND', 'Pengumuman tidak ditemukan')
+    }
+    return announcement
+}
+
+export async function deleteAnnouncement(client: PoolClient, id: number) {
+    const deleted = await announcementRepository.deleteAnnouncement(client, id)
+    if (!deleted) {
+        throw new HttpError(404, 'NOT_FOUND', 'Pengumuman tidak ditemukan')
+    }
+    return { success: true, message: 'Pengumuman berhasil dihapus' }
+}
+
+export async function getActiveAnnouncements(client: PoolClient, department?: string) {
+    return announcementRepository.getActiveAnnouncements(client, department)
+}

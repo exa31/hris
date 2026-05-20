@@ -1,419 +1,753 @@
 <template>
-  <div class="employees-list">
-    <!-- Header -->
-    <div class="page-header">
-      <h1>Data Pegawai</h1>
-      <p class="text-muted">Kelola data pegawai, tambah data baru, ubah, atau hapus data pegawai</p>
-    </div>
+  <div class="space-y-8">
+    <!-- Sophisticated Header & Stats -->
+    <div class="flex flex-col gap-8">
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      >
+        <Motion
+          :initial="{ opacity: 0, x: -20 }"
+          :animate="{ opacity: 1, x: 0 }"
+          class="space-y-1"
+        >
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-6 bg-indigo-600 rounded-full"></span>
+            <h1
+              class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
+            >
+              Management Talent
+            </h1>
+          </div>
+          <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
+            Orchestrate your workforce with precision and elegance.
+          </p>
+        </Motion>
 
-    <!-- Action Buttons & Filters -->
-    <div class="actions-panel mb-4">
-      <div class="row g-3">
-        <!-- Left Actions -->
-        <div class="col-auto">
-          <NuxtLink v-if="hasPermission('employees', 'create')" to="/employees/new" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Data Baru
-          </NuxtLink>
-          <button class="btn btn-success ms-2" @click="downloadExcel" title="Download Excel">
-            <i class="bi bi-file-earmark-spreadsheet"></i> Excel
-          </button>
-          <button class="btn btn-danger ms-2" @click="downloadPdf" title="Download PDF">
-            <i class="bi bi-file-earmark-pdf"></i> PDF
-          </button>
-        </div>
-
-        <!-- Right Actions -->
-        <div class="col-auto ms-auto" v-if="hasPermission('employees', 'delete') || hasPermission('employees', 'update')">
-          <button
-            v-if="selectedEmployees.length > 0 && hasPermission('employees', 'delete')"
-            class="btn btn-outline-danger me-2"
-            @click="confirmBulkDelete"
+        <Motion
+          :initial="{ opacity: 0, scale: 0.95 }"
+          :animate="{ opacity: 1, scale: 1 }"
+        >
+          <NuxtLink
+            v-if="hasPermission('employees', 'create')"
+            to="/employees/new"
           >
-            <i class="bi bi-trash"></i> Hapus ({{ selectedEmployees.length }})
-          </button>
-          <div v-if="selectedEmployees.length > 0 && hasPermission('employees', 'update')" class="btn-group" role="group">
-            <button
-              class="btn btn-outline-warning"
-              @click="updateStatusBulk(true)"
-              title="Aktifkan"
+            <Button
+              label="Onboard Talent"
+              icon="bi bi-person-plus-fill"
+              class="!rounded-xl !px-6 !py-3.5 !font-black !uppercase !text-[10px] !tracking-widest !bg-indigo-600 !border-none !shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-700 transition-all"
+            />
+          </NuxtLink>
+        </Motion>
+      </div>
+
+      <!-- Quick Stats Bar -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div
+          v-for="stat in quickStats"
+          :key="stat.label"
+          class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 group hover:border-indigo-100 dark:hover:border-indigo-900 transition-all"
+        >
+          <div
+            :class="[
+              stat.color,
+              'w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm',
+            ]"
+          >
+            <i :class="stat.icon"></i>
+          </div>
+          <div>
+            <div
+              class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
             >
-              Aktif
-            </button>
-            <button
-              class="btn btn-outline-warning"
-              @click="updateStatusBulk(false)"
-              title="Nonaktifkan"
+              {{ stat.label }}
+            </div>
+            <div
+              class="text-lg font-black text-slate-800 dark:text-white leading-none"
             >
-              Nonaktif
-            </button>
+              {{ stat.value }}
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Search & Filter Row -->
-      <div class="row g-3 mt-3 align-items-end">
-        <!-- Search -->
-        <div class="col-md-3">
-          <label class="form-label small fw-bold">Cari Pegawai</label>
-          <div class="input-group">
-            <span class="input-group-text bg-white border-end-0">
-              <i class="bi bi-search text-muted"></i>
-            </span>
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="form-control border-start-0"
-              placeholder="Nama / NIP..."
-            />
-          </div>
+    <!-- Search & Filter Area -->
+    <Motion
+      :initial="{ opacity: 0, y: 10 }"
+      :animate="{ opacity: 1, y: 0 }"
+      :transition="{ delay: 0.2 }"
+      class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4"
+    >
+      <div class="flex items-center gap-4 flex-1">
+        <div class="relative flex-1 max-w-md group">
+          <i
+            class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors"
+          ></i>
+          <InputText
+            v-model="searchQuery"
+            placeholder="Search by Name, NIP, or Email..."
+            class="!w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800/50 !border-none !rounded-xl !text-xs !font-bold transition-all focus:!ring-2 focus:!ring-indigo-500/10"
+          />
         </div>
+        <div class="h-8 w-px bg-slate-100 dark:bg-slate-800"></div>
+        <Select
+          v-model="selectedType"
+          :options="selectedTypeOptions"
+          class="!bg-transparent !border-none !shadow-none !text-[10px] !font-black !uppercase !tracking-widest !h-10 flex items-center"
+        />
+      </div>
 
-        <!-- Filter Jabatan -->
-        <div class="col-md-4">
-          <label class="form-label small fw-bold">Filter Jabatan</label>
-          <div class="d-flex flex-wrap gap-2 py-1">
-            <div v-for="pos in ['Manager', 'Staf', 'Magang']" :key="pos">
-              <input 
-                type="checkbox" 
-                class="btn-check" 
-                :id="'filterPos' + pos" 
-                :value="pos"
-                v-model="selectedPositions"
-                autocomplete="off"
+      <div class="flex items-center gap-2">
+        <Button
+          icon="bi bi-funnel"
+          :severity="isFilterActive ? 'primary' : 'secondary'"
+          text
+          class="!rounded-lg !text-slate-400"
+          @click="isFilterOpen = true"
+          v-tooltip.top="'Advanced Filters'"
+        />
+        <Button
+          icon="bi bi-arrow-clockwise"
+          text
+          class="!rounded-lg !text-slate-400"
+          @click="fetchEmployees"
+          v-tooltip.top="'Refresh Data'"
+        />
+      </div>
+    </Motion>
+
+    <!-- Advanced Filter Modal -->
+    <Dialog
+      v-model:visible="isFilterOpen"
+      modal
+      header="Advanced Filters"
+      class="w-full max-w-md !rounded-[32px] !border-none !shadow-2xl overflow-hidden"
+      :pt="{
+        root: { class: 'bg-white/90 backdrop-blur-2xl dark:bg-slate-900/90' },
+        header: { class: 'px-8 pt-8 pb-4 !bg-transparent !border-none' },
+        content: { class: 'px-8 pb-8 !bg-transparent' },
+        footer: { class: 'px-8 pb-8 !bg-transparent !border-none' },
+      }"
+    >
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center"
+          >
+            <i
+              class="bi bi-funnel-fill text-indigo-600 dark:text-indigo-400"
+            ></i>
+          </div>
+          <span
+            class="font-black text-slate-800 dark:text-white uppercase tracking-widest text-xs"
+            >Advanced Filters</span
+          >
+        </div>
+      </template>
+
+      <div class="flex flex-col gap-8">
+        <!-- Sort Section -->
+        <div class="space-y-4">
+          <label
+            class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1"
+            >Sorting & Ordering</label
+          >
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-2">
+              <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
+                >Sort By</label
               >
-              <label 
-                class="btn btn-outline-primary btn-sm px-3 rounded-pill" 
-                :for="'filterPos' + pos"
+              <Select
+                v-model="localFilters.sortColumn"
+                :options="sortOptions"
+                optionLabel="label"
+                optionValue="value"
+                class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
+                >Direction</label
               >
-                {{ pos }}
-              </label>
+              <Select
+                v-model="localFilters.sortDirection"
+                :options="[
+                  { label: 'Ascending', value: 'asc' },
+                  { label: 'Descending', value: 'desc' },
+                ]"
+                optionLabel="label"
+                optionValue="value"
+                class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              />
             </div>
           </div>
         </div>
 
-        <!-- Filter Masa Kerja -->
-        <div class="col-md-3">
-          <label class="form-label small fw-bold">Masa Kerja (Thn)</label>
-          <div class="input-group">
-            <select v-model="tenureOperator" class="form-select border-end-0" style="max-width: 65px;">
-              <option value=">">&gt;</option>
-              <option value="=">=</option>
-              <option value="<">&lt;</option>
-            </select>
-            <input 
-              type="number" 
-              class="form-control" 
-              v-model="tenureValue" 
-              placeholder="0"
-              min="0"
+        <!-- Filter Section -->
+        <div class="space-y-6">
+          <label
+            class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1"
+            >Filter Criteria</label
+          >
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
+              >Department</label
+            >
+            <Select
+              v-model="localFilters.selectedDepartment"
+              :options="metadata.departments"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="All Departments"
+              showClear
+              class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
             />
           </div>
-        </div>
 
-        <!-- Reset Button -->
-        <div class="col-md-2">
-          <button class="btn btn-outline-secondary w-100" @click="resetFilters" title="Reset Filter">
-            <i class="bi bi-arrow-clockwise"></i> Reset
-          </button>
+          <div class="flex flex-col gap-2">
+            <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
+              >Positions</label
+            >
+            <MultiSelect
+              v-model="localFilters.selectedPositions"
+              :options="metadata.positions"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Select Positions"
+              :maxSelectedLabels="2"
+              class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
+              >Status</label
+            >
+            <div
+              class="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl"
+            >
+              <div class="flex items-center gap-2">
+                <RadioButton
+                  v-model="localFilters.selectedStatus"
+                  :value="null"
+                  inputId="status-all"
+                />
+                <label for="status-all" class="text-xs font-bold">All</label>
+              </div>
+              <div class="flex items-center gap-2">
+                <RadioButton
+                  v-model="localFilters.selectedStatus"
+                  :value="true"
+                  inputId="status-active"
+                />
+                <label
+                  for="status-active"
+                  class="text-xs font-bold text-emerald-500"
+                  >Active</label
+                >
+              </div>
+              <div class="flex items-center gap-2">
+                <RadioButton
+                  v-model="localFilters.selectedStatus"
+                  :value="false"
+                  inputId="status-off"
+                />
+                <label for="status-off" class="text-xs font-bold text-slate-400"
+                  >Off-duty</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
+              >Tenure (Years)</label
+            >
+            <div class="flex items-center gap-2">
+              <Select
+                v-model="localFilters.tenureOperator"
+                :options="['>', '<', '=']"
+                class="!w-20 !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              />
+              <InputNumber
+                v-model="localFilters.tenureValue"
+                placeholder="Years"
+                :min="0"
+                class="!flex-1"
+                inputClass="!rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !w-full !px-4 !py-3 !text-xs !font-bold"
+              />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Table -->
-    <div class="table-responsive bg-white rounded shadow-sm">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 40px">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                @change="toggleSelectAll()"
-                :checked="selectedEmployees.length > 0 && selectedEmployees.length === employees.filter(e => e.role_name?.toLowerCase().replace(/\s/g, '') !== 'superadmin').length"
-              />
-            </th>
-            <th>No.</th>
-            <th class="sortable" @click="handleSort('nip')">
-              <span class="d-inline-flex align-items-center gap-1">
-                NIP
-                <i class="bi" :class="getSortIconClass('nip')"></i>
-              </span>
-            </th>
-            <th class="sortable" @click="handleSort('name')">
-              <span class="d-inline-flex align-items-center gap-1">
-                Nama
-                <i class="bi" :class="getSortIconClass('name')"></i>
-              </span>
-            </th>
-            <th>Jabatan</th>
-            <th>Masa Kerja</th>
-            <th style="width: 15%">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading">
-            <td colspan="7" class="text-center py-5">
-              <div class="spinner-border text-primary spinner-border-sm me-2"></div>
-              Memuat data...
-            </td>
-          </tr>
-          <tr v-else-if="employees.length === 0">
-            <td colspan="7" class="text-center py-5 text-muted">
-              <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-              Tidak ada data pegawai
-            </td>
-          </tr>
-          <tr v-else v-for="(emp, idx) in employees" :key="emp.id">
-            <td :title="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' ? 'Super Admin tidak dapat dihapus' : ''">
-              <input 
-                type="checkbox" 
-                class="form-check-input" 
-                v-model="selectedEmployees" 
-                :value="emp.id" 
-                :disabled="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin'"
-              />
-            </td>
-            <td>{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
-            <td><code>{{ emp.nip }}</code></td>
-            <td class="fw-bold">{{ emp.name }}</td>
-            <td><span class="badge bg-info-subtle text-info border border-info-subtle">{{ emp.position }}</span></td>
-            <td>{{ calculateTenure(emp.join_date) }} Thn</td>
-            <td>
-              <div class="btn-group btn-group-sm">
-                <NuxtLink :to="`/employees/${emp.id}`" class="btn btn-outline-primary" title="Detail">
-                  <i class="bi bi-eye"></i>
-                </NuxtLink>
-                <NuxtLink v-if="hasPermission('employees', 'update')" :to="`/employees/${emp.id}/edit`" class="btn btn-outline-warning" title="Edit">
-                  <i class="bi bi-pencil"></i>
-                </NuxtLink>
-                <div class="d-inline-block" :title="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' ? 'Super Admin tidak dapat dihapus' : 'Hapus'">
-                  <button 
-                    v-if="hasPermission('employees', 'delete')" 
-                    class="btn btn-outline-danger" 
-                    @click="deleteEmployee(emp.id)" 
-                    :disabled="emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin'"
-                    :class="{ 'opacity-50 cursor-not-allowed': emp.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' }"
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
+      <template #footer>
+        <div class="flex items-center gap-3 w-full">
+          <Button
+            label="Reset Filters"
+            severity="secondary"
+            text
+            class="flex-1 !rounded-xl !font-bold !text-[10px] !uppercase !tracking-widest"
+            @click="resetLocalFilters"
+          />
+          <Button
+            label="Apply Filters"
+            severity="primary"
+            class="flex-1 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest !bg-indigo-600 hover:!bg-indigo-700 !border-none"
+            @click="applyFilters"
+          />
+        </div>
+      </template>
+    </Dialog>
+
+    <!-- Main Content Table -->
+    <Motion
+      :initial="{ opacity: 0, y: 20 }"
+      :animate="{ opacity: 1, y: 0 }"
+      :transition="{ delay: 0.3 }"
+    >
+      <div
+        class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
+      >
+        <DataTable
+          :value="employees"
+          class="p-datatable-overhaul-v2"
+          :loading="loading"
+          :rows="itemsPerPage"
+          scrollable
+        >
+          <template #empty>
+            <div
+              class="flex flex-col items-center justify-center py-20 px-6 text-center"
+            >
+              <div class="relative mb-6">
+                <div
+                  class="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl animate-pulse"
+                ></div>
+                <div
+                  class="w-20 h-20 bg-white dark:bg-slate-800 rounded-2xl shadow-xl flex items-center justify-center relative z-10 border border-slate-100 dark:border-slate-700"
+                >
+                  <i class="bi bi-person-slash text-4xl text-indigo-500"></i>
+                </div>
+                <div
+                  class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg z-20"
+                >
+                  <i class="bi bi-search text-xs"></i>
                 </div>
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              <h3
+                class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight"
+              >
+                No Talent Found
+              </h3>
+              <p
+                class="text-xs font-bold text-slate-400 dark:text-slate-500 max-w-[280px] leading-relaxed uppercase tracking-widest mb-8"
+              >
+                Your search parameters did not match any records in our database
+              </p>
+              <Button
+                label="Reset Active Filters"
+                icon="bi bi-arrow-counterclockwise"
+                class="!rounded-xl !px-8 !py-3.5 !bg-indigo-600 !border-none !font-black !uppercase !text-[9px] !tracking-[0.2em] shadow-xl shadow-indigo-100 dark:shadow-none hover:scale-105 transition-transform"
+                @click="resetFilters"
+              />
+            </div>
+          </template>
 
-    <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3" v-if="totalPages > 1">
-        <small class="text-muted">Total {{ totalEmployees }} data</small>
-        <nav>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                    <button class="page-link" @click="currentPage--"><i class="bi bi-chevron-left"></i></button>
-                </li>
-                <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
-                    <button class="page-link" @click="currentPage = page">{{ page }}</button>
-                </li>
-                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                    <button class="page-link" @click="currentPage++"><i class="bi bi-chevron-right"></i></button>
-                </li>
-            </ul>
-        </nav>
-    </div>
+          <Column header="Talent">
+            <template #body="slotProps">
+              <div class="flex items-center gap-4 py-2">
+                <div class="relative">
+                  <Avatar
+                    :image="
+                      slotProps.data.photo_url ||
+                      'https://ui-avatars.com/api/?name=' +
+                        slotProps.data.name +
+                        '&background=random&size=100'
+                    "
+                    shape="circle"
+                    class="!w-12 !h-12 border-2 border-white dark:border-slate-800 shadow-sm ring-2 ring-slate-100 dark:ring-slate-700"
+                  />
+                  <div
+                    class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900"
+                    :class="
+                      slotProps.data.status ? 'bg-emerald-500' : 'bg-slate-300'
+                    "
+                  ></div>
+                </div>
+                <div class="flex flex-col">
+                  <span
+                    class="text-sm font-black text-slate-800 dark:text-white leading-tight"
+                    >{{ slotProps.data.name }}</span
+                  >
+                  <span
+                    class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+                    >{{ slotProps.data.nip }}</span
+                  >
+                </div>
+              </div>
+            </template>
+          </Column>
 
-    <!-- Confirm Modal -->
-    <ConfirmModal
-      :is-open="modalConfig.isOpen"
-      :title="modalConfig.title"
-      :message="modalConfig.message"
-      :type="modalConfig.type"
-      :is-confirm="modalConfig.isConfirm"
-      @close="modalConfig.isOpen = false"
-      @confirm="handleModalConfirm"
-    />
+          <Column header="Designation">
+            <template #body="slotProps">
+              <div class="flex flex-col gap-1">
+                <span
+                  class="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest"
+                  >{{ slotProps.data.position_name }}</span
+                >
+                <span
+                  class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                  >{{ slotProps.data.department_name }}</span
+                >
+              </div>
+            </template>
+          </Column>
+
+          <Column header="Contract">
+            <template #body="slotProps">
+              <div class="flex flex-col gap-1.5">
+                <Tag
+                  :value="slotProps.data.type"
+                  class="!rounded-lg !px-3 !py-1 !text-[9px] !font-black !uppercase !tracking-widest !w-fit"
+                  :class="
+                    slotProps.data.type === 'Kontrak'
+                      ? '!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:!text-amber-400 !border !border-amber-100/50'
+                      : '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !border !border-indigo-100/50'
+                  "
+                />
+                <span
+                  class="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase"
+                  >{{ formatDate(slotProps.data.join_date) }}</span
+                >
+              </div>
+            </template>
+          </Column>
+
+          <Column header="Contact">
+            <template #body="slotProps">
+              <div class="flex flex-col gap-1">
+                <div
+                  class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
+                  <i class="bi bi-envelope text-slate-300"></i>
+                  <span class="truncate max-w-[150px]">{{
+                    slotProps.data.email
+                  }}</span>
+                </div>
+                <div
+                  class="flex items-center gap-2 text-[10px] font-bold text-slate-400"
+                >
+                  <i class="bi bi-phone text-slate-300"></i>
+                  {{ slotProps.data.phone }}
+                </div>
+              </div>
+            </template>
+          </Column>
+
+          <Column header="Status" class="!text-center">
+            <template #body="slotProps">
+              <div class="flex justify-center">
+                <div
+                  v-if="slotProps.data.status"
+                  class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span
+                    class="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest"
+                    >Active</span
+                  >
+                </div>
+                <div
+                  v-else
+                  class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-400/10 border border-slate-100 dark:border-slate-800"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                  <span
+                    class="text-[9px] font-black text-slate-400 uppercase tracking-widest"
+                    >Off-duty</span
+                  >
+                </div>
+              </div>
+            </template>
+          </Column>
+
+          <Column header="Actions" class="!text-right">
+            <template #body="slotProps">
+              <div class="flex items-center justify-end gap-1 px-2">
+                <NuxtLink :to="`/employees/${slotProps.data.id}`">
+                  <Button
+                    icon="bi bi-chevron-right"
+                    severity="secondary"
+                    text
+                    class="!rounded-lg !w-9 !h-9 !bg-slate-50 dark:!bg-slate-800 !text-slate-400 hover:!bg-indigo-600 hover:!text-white transition-all"
+                    v-tooltip.top="'View Details'"
+                  />
+                </NuxtLink>
+                <NuxtLink
+                  v-if="hasPermission('employees', 'update')"
+                  :to="`/employees/${slotProps.data.id}/edit`"
+                >
+                  <Button
+                    icon="bi bi-pencil"
+                    severity="secondary"
+                    text
+                    class="!rounded-lg !w-9 !h-9 !bg-slate-50 dark:!bg-slate-800 !text-slate-400 hover:!bg-amber-500 hover:!text-white transition-all"
+                    v-tooltip.top="'Edit Talent'"
+                  />
+                </NuxtLink>
+                <Button
+                  v-if="hasPermission('employees', 'delete')"
+                  icon="bi bi-trash"
+                  severity="danger"
+                  text
+                  class="!rounded-lg !w-9 !h-9 !bg-rose-50 dark:!bg-rose-500/10 !text-rose-500 hover:!bg-rose-600 hover:!text-white transition-all"
+                  @click="confirmDelete(slotProps.data)"
+                  v-tooltip.top="'Remove'"
+                />
+              </div>
+            </template>
+          </Column>
+
+          <template #footer>
+            <div
+              class="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 bg-slate-50/50 dark:bg-slate-900/50"
+            >
+              <div class="flex items-center gap-4">
+                <span
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+                  >Showing {{ employees.length }} Talent Nodes</span
+                >
+                <div class="h-4 w-px bg-slate-200 dark:bg-slate-800"></div>
+                <Button
+                  label="Export Excel"
+                  icon="bi bi-file-earmark-spreadsheet"
+                  text
+                  @click="exportExcel"
+                  class="!rounded-lg !text-[9px] !font-black !uppercase !tracking-widest !text-emerald-600 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10 transition-colors"
+                />
+              </div>
+              <Paginator
+                :rows="itemsPerPage"
+                :totalRecords="totalEmployees"
+                template="PrevPageLink PageLinks NextPageLink"
+                class="!bg-transparent !p-0 paginator-elegant"
+                @page="onPageChange"
+              />
+            </div>
+          </template>
+        </DataTable>
+      </div>
+    </Motion>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, reactive } from 'vue'
-import { useEmployees } from '~/composables/useEmployees'
-import { useAuth } from '~/composables/useAuth'
+import { ref, reactive, computed, onMounted, watch } from "vue";
+import { useConfirm } from "primevue/useconfirm";
+import { useEmployees } from "~/composables/useEmployees";
+import { useAuth } from "~/composables/useAuth";
 
-// Auth Context
-const { hasPermission } = useAuth()
+definePageMeta({ layout: "default" });
 
-// Modal State
-const modalConfig = reactive({
-  isOpen: false,
-  title: '',
-  message: '',
-  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success',
-  isConfirm: true,
-  action: null as 'delete' | 'bulkDelete' | 'bulkStatus' | 'alert' | null,
-  payload: null as any
-})
+const confirm = useConfirm();
 
+const { hasPermission } = useAuth();
 const {
   employees,
+  totalEmployees,
   loading,
   currentPage,
-  itemsPerPage,
-  totalEmployees,
-  totalPages,
   searchQuery,
-  selectedEmployees,
-  sortColumn,
-  sortDirection,
+  itemsPerPage,
+  fetchEmployees,
+  deleteEmployee,
+  summary,
+  fetchSummary,
+  metadata,
+  fetchMetadata,
+  selectedDepartment,
+  selectedStatus,
   selectedPositions,
   tenureOperator,
   tenureValue,
-  fetchEmployees,
-  deleteEmployee: deleteMethod,
-  deleteSelectedEmployees,
-  updateStatusBulk: statusMethod,
-  toggleSelectAll,
-  resetFilters: resetFiltersMethod,
-} = useEmployees()
+  sortColumn,
+  sortDirection,
+  resetFilters,
+  exportExcel,
+  selectedType,
+} = useEmployees();
 
-const showAlert = (title: string, message: string, type: any = 'primary') => {
-  modalConfig.title = title
-  modalConfig.message = message
-  modalConfig.type = type
-  modalConfig.isConfirm = false
-  modalConfig.action = 'alert'
-  modalConfig.isOpen = true
-}
+const isFilterOpen = ref(false);
+const sortOptions = [
+  { label: "Join Date", value: "join_date" },
+  { label: "Name", value: "name" },
+  { label: "NIP", value: "nip" },
+  { label: "Position", value: "position" },
+  { label: "Created At", value: "created_at" },
+];
 
-const handleModalConfirm = async () => {
-    modalConfig.isOpen = false
-    try {
-        if (modalConfig.action === 'delete') {
-            await deleteMethod(modalConfig.payload)
-        } else if (modalConfig.action === 'bulkDelete') {
-            await deleteSelectedEmployees()
-        } else if (modalConfig.action === 'bulkStatus') {
-            await statusMethod(modalConfig.payload)
-        }
-        await fetchEmployees()
-    } catch (err) {
-        showAlert('Error', 'Gagal memproses data', 'danger')
-    }
-}
+const localFilters = reactive<{
+  sortColumn: string;
+  sortDirection: "asc" | "desc";
+  selectedDepartment: number | null;
+  selectedPositions: number[];
+  selectedStatus: boolean | null;
+  tenureOperator: string;
+  tenureValue: number | null;
+}>({
+  sortColumn: "join_date",
+  sortDirection: "desc",
+  selectedDepartment: null as number | null,
+  selectedPositions: [] as number[],
+  selectedStatus: null as boolean | null,
+  tenureOperator: ">",
+  tenureValue: null as number | null,
+});
 
-const deleteEmployee = (id: number) => {
-  modalConfig.title = 'Hapus Pegawai'
-  modalConfig.message = 'Yakin ingin menghapus data ini?'
-  modalConfig.type = 'danger'
-  modalConfig.isConfirm = true
-  modalConfig.action = 'delete'
-  modalConfig.payload = id
-  modalConfig.isOpen = true
-}
-
-const confirmBulkDelete = () => {
-  modalConfig.title = 'Hapus Terpilih'
-  modalConfig.message = `Hapus ${selectedEmployees.value.length} data terpilih?`
-  modalConfig.type = 'danger'
-  modalConfig.isConfirm = true
-  modalConfig.action = 'bulkDelete'
-  modalConfig.isOpen = true
-}
-
-const updateStatusBulk = (status: boolean) => {
-  modalConfig.title = 'Update Status'
-  modalConfig.message = `Update status ${selectedEmployees.value.length} data menjadi ${status ? 'Aktif' : 'Nonaktif'}?`
-  modalConfig.type = 'warning'
-  modalConfig.isConfirm = true
-  modalConfig.action = 'bulkStatus'
-  modalConfig.payload = status
-  modalConfig.isOpen = true
-}
-
-const handleSort = (column: string) => {
-  if (sortColumn.value === column) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    sortColumn.value = column
-    sortDirection.value = 'asc'
+watch(isFilterOpen, (val) => {
+  if (val) {
+    localFilters.sortColumn = sortColumn.value;
+    localFilters.sortDirection = sortDirection.value;
+    localFilters.selectedDepartment = selectedDepartment.value;
+    localFilters.selectedPositions = [...selectedPositions.value];
+    localFilters.selectedStatus = selectedStatus.value;
+    localFilters.tenureOperator = tenureOperator.value;
+    localFilters.tenureValue = tenureValue.value;
   }
-}
+});
 
-const getSortIconClass = (column: string) => {
-  if (sortColumn.value !== column) return 'bi-arrow-down-up text-muted'
-  return sortDirection.value === 'asc' ? 'bi-sort-up text-primary' : 'bi-sort-down text-primary'
-}
+const applyFilters = () => {
+  sortColumn.value = localFilters.sortColumn;
+  sortDirection.value = localFilters.sortDirection;
+  selectedDepartment.value = localFilters.selectedDepartment;
+  selectedPositions.value = [...localFilters.selectedPositions];
+  selectedStatus.value = localFilters.selectedStatus;
+  tenureOperator.value = localFilters.tenureOperator;
+  tenureValue.value = localFilters.tenureValue;
 
-const calculateTenure = (joinDate: string) => {
-  if (!joinDate) return 0
-  const join = new Date(joinDate)
-  const now = new Date()
-  let years = now.getFullYear() - join.getFullYear()
-  if (now.getMonth() < join.getMonth() || (now.getMonth() === join.getMonth() && now.getDate() < join.getDate())) {
-    years--
-  }
-  return years > 0 ? years : 0
-}
+  isFilterOpen.value = false;
+  fetchEmployees();
+};
 
-const resetFilters = () => {
-  resetFiltersMethod()
-  fetchEmployees()
-}
+const resetLocalFilters = () => {
+  localFilters.sortColumn = "join_date";
+  localFilters.sortDirection = "desc";
+  localFilters.selectedDepartment = null;
+  localFilters.selectedPositions = [];
+  localFilters.selectedStatus = null;
+  localFilters.tenureOperator = ">";
+  localFilters.tenureValue = null;
+  applyFilters();
+};
 
-const downloadExcel = () => {
-    const params = new URLSearchParams()
-    if (searchQuery.value) params.append('search', searchQuery.value)
-    if (selectedPositions.value.length > 0) params.append('positions', selectedPositions.value.join(','))
-    if (tenureOperator.value) params.append('tenureOperator', tenureOperator.value)
-    if (tenureValue.value !== null) params.append('tenureValue', String(tenureValue.value))
-    if (sortColumn.value) params.append('sortColumn', sortColumn.value)
-    if (sortDirection.value) params.append('sortDirection', sortDirection.value)
+const isFilterActive = computed(() => {
+  return (
+    selectedDepartment.value ||
+    selectedStatus.value !== null ||
+    selectedPositions.value.length > 0 ||
+    tenureValue.value !== null
+  );
+});
 
-    window.open(`/api/employees/export-excel?${params.toString()}`, '_blank')
-}
+const selectedTypeOptions = ["All Types", "Tetap", "Kontrak", "Magang"];
+onMounted(() => {
+  selectedType.value = "All Types";
+  fetchEmployees();
+  fetchSummary();
+  fetchMetadata();
+});
 
-const downloadPdf = () => {
-    const params = new URLSearchParams()
-    if (searchQuery.value) params.append('search', searchQuery.value)
-    if (selectedPositions.value.length > 0) params.append('positions', selectedPositions.value.join(','))
-    if (tenureOperator.value) params.append('tenureOperator', tenureOperator.value)
-    if (tenureValue.value !== null) params.append('tenureValue', String(tenureValue.value))
-    if (sortColumn.value) params.append('sortColumn', sortColumn.value)
-    if (sortDirection.value) params.append('sortDirection', sortDirection.value)
+// Watch for filter changes outside modal
+watch(
+  [searchQuery, currentPage, selectedType],
+  () => {
+    fetchEmployees();
+  },
+  { deep: true },
+);
 
-    window.open(`/api/employees/export-pdf?${params.toString()}`, '_blank')
-}
+const onPageChange = (event: any) => {
+  currentPage.value = event.page + 1;
+};
 
-let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+const formatDate = (date: string) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("id-ID", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
-onMounted(() => fetchEmployees())
+const quickStats = computed(() => [
+  {
+    label: "Total Talent",
+    value: summary.value.total_talent,
+    icon: "bi bi-people-fill",
+    color: "bg-indigo-600",
+  },
+  {
+    label: "Active Crew",
+    value: summary.value.active_crew,
+    icon: "bi bi-shield-check",
+    color: "bg-emerald-500",
+  },
+  {
+    label: "New Talent",
+    value: summary.value.new_talent,
+    icon: "bi bi-lightning-fill",
+    color: "bg-amber-500",
+  },
+  {
+    label: "On Leave",
+    value: summary.value.on_leave,
+    icon: "bi bi-moon-stars-fill",
+    color: "bg-violet-600",
+  },
+]);
 
-watch(searchQuery, () => {
-  if (searchDebounceTimer) {
-    clearTimeout(searchDebounceTimer)
-  }
-
-  searchDebounceTimer = setTimeout(() => {
-    currentPage.value = 1
-    fetchEmployees()
-  }, 400)
-})
-
-watch([currentPage, selectedPositions, tenureOperator, tenureValue, sortColumn, sortDirection], () => fetchEmployees())
-
-onBeforeUnmount(() => {
-  if (searchDebounceTimer) {
-    clearTimeout(searchDebounceTimer)
-  }
-})
-
-definePageMeta({ layout: 'default' })
+const confirmDelete = (employee: any) => {
+  confirm.require({
+    message: `Apakah Anda yakin ingin menghapus data pegawai "${employee.name}" secara permanen?`,
+    header: "Hapus Data Pegawai",
+    icon: "bi bi-exclamation-triangle-fill text-rose-500",
+    rejectProps: {
+      label: "Batal",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Hapus",
+      severity: "danger",
+    },
+    accept: async () => {
+      await deleteEmployee(employee.id);
+      fetchEmployees();
+    },
+  });
+};
 </script>
 
-<style scoped>
-.page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1e293b; }
-.actions-panel { background: #f8fafc; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; }
-.sortable { cursor: pointer; }
-.sortable:hover { color: #0d6efd; }
-.sortable i { font-size: 0.8rem; transition: color 0.2s ease; }
+<style>
+.p-datatable-overhaul-v2 .p-datatable-thead > tr > th {
+  @apply !bg-slate-50 dark:!bg-slate-800/50 !text-slate-400 dark:!text-slate-500 !text-[10px] !font-black !uppercase !tracking-[0.2em] !px-8 !py-6 !border-b !border-slate-100 dark:!border-slate-800;
+}
+.p-datatable-overhaul-v2 .p-datatable-tbody > tr > td {
+  @apply !px-8 !py-5 !border-b !border-slate-50 dark:!border-slate-800 !bg-white dark:!bg-slate-900 transition-all duration-300;
+}
+.p-datatable-overhaul-v2 .p-datatable-tbody > tr:hover > td {
+  @apply !bg-slate-50/50 dark:!bg-slate-800/30;
+}
+
+.paginator-elegant .p-paginator-page,
+.paginator-elegant .p-paginator-next,
+.paginator-elegant .p-paginator-prev {
+  @apply !w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !bg-transparent !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 transition-colors;
+}
+
+.paginator-elegant .p-highlight {
+  @apply !bg-indigo-600 !text-white !shadow-lg shadow-indigo-200 dark:shadow-none;
+}
 </style>

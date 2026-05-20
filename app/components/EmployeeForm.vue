@@ -1,860 +1,1320 @@
 <template>
-  <form @submit.prevent="submitForm" class="needs-validation">
-    <!-- Profile Photo Section -->
-    <div class="row mb-5 justify-content-center">
-      <div class="col-auto text-center">
-        <label class="form-label d-block mb-3 small fw-bold text-muted">FOTO PROFIL</label>
-        <div 
-          class="position-relative profile-photo-container mb-2 mx-auto cursor-pointer"
-          @click="fileInput?.click()"
-          :class="{ 'opacity-50': uploadingPhoto }"
+  <div class="max-w-[1200px] mx-auto space-y-12 pb-20">
+    <Toast />
+
+    <div
+      v-if="loading"
+      class="flex flex-col items-center justify-center py-40 space-y-6"
+    >
+      <div class="relative w-20 h-20">
+        <div
+          class="absolute inset-0 border-4 border-indigo-100 dark:border-slate-800 rounded-full"
+        ></div>
+        <div
+          class="absolute inset-0 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"
+        ></div>
+      </div>
+      <p
+        class="text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-[0.4em] text-[10px]"
+      >
+        Retrieving Talent Matrix
+      </p>
+    </div>
+
+    <form v-else @submit.prevent="handleSubmit" class="space-y-10">
+      <!-- Sophisticated Floating Header -->
+      <div
+        class="sticky top-24 z-20 bg-[#f8fafc]/80 dark:bg-slate-950/80 backdrop-blur-xl py-4 -mx-4 px-4 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-transparent transition-all"
+        id="form-header"
+      >
+        <Motion
+          :initial="{ opacity: 0, x: -20 }"
+          :animate="{ opacity: 1, x: 0 }"
         >
-          <img 
-            :src="form.photo_url || 'https://ui-avatars.com/api/?name=' + (form.name || 'User') + '&background=random&size=128'" 
-            class="rounded-circle border shadow-sm profile-photo-preview"
-            alt="Profile Preview"
-            style="width: 120px; height: 120px; object-fit: cover;"
-          />
-          <div class="photo-overlay d-flex flex-column align-items-center justify-content-center rounded-circle">
-            <template v-if="uploadingPhoto">
-              <div class="spinner-border spinner-border-sm text-white mb-1"></div>
-              <span class="text-white" style="font-size: 10px;">Uploading...</span>
-            </template>
-            <template v-else>
-              <i class="bi bi-camera text-white fs-4"></i>
-              <span class="text-white" style="font-size: 10px;">Ganti Foto</span>
-            </template>
-          </div>
-          <input 
-            type="file" 
-            ref="fileInput" 
-            class="d-none" 
-            accept="image/*"
-            @change="handleFileUpload"
-          />
-        </div>
-        <small class="text-muted d-block" v-if="!form.photo_url">Klik lingkaran untuk upload foto</small>
-        <button 
-          v-else 
-          type="button" 
-          class="btn btn-link btn-sm text-danger text-decoration-none p-0"
-          @click="form.photo_url = ''"
-        >
-          Hapus Foto
-        </button>
-      </div>
-    </div>
-
-    <!-- NIP & Name -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">NIP <span class="text-danger">*</span></label>
-        <input
-          v-model.number="form.nip"
-          type="number"
-          class="form-control"
-          placeholder="Contoh: 2024003121211212"
-          :class="{ 'is-invalid': errors.nip }"
-        />
-        <small v-if="errors.nip" class="text-danger d-block mt-1">{{ errors.nip }}</small>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Nama Pegawai <span class="text-danger">*</span></label>
-        <input
-          v-model="form.name"
-          type="text"
-          class="form-control"
-          placeholder="Nama lengkap"
-          :class="{ 'is-invalid': errors.name }"
-          @input="form.name = form.name.replace(/[^A-Za-z0-9'\s]/g, '')"
-        />
-        <small v-if="errors.name" class="text-danger d-block mt-1">{{ errors.name }}</small>
-      </div>
-    </div>
-
-    <!-- Email & Phone -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">Email <span class="text-danger">*</span></label>
-        <input
-          v-model="form.email"
-          type="email"
-          class="form-control"
-          placeholder="email@company.com"
-          :class="{ 'is-invalid': errors.email }"
-        />
-        <small v-if="errors.email" class="text-danger d-block mt-1">{{ errors.email }}</small>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Nomor HP <span class="text-danger">*</span></label>
-        <input
-          v-model="form.phone"
-          type="tel"
-          class="form-control"
-          placeholder="+6282218458888"
-          :class="{ 'is-invalid': errors.phone }"
-        />
-        <small v-if="errors.phone" class="text-danger d-block mt-1">{{ errors.phone }}</small>
-      </div>
-    </div>
-
-    <!-- Row 3: Birth Date, Birth Place, Gender -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
-        <input
-          v-model="form.birth_date"
-          type="date"
-          class="form-control"
-          :max="new Date().toISOString().split('T')[0]"
-          :class="{ 'is-invalid': errors.birth_date }"
-        />
-        <small v-if="errors.birth_date" class="text-danger d-block mt-1">{{ errors.birth_date }}</small>
-      </div>
-      
-      <div class="col-md-4">
-        <label class="form-label">Tempat Lahir (Kabupaten) <span class="text-danger">*</span></label>
-        <div class="position-relative">
-          <input
-            v-model="form.birthCityName"
-            type="text"
-            class="form-control"
-            placeholder="Ketik minimal 3 karakter..."
-            :class="{ 'is-invalid': errors.birthCityName }"
-            @input="searchBirthCity"
-          />
-          <ul v-if="birthCitySuggestions.length" class="list-group position-absolute z-3 w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; top: 100%; left: 0;">
-            <li 
-              v-for="city in birthCitySuggestions" :key="city.id" 
-              class="list-group-item list-group-item-action cursor-pointer"
-              @click="selectBirthCity(city)"
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-indigo-600 shadow-sm"
             >
-              {{ city.name }}
-            </li>
-          </ul>
-        </div>
-        <small v-if="errors.birthCityName" class="text-danger d-block mt-1">{{ errors.birthCityName }}</small>
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
-        <select
-          v-model="form.gender"
-          class="form-select"
-          :class="{ 'is-invalid': errors.gender }"
-        >
-          <option value="">Pilih Jenis Kelamin</option>
-          <option value="Male">Laki-laki</option>
-          <option value="Female">Perempuan</option>
-          <option value="Other">Lainnya</option>
-        </select>
-        <small v-if="errors.gender" class="text-danger d-block mt-1">{{ errors.gender }}</small>
-      </div>
-    </div>
-
-    <!-- Marital Status & Children -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">Status Kawin <span class="text-danger">*</span></label>
-        <select
-          v-model="form.marital_status"
-          class="form-select"
-          :class="{ 'is-invalid': errors.marital_status }"
-        >
-          <option value="">Pilih Status</option>
-          <option value="Single">Belum Kawin</option>
-          <option value="Married">Kawin</option>
-          <option value="Divorced">Cerai</option>
-          <option value="Widowed">Janda/Duda</option>
-        </select>
-        <small v-if="errors.marital_status" class="text-danger d-block mt-1">{{ errors.marital_status }}</small>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Jumlah Anak</label>
-        <input
-          v-model.number="form.children_count"
-          type="number"
-          min="0"
-          class="form-control"
-          :class="{ 'is-invalid': errors.children_count }"
-        />
-        <small v-if="errors.children_count" class="text-danger d-block mt-1">{{ errors.children_count }}</small>
-      </div>
-    </div>
-
-    <!-- Address -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <label class="form-label">Kecamatan <span class="text-danger">*</span></label>
-        <div class="position-relative">
-          <input
-            v-model="form.districtName"
-            type="text"
-            class="form-control"
-            :class="{ 'is-invalid': errors.districtName }"
-            placeholder="Minimal 3 karakter..."
-            @input="searchDistrict"
-          />
-          <ul v-if="districtSuggestions.length" class="list-group position-absolute z-3 w-100 mt-1 shadow-sm" style="max-height: 200px; overflow-y: auto; top: 100%; left: 0;">
-            <li 
-              v-for="district in districtSuggestions" :key="district.id" 
-              class="list-group-item list-group-item-action cursor-pointer"
-              @click="selectDistrict(district)"
-              style="cursor: pointer;"
-            >
-              {{ district.name }}
-            </li>
-          </ul>
-        </div>
-        <small v-if="errors.districtName" class="text-danger d-block mt-1">{{ errors.districtName }}</small>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Kabupaten</label>
-        <input
-          :value="form.regencyName"
-          type="text"
-          class="form-control"
-          disabled
-        />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Provinsi</label>
-        <input
-          :value="form.provinceName"
-          type="text"
-          class="form-control"
-          disabled
-        />
-      </div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-12">
-        <label class="form-label">Alamat Lengkap</label>
-        <textarea
-          v-model="form.full_address"
-          class="form-control"
-          rows="2"
-          placeholder="Detail alamat..."
-        ></textarea>
-      </div>
-    </div>
-
-    <!-- Position & Department -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">Jabatan <span class="text-danger">*</span></label>
-        <div class="btn-group w-100" role="group">
-          <input type="radio" class="btn-check" v-model="form.position" value="Manager" id="posManager" autocomplete="off">
-          <label class="btn btn-outline-primary" for="posManager">Manager</label>
-
-          <input type="radio" class="btn-check" v-model="form.position" value="Staf" id="posStaf" autocomplete="off">
-          <label class="btn btn-outline-primary" for="posStaf">Staf</label>
-
-          <input type="radio" class="btn-check" v-model="form.position" value="Magang" id="posMagang" autocomplete="off">
-          <label class="btn btn-outline-primary" for="posMagang">Magang</label>
-        </div>
-        <small v-if="errors.position" class="text-danger d-block mt-1">{{ errors.position }}</small>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Departemen <span class="text-danger">*</span></label>
-        <select
-          v-model="form.department"
-          class="form-select"
-          :class="{ 'is-invalid': errors.department }"
-        >
-          <option value="">Pilih Departemen</option>
-          <option value="HRD">HRD</option>
-          <option value="Marketing">Marketing</option>
-          <option value="Production">Production</option>
-          <option value="Executive">Executive</option>
-          <option value="Commissioner">Commissioner</option>
-        </select>
-        <small v-if="errors.department" class="text-danger d-block mt-1">{{ errors.department }}</small>
-      </div>
-    </div>
-
-    <!-- Join Date & Employment Type -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <label class="form-label">Tanggal Masuk <span class="text-danger">*</span></label>
-        <input
-          v-model="form.join_date"
-          type="date"
-          class="form-control"
-          :class="{ 'is-invalid': errors.join_date }"
-        />
-        <small v-if="errors.join_date" class="text-danger d-block mt-1">{{ errors.join_date }}</small>
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Usia (Tahun)</label>
-        <input
-          :value="calculatedAge"
-          type="text"
-          class="form-control"
-          disabled
-        />
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Tipe Kontrak <span class="text-danger">*</span></label>
-        <div class="btn-group w-100" role="group">
-          <input type="radio" class="btn-check" v-model="form.type" value="Tetap" id="typeTetap" autocomplete="off">
-          <label class="btn btn-outline-success" for="typeTetap">Tetap</label>
-
-          <input type="radio" class="btn-check" v-model="form.type" value="Kontrak" id="typeKontrak" autocomplete="off">
-          <label class="btn btn-outline-success" for="typeKontrak">Kontrak</label>
-
-          <input type="radio" class="btn-check" v-model="form.type" value="Magang" id="typeMagang" autocomplete="off">
-          <label class="btn btn-outline-success" for="typeMagang">Magang</label>
-        </div>
-        <small v-if="errors.type" class="text-danger d-block mt-1">{{ errors.type }}</small>
-      </div>
-    </div>
-
-    <!-- Educations -->
-    <div class="row mb-3">
-      <div class="col-12">
-        <label class="form-label d-flex justify-content-between align-items-center">
-          Pendidikan
-          <span class="badge bg-secondary rounded-pill" v-if="selectedEducations.length">{{ selectedEducations.length }} terpilih</span>
-        </label>
-        
-        <div class="card bg-light border-0">
-          <div class="card-body p-3">
-            <!-- Add/Selection Logic -->
-            <div class="row g-2 mb-3">
-              <div class="col-md-6">
-                <div class="input-group input-group-sm">
-                  <select v-model="selectedEducationId" class="form-select">
-                    <option value="">-- Pilih Master Data --</option>
-                    <option v-for="edu in educationOptions" :key="edu.id" :value="edu.id">
-                      {{ edu.name }}
-                    </option>
-                  </select>
-                  <button type="button" class="btn btn-primary" @click="addSelectedEducation" :disabled="!selectedEducationId">
-                    Tambah
-                  </button>
-                  <button type="button" class="btn btn-outline-danger" @click="openDeleteEducationModal" :disabled="!selectedEducationId" title="Hapus dari Master">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="input-group input-group-sm">
-                  <input 
-                    v-model="newEducationName" 
-                    type="text" 
-                    class="form-control" 
-                    placeholder="Nama pendidikan baru..."
-                    @keyup.enter="createNewEducation"
-                  />
-                  <button type="button" class="btn btn-success" @click="createNewEducation" :disabled="!newEducationName">
-                    Buat Baru
-                  </button>
-                </div>
-              </div>
+              <i
+                class="bi"
+                :class="isEdit ? 'bi-person-gear' : 'bi-person-plus-fill'"
+              ></i>
             </div>
-
-            <!-- Chips Display -->
-            <div class="d-flex flex-wrap gap-2 pt-2 border-top">
-              <div v-for="edu in selectedEducations" :key="edu.id" 
-                class="badge bg-white text-dark border d-flex align-items-center gap-2 p-2 shadow-sm"
-                style="font-weight: 500; font-size: 0.85rem;"
+            <div>
+              <h1
+                class="text-2xl font-black text-slate-800 dark:text-white tracking-tight"
               >
-                <i class="bi bi-mortarboard text-primary"></i>
-                {{ edu.name }}
-                <button type="button" class="btn-close" style="font-size: 0.6rem;" @click="removeSelectedEducation(edu.id)"></button>
+                {{ isEdit ? "Refine Profile" : "New Talent Onboarding" }}
+              </h1>
+              <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span
+                  class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+                  >Configuration Active</span
+                >
               </div>
-              <div v-if="selectedEducations.length === 0" class="text-muted small py-1">
-                <i class="bi bi-info-circle me-1"></i> Belum ada riwayat pendidikan yang ditambahkan
+            </div>
+          </div>
+        </Motion>
+
+        <div class="flex items-center gap-3">
+          <Button
+            label="Discard"
+            severity="secondary"
+            text
+            class="!rounded-xl !px-6 !py-3 !font-black !uppercase !text-[9px] !tracking-widest dark:!text-slate-400"
+            @click="$router.back()"
+          />
+          <Button
+            type="submit"
+            :label="isEdit ? 'Save Changes' : 'Confirm Onboarding'"
+            :loading="submitting"
+            class="!rounded-xl !px-8 !py-3.5 !bg-indigo-600 !border-none !font-black !uppercase !text-[9px] !tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none"
+          />
+        </div>
+      </div>
+
+      <div class="space-y-8">
+        <!-- Profile & Vital Stats Header -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <Motion
+            :initial="{ opacity: 0, scale: 0.95 }"
+            :animate="{ opacity: 1, scale: 1 }"
+            class="bg-indigo-950 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl"
+          >
+            <!-- Decorative elements -->
+            <div
+              class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"
+            ></div>
+            <div
+              class="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"
+            ></div>
+
+            <div
+              class="relative z-10 flex flex-col items-center text-center space-y-6"
+            >
+              <div class="relative group">
+                <div
+                  class="absolute inset-0 bg-indigo-500 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"
+                ></div>
+                <Avatar
+                  :image="
+                    form.photo_url ||
+                    'https://ui-avatars.com/api/?name=' +
+                      (form.name || 'User') +
+                      '&background=fff&color=4f46e5&size=200'
+                  "
+                  shape="circle"
+                  class="!w-32 !h-32 border-4 border-white/10 shadow-2xl ring-4 ring-white/5 relative z-10"
+                />
+                <button
+                  type="button"
+                  @click="triggerPhotoUpload"
+                  class="absolute bottom-1 right-1 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-indigo-950 text-white shadow-xl z-20 hover:scale-110 transition-transform"
+                >
+                  <i class="bi bi-camera-fill"></i>
+                </button>
+              </div>
+
+              <div class="space-y-1">
+                <h3 class="text-xl font-black tracking-tight leading-tight">
+                  {{ form.name || "Candidate Name" }}
+                </h3>
+                <div
+                  class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10"
+                >
+                  <span
+                    class="text-indigo-200 font-bold uppercase tracking-widest text-[9px]"
+                    >{{ form.position_name || "Awaiting Designation" }}</span
+                  >
+                </div>
+              </div>
+            </div>
+          </Motion>
+
+          <!-- Contact Details Card -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm space-y-6"
+          >
+            <h4
+              class="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2"
+            >
+              <i class="bi bi-link-45deg text-indigo-500"></i> Connectivity
+            </h4>
+            <div class="space-y-4">
+              <div class="group">
+                <label
+                  class="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block"
+                  >Email Protocol
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <div
+                  class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 group-focus-within:border-indigo-200 transition-colors"
+                  :class="{
+                    'border-rose-200 ring-4 ring-rose-500/5': errors.email,
+                  }"
+                >
+                  <i
+                    class="bi bi-envelope text-slate-300 group-focus-within:text-indigo-500"
+                  ></i>
+                  <InputText
+                    v-model="form.email"
+                    class="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300"
+                    placeholder="talent@jmc.cloud"
+                  />
+                </div>
+                <small
+                  v-if="errors.email"
+                  class="text-[8px] font-bold text-rose-500 ml-1 uppercase tracking-widest"
+                  >{{ errors.email }}</small
+                >
+              </div>
+              <div class="group">
+                <label
+                  class="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block"
+                  >Secure Phone
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <div
+                  class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 group-focus-within:border-emerald-200 transition-colors"
+                  :class="{
+                    'border-rose-200 ring-4 ring-rose-500/5': errors.phone,
+                  }"
+                >
+                  <i class="bi bi-whatsapp text-emerald-400"></i>
+                  <InputText
+                    v-model="form.phone"
+                    class="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300"
+                    placeholder="+62 812-xxxx-xxxx"
+                  />
+                </div>
+                <small
+                  v-if="errors.phone"
+                  class="text-[8px] font-bold text-rose-500 ml-1 uppercase tracking-widest"
+                  >{{ errors.phone }}</small
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- System Intelligence Card -->
+          <div
+            class="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-800 space-y-6"
+          >
+            <div class="flex items-center justify-between">
+              <h4
+                class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
+              >
+                System Intelligence
+              </h4>
+              <div class="flex items-center gap-1.5">
+                <span
+                  class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"
+                ></span>
+                <span class="text-[8px] font-black text-indigo-500 uppercase"
+                  >Live Sync</span
+                >
+              </div>
+            </div>
+
+            <div class="space-y-5">
+              <div class="space-y-2">
+                <div
+                  class="flex items-center justify-between text-[9px] font-black uppercase tracking-widest"
+                >
+                  <span class="text-slate-400">Profile Completion</span>
+                  <span class="text-indigo-600"
+                    >{{ completionPercentage }}%</span
+                  >
+                </div>
+                <div
+                  class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden"
+                >
+                  <div
+                    class="h-full bg-indigo-600 rounded-full transition-all duration-1000"
+                    :style="{ width: completionPercentage + '%' }"
+                  ></div>
+                </div>
+              </div>
+
+              <div
+                class="pt-2 border-t border-slate-200/50 dark:border-slate-800 space-y-3"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex flex-col">
+                    <span class="text-[9px] font-black text-slate-400 uppercase"
+                      >Employment Status</span
+                    >
+                    <span
+                      class="text-[10px] font-bold"
+                      :class="
+                        form.status ? 'text-emerald-500' : 'text-rose-500'
+                      "
+                    >
+                      {{ form.status ? "Active Protocol" : "Suspended" }}
+                    </span>
+                  </div>
+                  <InputSwitch v-model="form.status" />
+                </div>
+
+                <div
+                  class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm"
+                >
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600"
+                    >
+                      <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="flex flex-col">
+                      <span
+                        class="text-[8px] font-black text-slate-400 uppercase"
+                        >Total Tenure</span
+                      >
+                      <span class="text-[10px] font-black tracking-tight">{{
+                        calculatedTenure
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content: Detailed Information -->
+        <div class="space-y-8">
+          <!-- Section Card: Personal Profile -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm space-y-8"
+          >
+            <div
+              class="flex items-center gap-4 border-b border-slate-50 dark:border-slate-800 pb-6"
+            >
+              <div
+                class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600"
+              >
+                <i class="bi bi-person-vcard-fill text-lg"></i>
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-black text-slate-800 dark:text-white tracking-tight"
+                >
+                  Identity Foundation
+                </h3>
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+                >
+                  Personal identification and demographics
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2"
+                  >Full Identity Name
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <InputText
+                  v-model="form.name"
+                  :class="{ 'p-invalid': errors.name }"
+                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
+                  placeholder="e.g. John Doe"
+                  required
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.name"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i> {{ errors.name }}
+                  </small>
+                </Transition>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2"
+                  >Internal NIP Code
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <InputText
+                  v-model="form.nip"
+                  :class="{ 'p-invalid': errors.nip }"
+                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
+                  placeholder="e.g. 19900101 202401 1 001"
+                  required
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.nip"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i> {{ errors.nip }}
+                  </small>
+                </Transition>
+              </div>
+              <div class="md:col-span-2 space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2"
+                  >City / Regency of Birth
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <AutoComplete
+                  v-model="birthCitySearch"
+                  :suggestions="filteredRegencies"
+                  @complete="searchBirthCity"
+                  @item-select="onRegencySelect"
+                  optionLabel="name"
+                  placeholder="Search city/regency..."
+                  :minLength="3"
+                  class="!w-full"
+                  :class="{ 'p-invalid': errors.birth_place_id }"
+                  :pt="{
+                    pcInputText: {
+                      root: {
+                        class:
+                          '!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white',
+                      },
+                    },
+                  }"
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.birth_place_id"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errors.birth_place_id }}
+                  </small>
+                </Transition>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2"
+                  >Birth Date <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <DatePicker
+                  v-model="form.birth_date"
+                  class="!w-full"
+                  :max-date="new Date()"
+                  placeholder="Select Birth Date"
+                  :class="{ 'p-invalid': errors.birth_date }"
+                  :pt="{
+                    pcInputText: {
+                      root: {
+                        class:
+                          '!rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold',
+                      },
+                    },
+                  }"
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.birth_date"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errors.birth_date }}
+                  </small>
+                </Transition>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2"
+                  >Gender Identification</label
+                >
+                <Select
+                  v-model="form.gender"
+                  :options="[
+                    { label: 'Laki-laki', value: 'Male' },
+                    { label: 'Perempuan', value: 'Female' },
+                  ]"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Select Gender"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12 flex items-center px-4"
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2"
+                  >Marital Status</label
+                >
+                <Select
+                  v-model="form.marital_status"
+                  :options="['Single', 'Married', 'Divorced', 'Widowed']"
+                  placeholder="Select Status"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12 flex items-center px-4"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2"
+                  >Dependents (Children)</label
+                >
+                <InputNumber
+                  v-model="form.children_count"
+                  :min="0"
+                  class="!w-full"
+                  placeholder="0"
+                  :pt="{
+                    pcInputText: {
+                      root: {
+                        class:
+                          '!rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12',
+                      },
+                    },
+                  }"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Card: Employment Context -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm space-y-8"
+          >
+            <div
+              class="flex items-center gap-4 border-b border-slate-50 dark:border-slate-800 pb-6"
+            >
+              <div
+                class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600"
+              >
+                <i class="bi bi-briefcase-fill text-lg"></i>
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-black text-slate-800 dark:text-white tracking-tight"
+                >
+                  Work Architecture
+                </h3>
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+                >
+                  Job details and contract specifications
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Assigned Position
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <Select
+                  v-model="form.position_id"
+                  :options="posOptions"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="Select Position"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12 flex items-center px-4"
+                  :class="{ 'p-invalid': errors.position_id }"
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.position_id"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errors.position_id }}
+                  </small>
+                </Transition>
+              </div>
+
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Operational Department
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <Select
+                  v-model="form.department_id"
+                  :options="deptOptions"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="Select Department"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12 flex items-center px-4"
+                  :class="{ 'p-invalid': errors.department_id }"
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.department_id"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errors.department_id }}
+                  </small>
+                </Transition>
+              </div>
+
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Contractual Protocol</label
+                >
+                <div
+                  class="flex p-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
+                >
+                  <button
+                    v-for="t in ['Tetap', 'Kontrak', 'Magang']"
+                    :key="t"
+                    type="button"
+                    @click="form.type = t"
+                    class="flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all"
+                    :class="
+                      form.type === t
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200'
+                        : 'text-slate-400 hover:text-slate-600'
+                    "
+                  >
+                    {{ t }}
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Calculated Age (Years)</label
+                >
+                <div
+                  class="w-full h-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-center px-4 text-xs font-black text-indigo-600 border-2 border-indigo-50/50"
+                >
+                  {{ calculatedAge }} Years Old
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Card: Address & Residency -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm space-y-8"
+          >
+            <div
+              class="flex items-center gap-4 border-b border-slate-50 dark:border-slate-800 pb-6"
+            >
+              <div
+                class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600"
+              >
+                <i class="bi bi-geo-alt-fill text-lg"></i>
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-black text-slate-800 dark:text-white tracking-tight uppercase tracking-widest text-[11px]"
+                >
+                  Residency Protocol
+                </h3>
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+                >
+                  Geographical location and address records
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6">
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Search District
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <AutoComplete
+                  v-model="districtSearch"
+                  :suggestions="filteredDistricts"
+                  @complete="searchDistrict"
+                  @item-select="onDistrictSelect"
+                  optionLabel="name"
+                  placeholder="Search district..."
+                  :minLength="3"
+                  class="!w-full"
+                  :class="{ 'p-invalid': errors.district_id }"
+                  :pt="{
+                    pcInputText: {
+                      root: {
+                        class:
+                          '!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white',
+                      },
+                    },
+                  }"
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.district_id"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errors.district_id }}
+                  </small>
+                </Transition>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Kabupaten</label
+                >
+                <InputText
+                  :value="displayRegency"
+                  disabled
+                  class="!w-full !rounded-xl !p-4 !bg-slate-100 dark:!bg-slate-800 !border-none !text-xs !font-bold opacity-70"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Provinsi</label
+                >
+                <InputText
+                  :value="displayProvince"
+                  disabled
+                  class="!w-full !rounded-xl !p-4 !bg-slate-100 dark:!bg-slate-800 !border-none !text-xs !font-bold opacity-70"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Jarak Rumah ke Kantor (KM)
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <InputNumber
+                  v-model="form.distance_km"
+                  :min="0"
+                  :max="250"
+                  suffix=" KM"
+                  class="!w-full"
+                  placeholder="0 KM"
+                  :class="{ 'p-invalid': errors.distance_km }"
+                  :pt="{
+                    pcInputText: {
+                      root: {
+                        class:
+                          '!rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12',
+                      },
+                    },
+                  }"
+                />
+                <Transition name="p-message-content">
+                  <small
+                    v-if="errors.distance_km"
+                    class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errors.distance_km }}
+                  </small>
+                </Transition>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
+                  >Full Residential Address
+                  <span class="text-rose-500 ml-0.5">*</span></label
+                >
+                <Textarea
+                  v-model="form.full_address"
+                  rows="3"
+                  :class="{ 'p-invalid': errors.full_address }"
+                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
+                  placeholder="e.g. Jl. Melati No. 123, RT 01/RW 02"
+                />
+                <small
+                  v-if="errors.full_address"
+                  class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest"
+                  >{{ errors.full_address }}</small
+                >
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm space-y-8"
+          >
+            <div
+              class="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-6"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center text-rose-600"
+                >
+                  <i class="bi bi-mortarboard-fill text-lg"></i>
+                </div>
+                <div>
+                  <h3
+                    class="text-lg font-black text-slate-800 dark:text-white tracking-tight"
+                  >
+                    Academic History
+                  </h3>
+                  <p
+                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+                  >
+                    Educational background and master data
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[9px] font-black text-slate-500"
+                  v-if="form.educations.length"
+                >
+                  {{ form.educations.length }} RECORDS
+                </span>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div
+                class="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800"
+              >
+                <div class="flex-1 space-y-1">
+                  <label
+                    class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2"
+                    >Master Data Selection</label
+                  >
+                  <div class="flex gap-2">
+                    <Select
+                      v-model="selectedEduId"
+                      :options="availableEduOptions"
+                      optionLabel="name"
+                      optionValue="id"
+                      placeholder="Pick from master..."
+                      class="!flex-1 !rounded-xl !bg-white dark:!bg-slate-900 !border-none !text-xs !font-bold h-11 flex items-center px-4"
+                    />
+                    <Button
+                      icon="bi bi-plus-lg"
+                      label="Add"
+                      @click="addEducation"
+                      :disabled="!selectedEduId"
+                      class="!rounded-xl !px-4 !bg-indigo-600 !border-none !font-black !uppercase !text-[9px]"
+                    />
+                    <Button
+                      icon="bi bi-trash3"
+                      severity="danger"
+                      text
+                      @click="removeGlobalEdu"
+                      :disabled="!selectedEduId"
+                      class="!rounded-xl !bg-white dark:!bg-slate-900 !text-rose-500 border border-slate-100 dark:border-slate-800"
+                      v-tooltip.top="'Delete from Master'"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="w-px bg-slate-200 dark:bg-slate-800 hidden md:block"
+                ></div>
+                <div class="flex-1 space-y-1">
+                  <label
+                    class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2"
+                    >Register New Education</label
+                  >
+                  <div class="flex gap-2">
+                    <InputText
+                      v-model="newEduName"
+                      placeholder="New record name..."
+                      class="!flex-1 !rounded-xl !p-3 !bg-white dark:!bg-slate-900 !border-none !text-xs !font-bold dark:!text-white"
+                      @keyup.enter="createNewEdu"
+                    />
+                    <Button
+                      icon="bi bi-magic"
+                      label="Create"
+                      @click="createNewEdu"
+                      :disabled="!newEduName"
+                      class="!rounded-xl !px-4 !bg-emerald-600 !border-none !font-black !uppercase !text-[9px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="flex flex-wrap gap-3 p-6 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl min-h-[120px] items-center justify-center"
+              >
+                <TransitionGroup name="list">
+                  <div
+                    v-for="edu in form.educations"
+                    :key="edu.id"
+                    class="group flex items-center gap-3 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all"
+                  >
+                    <i class="bi bi-mortarboard text-indigo-500"></i>
+                    <span
+                      class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >{{ edu.name }}</span
+                    >
+                    <button
+                      @click="removeEducation(edu.id)"
+                      class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded-full bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                    >
+                      <i class="bi bi-x text-sm"></i>
+                    </button>
+                  </div>
+                </TransitionGroup>
+                <div
+                  v-if="form.educations.length === 0"
+                  class="flex flex-col items-center text-center space-y-2 opacity-30"
+                >
+                  <i class="bi bi-cloud-slash text-3xl"></i>
+                  <p class="text-[9px] font-black uppercase tracking-[0.2em]">
+                    No Academic Ties Found
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </form>
 
-    <!-- Status -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label">Status <span class="text-danger">*</span></label>
-        <div class="form-check">
-          <input
-            id="status"
-            v-model="form.status"
-            type="checkbox"
-            class="form-check-input"
-          />
-          <label class="form-check-label" for="status">
-            Aktif
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Submit & Cancel Buttons -->
-    <div class="row mt-4">
-      <div class="col-12">
-        <button type="submit" class="btn btn-primary me-2">
-          <i class="bi bi-check-circle me-2"></i>
-          Simpan Data
-        </button>
-        <NuxtLink to="/employees" class="btn btn-outline-secondary">
-          <i class="bi bi-x-circle me-2"></i>
-          Batal
-        </NuxtLink>
-      </div>
-    </div>
-
-    <ConfirmModal
-      :is-open="deleteEduModal.isOpen"
-      :title="deleteEduModal.title"
-      :message="deleteEduModal.message"
-      :type="deleteEduModal.type"
-      :is-confirm="deleteEduModal.isConfirm"
-      :confirm-text="deleteEduModal.confirmText"
-      :cancel-text="deleteEduModal.cancelText"
-      @close="closeDeleteEducationModal"
-      @confirm="confirmDeleteEducation"
+    <!-- Hidden Elements -->
+    <input
+      type="file"
+      ref="photoInput"
+      @change="handlePhotoChange"
+      class="hidden"
+      accept="image/*"
     />
-  </form>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { Employee } from '~/composables/useEmployees'
-import { useEducations } from '~/composables/useEducations'
-import type { Education } from '~/composables/useEducations'
-import { getErrorMessageAxios } from '~/utils/handleError'
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useEmployees } from "~/composables/useEmployees";
+import { useRegion } from "~/composables/useRegion";
+import { useEducations } from "~/composables/useEducations";
 
-const props = defineProps<{
-  initialData?: Partial<Employee>
-}>()
+const route = useRoute();
+const router = useRouter();
+const { getEmployee, addEmployee, updateEmployee } = useEmployees();
+const {
+  getKabupaten,
+  getKecamatan,
+  getProvinsiById,
+  getKabupatenById,
+  getKecamatanById,
+} = useRegion();
+const { fetchEducations, createEducation, removeGlobalEducation } =
+  useEducations();
 
-const emit = defineEmits<{
-  submit: [data: Omit<Employee, 'id' | 'created_at' | 'updated_at'>]
-}>()
+const allRegencies = ref<any[]>([]);
+const filteredRegencies = ref<any[]>([]);
+const birthCitySearch = ref(""); // For POB UI input
 
-const formatDateForInput = (dateString: string | undefined | null) => {
-  if (!dateString) return ''
-  try {
-    return new Date(dateString).toISOString().split('T')[0]
-  } catch (e) {
-    return ''
-  }
-}
+const allDistricts = ref<any[]>([]);
+const filteredDistricts = ref<any[]>([]);
+const districtSearch = ref(""); // For Address UI input
 
-const form = ref({
-  nip: props.initialData?.nip || 0,
-  name: props.initialData?.name || '',
-  email: props.initialData?.email || '',
-  phone: props.initialData?.phone || '',
-  birth_date: formatDateForInput(props.initialData?.birth_date as string | undefined) || '',
-  birth_place_id: props.initialData?.birth_place_id || 0,
-  birthCityName: props.initialData?.birthCityName || '',
-  gender: props.initialData?.gender || '',
-  marital_status: props.initialData?.marital_status || '',
-  children_count: props.initialData?.children_count ?? 0,
-  position: props.initialData?.position || '',
-  department: props.initialData?.department || '',
-  join_date: formatDateForInput(props.initialData?.join_date as string | undefined) || '',
-  type: props.initialData?.type || '',
-  status: props.initialData?.status ?? true,
-  district_id: props.initialData?.district_id || 0,
-  districtName: props.initialData?.districtName || '',
-  regencyName: props.initialData?.regencyName || '',
-  provinceName: props.initialData?.provinceName || '',
-  full_address: props.initialData?.full_address || '',
-  educations: props.initialData?.educations ? [...props.initialData.educations] : ([] as string[]),
-  photo_url: props.initialData?.photo_url || ''
-})
+// Display fields for address (disabled)
+const displayRegency = ref("");
+const displayProvince = ref("");
 
-// Education Management
-const { fetchEducations, createEducation, syncEmployeeEducations, removeGlobalEducation } = useEducations()
-const availableEducations = ref<Education[]>([])
-const selectedEducations = ref<Education[]>(props.initialData?.educations || [])
-const selectedEducationId = ref<number | string>('')
-const pendingDeleteEducationId = ref<number | null>(null)
-const newEducationName = ref<string>('')
-const educationLoading = ref(false)
-const educationError = ref<string>('')
-const uploadingPhoto = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
-const educationOptions = computed(() => {
-  const selectedIds = new Set(selectedEducations.value.map(e => e.id))
-  return availableEducations.value.filter(edu => !selectedIds.has(edu.id))
-})
-const deleteEduModal = ref({
-  isOpen: false,
-  title: 'Konfirmasi Hapus',
-  message: '',
-  type: 'danger' as 'primary' | 'danger' | 'warning' | 'success',
-  isConfirm: true,
-  confirmText: 'Hapus',
-  cancelText: 'Batal',
-})
+// Education state
+const educationOptions = ref<any[]>([]);
+const selectedEduId = ref<number | null>(null);
+const newEduName = ref("");
 
-const handleFileUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+const isEdit = route.params.id !== undefined;
+const loading = ref(isEdit);
+const submitting = ref(false);
+const photoInput = ref<HTMLInputElement | null>(null);
 
-  // Validate
-  if (file.size > 2 * 1024 * 1024) {
-    alert('Ukuran file maksimal 2MB')
-    return
-  }
+const deptOptions = ref<any[]>([]);
+const posOptions = ref<any[]>([]);
 
-  const formData = new FormData()
-  formData.append('file', file)
-
-  uploadingPhoto.value = true
-  try {
-    const res = await $axios.post('/api/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    form.value.photo_url = res.data.url
-  } catch (err: any) {
-    alert(getErrorMessageAxios(err) || 'Gagal upload foto')
-  } finally {
-    uploadingPhoto.value = false
-    // Reset file input value so it can be re-triggered for the same file
-    target.value = ''
-  }
-}
+const form = ref<any>({
+  name: "",
+  nip: null,
+  birth_place_id: null,
+  dob: null,
+  gender: "Male",
+  religion: "Islam",
+  marital_status: "Single",
+  children_count: 0,
+  phone: "",
+  email: "",
+  district_id: null,
+  full_address: "",
+  department_id: null,
+  position_id: null,
+  site: "",
+  type: "Tetap",
+  join_date: new Date(),
+  salary: 0,
+  status: true,
+  photo_url: "",
+  educations: [],
+  distance_km: 0,
+});
 
 onMounted(async () => {
-  // Fetch available educations from API
-  educationLoading.value = true
-  try {
-    availableEducations.value = await fetchEducations()
-  } catch (e) {
-    educationError.value = 'Gagal memuat daftar pendidikan'
-  } finally {
-    educationLoading.value = false
-  }
-})
+  const { $axios } = useNuxtApp();
+  const [regData, distData, eduData, deptRes, posRes] = await Promise.all([
+    getKabupaten(),
+    getKecamatan(),
+    fetchEducations(),
+    $axios.get("/api/departments"),
+    $axios.get("/api/positions"),
+  ]);
 
-const addSelectedEducation = () => {
-  if (!selectedEducationId.value) return
+  allRegencies.value = regData;
+  allDistricts.value = distData;
+  educationOptions.value = eduData;
+  deptOptions.value = deptRes.data;
+  posOptions.value = posRes.data;
 
-  const selectedId = Number(selectedEducationId.value)
-  const education = availableEducations.value.find(e => e.id === selectedId)
+  if (isEdit) {
+    try {
+      const data = await getEmployee(Number(route.params.id));
+      if (data) {
+        // Helper to parse date string to local Date object without shifting
+        const parseUTCDate = (dateStr?: string | null): Date | null => {
+          if (!dateStr) return null;
 
-  if (education && !selectedEducations.value.find(e => e.id === education.id)) {
-    selectedEducations.value.push(education)
-    selectedEducationId.value = ''
-  }
-}
+          const parts = dateStr.split(/[-T ]/);
 
-const closeDeleteEducationModal = () => {
-  deleteEduModal.value.isOpen = false
-  pendingDeleteEducationId.value = null
-}
+          if (parts.length < 3) {
+            const fallbackDate = new Date(dateStr);
 
-const openDeleteEducationModal = () => {
-  if (!selectedEducationId.value) return
-  const selectedId = Number(selectedEducationId.value)
-  if (!Number.isInteger(selectedId) || selectedId <= 0) return
+            return Number.isNaN(fallbackDate.getTime()) ? null : fallbackDate;
+          }
 
-  pendingDeleteEducationId.value = selectedId
-  const selectedEdu = availableEducations.value.find(e => e.id === selectedId)
+          const [yearStr, monthStr, dayStr] = parts;
 
-  deleteEduModal.value = {
-    isOpen: true,
-    title: 'Konfirmasi Hapus',
-    message: `Apakah Anda yakin ingin menghapus pendidikan "${selectedEdu?.name || '-'}" dari master data?`,
-    type: 'danger',
-    isConfirm: true,
-    confirmText: 'Hapus',
-    cancelText: 'Batal',
-  }
-}
+          const year = Number(yearStr);
+          const month = Number(monthStr);
+          const day = Number(dayStr);
 
-const confirmDeleteEducation = async () => {
-  const educationId = pendingDeleteEducationId.value
-  if (!educationId || !Number.isInteger(educationId) || educationId <= 0) {
-    deleteEduModal.value = {
-      isOpen: true,
-      title: 'Gagal Menghapus',
-      message: 'ID pendidikan tidak valid.',
-      type: 'warning',
-      isConfirm: false,
-      confirmText: 'OK',
-      cancelText: 'Tutup',
+          if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+            return null;
+          }
+
+          const date = new Date(year, month - 1, day);
+
+          return Number.isNaN(date.getTime()) ? null : date;
+        };
+
+        form.value = {
+          ...data,
+          birth_date: parseUTCDate(data.birth_date),
+          join_date: parseUTCDate(data.join_date) || new Date(),
+          educations: Array.isArray(data.educations) ? data.educations : [],
+          distance_km: data.distance_km !== null && data.distance_km !== undefined ? Number(data.distance_km) : 0,
+        };
+
+        // Initialize display names and search inputs using API response data
+        if (data.birth_place_id) {
+          birthCitySearch.value = data.birthCityName || "";
+        }
+        if (data.district_id) {
+          districtSearch.value = data.districtName || "";
+          displayRegency.value = data.regencyName || "";
+          displayProvince.value = data.provinceName || "";
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      loading.value = false;
     }
-    return
+  } else {
+    loading.value = false;
   }
 
-  educationLoading.value = true
-  try {
-    await removeGlobalEducation(educationId)
-    // Hapus juga dari dropdown dan dari selected jika ada
-    availableEducations.value = availableEducations.value.filter(e => e.id !== educationId)
-    removeSelectedEducation(educationId)
-    selectedEducationId.value = ''
-    pendingDeleteEducationId.value = null
-
-    deleteEduModal.value = {
-      isOpen: true,
-      title: 'Berhasil',
-      message: 'Pendidikan berhasil dihapus.',
-      type: 'success',
-      isConfirm: false,
-      confirmText: 'OK',
-      cancelText: 'Tutup',
+  window.addEventListener("scroll", () => {
+    const header = document.getElementById("form-header");
+    if (header) {
+      if (window.scrollY > 100) {
+        header.classList.add(
+          "border-slate-100",
+          "dark:border-slate-800",
+          "shadow-sm",
+        );
+      } else {
+        header.classList.remove(
+          "border-slate-100",
+          "dark:border-slate-800",
+          "shadow-sm",
+        );
+      }
     }
-  } catch (err: any) {
-    deleteEduModal.value = {
-      isOpen: true,
-      title: 'Gagal Menghapus',
-      message: getErrorMessageAxios(err) || 'Gagal menghapus pendidikan (mungkin sedang digunakan)',
-      type: 'warning',
-      isConfirm: false,
-      confirmText: 'OK',
-      cancelText: 'Tutup',
-    }
-  } finally {
-    educationLoading.value = false
-  }
-}
-
-const createNewEducation = async () => {
-  if (!newEducationName.value.trim()) return
-
-  educationLoading.value = true
-  try {
-    const newEducation = await createEducation(newEducationName.value)
-    if (newEducation) {
-      availableEducations.value.push(newEducation)
-      selectedEducations.value.push(newEducation)
-      newEducationName.value = ''
-    }
-  } catch (e) {
-    educationError.value = 'Gagal membuat pendidikan baru'
-  } finally {
-    educationLoading.value = false
-  }
-}
-
-const removeSelectedEducation = (educationId: number) => {
-  selectedEducations.value = selectedEducations.value.filter(e => e.id !== educationId)
-}
+  });
+});
 
 const calculatedAge = computed(() => {
   if (form.value.birth_date && form.value.join_date) {
-    const birth = new Date(form.value.birth_date)
-    const join = new Date(form.value.join_date)
-    let age = join.getFullYear() - birth.getFullYear()
-    if (join.getMonth() < birth.getMonth() || (join.getMonth() === birth.getMonth() && join.getDate() < birth.getDate())) {
-      age--
+    const birth = new Date(form.value.birth_date);
+    const join = new Date(form.value.join_date);
+    let age = join.getFullYear() - birth.getFullYear();
+    const m = join.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && join.getDate() < birth.getDate())) {
+      age--;
     }
-    return age > 0 ? age : 0
+    return age > 0 ? age : 0;
   }
-  return '-'
-})
+  return "-";
+});
 
-// Autocomplete Logic
-const { $axios } = useNuxtApp()
-
-const debounce = (fn: Function, delay: number) => {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null
-  return (...args: any[]) => {
-    if (timeoutId) clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => {
-      fn(...args)
-    }, delay)
-  }
-}
-
-const birthCitySuggestions = ref<any[]>([])
-const searchBirthCity = debounce(async () => {
-  if (form.value.birthCityName.length >= 3) {
-    try {
-      const res = await $axios.get('/api/locations/regencies', { params: { q: form.value.birthCityName } })
-      birthCitySuggestions.value = res.data || []
-    } catch (e) {
-      birthCitySuggestions.value = []
+const calculatedTenure = computed(() => {
+  if (form.value.join_date) {
+    const join = new Date(form.value.join_date);
+    const now = new Date();
+    let years = now.getFullYear() - join.getFullYear();
+    let months = now.getMonth() - join.getMonth();
+    if (months < 0) {
+      years--;
+      months += 12;
     }
-  } else {
-    birthCitySuggestions.value = []
+    return `${years}Y ${months}M`;
   }
-}, 400)
-const selectBirthCity = (city: any) => {
-  form.value.birthCityName = city.name
-  form.value.birth_place_id = city.id
-  birthCitySuggestions.value = []
-}
+  return "0Y 0M";
+});
 
-const districtSuggestions = ref<any[]>([])
-const searchDistrict = debounce(async () => {
-  if (form.value.districtName.length >= 3) {
-    try {
-      const res = await $axios.get('/api/locations/districts', { params: { q: form.value.districtName } })
-      districtSuggestions.value = res.data || []
-    } catch (e) {
-      districtSuggestions.value = []
+const completionPercentage = computed(() => {
+  const fields = [
+    "name",
+    "nip",
+    "email",
+    "phone",
+    "birth_place_id",
+    "dob",
+    "district_id",
+    "full_address",
+  ];
+  const filled = fields.filter((f) => !!form.value[f]).length;
+  const eduFilled = form.value.educations.length > 0 ? 1 : 0;
+  return Math.round(((filled + eduFilled) / (fields.length + 1)) * 100);
+});
+
+// Search Methods
+const searchBirthCity = async (event: any) => {
+  const { $axios } = useNuxtApp();
+  try {
+    const res = await $axios.get("/api/locations/regencies", {
+      params: { q: event.query },
+    });
+    filteredRegencies.value = res.data || [];
+  } catch (e) {
+    console.error("POB Search Error:", e);
+    filteredRegencies.value = [];
+  }
+};
+
+const searchDistrict = async (event: any) => {
+  const { $axios } = useNuxtApp();
+  try {
+    const res = await $axios.get("/api/locations/districts", {
+      params: { q: event.query },
+    });
+    filteredDistricts.value = res.data || [];
+  } catch (e) {
+    console.error("District Search Error:", e);
+    filteredDistricts.value = [];
+  }
+};
+
+// Selection Handlers
+const onRegencySelect = (event: any) => {
+  form.value.birth_place_id = event.value.id;
+  birthCitySearch.value = event.value.name;
+};
+
+const onDistrictSelect = (event: any) => {
+  const dist = event.value;
+  form.value.district_id = dist.id;
+  districtSearch.value = dist.name;
+  displayRegency.value = dist.regency || "";
+  displayProvince.value = dist.province || "";
+};
+
+const triggerPhotoUpload = () => photoInput.value?.click();
+
+const handlePhotoChange = (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      form.value.photo_url = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+// Education Logic
+const availableEduOptions = computed(() => {
+  const selectedIds = new Set(form.value.educations.map((e: any) => e.id));
+  return educationOptions.value.filter((edu) => !selectedIds.has(edu.id));
+});
+
+const addEducation = () => {
+  if (!selectedEduId.value) return;
+  const edu = educationOptions.value.find((e) => e.id === selectedEduId.value);
+  if (edu) {
+    form.value.educations.push(edu);
+    selectedEduId.value = null;
+  }
+};
+
+const createNewEdu = async () => {
+  if (!newEduName.value.trim()) return;
+  const newEdu = await createEducation(newEduName.value);
+  if (newEdu) {
+    educationOptions.value.push(newEdu);
+    form.value.educations.push(newEdu);
+    newEduName.value = "";
+  }
+};
+
+const removeEducation = (id: number) => {
+  form.value.educations = form.value.educations.filter((e: any) => e.id !== id);
+};
+
+const removeGlobalEdu = async () => {
+  if (!selectedEduId.value) return;
+  try {
+    await removeGlobalEducation(selectedEduId.value);
+    educationOptions.value = educationOptions.value.filter(
+      (e) => e.id !== selectedEduId.value,
+    );
+    selectedEduId.value = null;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const formatDate = (date: any) => {
+  if (!date) return "-";
+  const d = new Date(date);
+  return d.toLocaleDateString("id-ID", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+const errors = ref<any>({});
+const toast = useToast();
+
+const validateForm = () => {
+  errors.value = {};
+  if (!form.value.name) errors.value.name = "Name is required";
+  if (!form.value.nip) {
+    errors.value.nip = "NIP is required";
+  } else if (!String(form.value.nip).replace(/\D/g, "")) {
+    errors.value.nip = "NIP must contain valid numbers";
+  }
+  if (!form.value.email) errors.value.email = "Email is required";
+  else if (!/^\S+@\S+\.\S+$/.test(form.value.email))
+    errors.value.email = "Invalid email protocol";
+  if (!form.value.phone) errors.value.phone = "Phone is required";
+  if (!form.value.birth_place_id)
+    errors.value.birth_place_id = "Birth city is required";
+  if (!form.value.birth_date)
+    errors.value.birth_date = "Birth date is required";
+  if (!form.value.position_id)
+    errors.value.position_id = "Position is required";
+  if (!form.value.department_id)
+    errors.value.department_id = "Department is required";
+  if (!form.value.district_id)
+    errors.value.district_id = "Residency location is required";
+  if (form.value.distance_km === undefined || form.value.distance_km === null)
+    errors.value.distance_km = "Distance is required";
+  else if (Number(form.value.distance_km) < 0)
+    errors.value.distance_km = "Distance cannot be negative";
+  if (!form.value.full_address || form.value.full_address.length < 5)
+    errors.value.full_address = "Full address is required (min 5 chars)";
+
+  return Object.keys(errors.value).length === 0;
+};
+
+const handleSubmit = async () => {
+  if (!validateForm()) {
+    toast.add({
+      severity: "error",
+      summary: "Validation Failed",
+      detail: "Please check your input protocols",
+      life: 3000,
+    });
+    return;
+  }
+
+  submitting.value = true;
+  try {
+    // Helper to format local date to YYYY-MM-DD string
+    const formatToUTCDate = (date: any) => {
+      if (!date) return null;
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const payload = {
+      ...form.value,
+      nip: Number(String(form.value.nip).replace(/\D/g, "")),
+      birth_date: formatToUTCDate(form.value.birth_date),
+      join_date: formatToUTCDate(form.value.join_date),
+      status: !!form.value.status,
+      children_count: Number(form.value.children_count),
+      educationIds: form.value.educations.map((e: any) => e.id),
+      distance_km: Number(form.value.distance_km || 0),
+    };
+
+    if (isEdit) {
+      await updateEmployee(Number(route.params.id), payload);
+      toast.add({
+        severity: "success",
+        summary: "Profile Updated",
+        detail: "Talent matrix successfully refined",
+        life: 3000,
+      });
+    } else {
+      await addEmployee(payload);
+      toast.add({
+        severity: "success",
+        summary: "Talent Onboarded",
+        detail: "New record initialized in central database",
+        life: 3000,
+      });
     }
-  } else {
-    districtSuggestions.value = []
+    router.push("/employees");
+  } catch (e: any) {
+    console.error(e);
+    const detail = e.response?.data?.message || "Interface connection failure";
+    toast.add({
+      severity: "error",
+      summary: "Execution Error",
+      detail,
+      life: 5000,
+    });
+  } finally {
+    submitting.value = false;
   }
-}, 400)
-const selectDistrict = (district: any) => {
-  form.value.district_id = district.id
-  form.value.districtName = district.name
-  form.value.regencyName = district.regency
-  form.value.provinceName = district.province
-  districtSuggestions.value = []
-}
-
-const errors = ref<Record<string, string>>({})
-const hasSubmitted = ref(false)
-
-const validateForm = (): boolean => {
-  errors.value = {}
-
-  if (!form.value.nip || form.value.nip <= 0) {
-    errors.value.nip = 'NIP harus berupa angka positif'
-  }
-
-  if (!form.value.name || form.value.name.trim() === '') {
-    errors.value.name = 'Nama harus diisi'
-  }
-
-  if (!form.value.email || form.value.email.trim() === '') {
-    errors.value.email = 'Email harus diisi'
-  } else if (!form.value.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    errors.value.email = 'Format email tidak valid'
-  }
-
-  if (!form.value.phone || form.value.phone.trim() === '') {
-    errors.value.phone = 'Nomor HP harus diisi'
-  } else if (!/^\+[1-9]\d{1,14}$/.test(form.value.phone)) {
-    errors.value.phone = 'Format nomor HP tidak valid (contoh: +6282218458888)'
-  }
-
-  if (!form.value.birth_date) {
-    errors.value.birth_date = 'Tanggal lahir harus diisi'
-  }
-
-  if (!form.value.gender) {
-    errors.value.gender = 'Jenis kelamin harus dipilih'
-  }
-
-  if (!form.value.marital_status) {
-    errors.value.marital_status = 'Status kawin harus dipilih'
-  }
-
-  if (!form.value.position) {
-    errors.value.position = 'Jabatan harus dipilih'
-  }
-
-  if (!form.value.department) {
-    errors.value.department = 'Departemen harus dipilih'
-  }
-
-  if (!form.value.join_date) {
-    errors.value.join_date = 'Tanggal masuk harus diisi'
-  }
-
-  if (!form.value.type) {
-    errors.value.type = 'Tipe kontrak harus dipilih'
-  }
-
-  if (!form.value.birth_place_id || form.value.birth_place_id <= 0) {
-    errors.value.birthCityName = 'Tempat lahir harus dipilih dari daftar'
-  }
-
-  if (!form.value.district_id || form.value.district_id <= 0) {
-    errors.value.districtName = 'Kecamatan harus dipilih dari daftar'
-  }
-
-  return Object.keys(errors.value).length === 0
-}
-
-import { watch } from 'vue'
-watch(form, () => {
-  if (hasSubmitted.value) {
-    validateForm()
-  }
-}, { deep: true })
-
-const submitForm = () => {
-  hasSubmitted.value = true
-  if (validateForm()) {
-    emit('submit', {
-      nip: Number(form.value.nip),
-      name: form.value.name,
-      email: form.value.email,
-      phone: form.value.phone,
-      birth_date: form.value.birth_date,
-      birth_place_id: form.value.birth_place_id,
-      gender: form.value.gender,
-      marital_status: form.value.marital_status,
-      children_count: form.value.children_count,
-      position: form.value.position,
-      department: form.value.department,
-      join_date: form.value.join_date,
-      type: form.value.type,
-      status: form.value.status,
-      district_id: form.value.district_id,
-      full_address: form.value.full_address,
-      educations: form.value.educations,
-      educationIds: selectedEducations.value.map(e => e.id),
-      photo_url: form.value.photo_url
-    } as any)
-  }
-}
-const setExternalErrors = (apiErrors: Record<string, string>) => {
-  errors.value = { ...errors.value, ...apiErrors }
-}
-
-defineExpose({ setExternalErrors })
+};
 </script>
 
 <style scoped>
-.needs-validation {
-  padding: 1.5rem;
+:deep(.p-datepicker-trigger) {
+  @apply !hidden;
+}
+:deep(.p-inputnumber-input) {
+  @apply !text-right !font-black;
 }
 
-.profile-photo-container {
-  width: 120px;
-  height: 120px;
-  background-color: #f8f9fa;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  position: relative;
+/* Elegant focus states for all input types */
+:deep(.p-inputtext:focus),
+:deep(.p-select:focus-within),
+:deep(.p-autocomplete-input:focus),
+:deep(.p-inputnumber-input:focus),
+:deep(.p-textarea:focus) {
+  @apply !ring-4 !ring-indigo-500/10 !border-indigo-300 dark:!border-indigo-500/50 transition-all;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -5px rgba(79, 70, 229, 0.15);
 }
 
-.photo-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.3);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  cursor: pointer;
-}
-
-.profile-photo-container:hover .photo-overlay {
-  opacity: 1;
-}
-
-.profile-photo-preview {
-  transition: transform 0.3s ease;
-}
-
-.profile-photo-container:hover .profile-photo-preview {
-  transform: scale(1.05);
+:deep(.p-inputtext),
+:deep(.p-select),
+:deep(.p-textarea),
+:deep(.p-inputnumber-input) {
+  @apply transition-all duration-300;
 }
 </style>
-    

@@ -1,10 +1,11 @@
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div>
     <NuxtLayout>
-      <NuxtPage/>
+      <NuxtPage />
     </NuxtLayout>
+    <ConfirmDialog />
+    <Toast />
   </div>
 </template>

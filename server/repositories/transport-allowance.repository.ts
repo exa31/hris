@@ -18,9 +18,10 @@ export const getTransportAllowances = async (
         SELECT ta.id, ta.employee_id, ta.month, ta.year,
                ta.base_fare, ta.distance_km, ta.calculated_km,
                ta.working_days, ta.amount, ta.generated_at,
-               e.name as "employeeName", e.nip, e.department as departemen, e.type as employee_type
+               e.name as "employeeName", e.nip, d.name as departemen, e.type as employee_type
         FROM transport_allowances ta
         JOIN employees e ON ta.employee_id = e.id
+        LEFT JOIN departments d ON e.department_id = d.id
         WHERE 1=1
     `
     const params: any[] = []
@@ -69,9 +70,10 @@ export const getTransportAllowanceById = async (client: PoolClient, id: number):
         SELECT ta.id, ta.employee_id, ta.month, ta.year,
                ta.base_fare, ta.distance_km, ta.calculated_km,
                ta.working_days, ta.amount, ta.generated_at,
-               e.name as "employeeName", e.nip, e.department as departemen, e.type as employee_type
+               e.name as "employeeName", e.nip, d.name as departemen, e.type as employee_type
         FROM transport_allowances ta
         JOIN employees e ON ta.employee_id = e.id
+        LEFT JOIN departments d ON e.department_id = d.id
         WHERE ta.id = $1
     `
     const result = await client.query(query, [id])
@@ -214,9 +216,23 @@ export const upsertTransportSettings = async (
 /**
  * Get all employees (active) for generating allowances — includes type for eligibility check
  */
-export const getAllEmployees = async (client: PoolClient): Promise<{ id: number; name: string; type: string }[]> => {
+export const getAllEmployeesWithWorkingDays = async (client: PoolClient, month: number, year: number): Promise<{ id: number; name: string; type: string; distance_km: number; working_days: number }[]> => {
     const result = await client.query(
-        `SELECT id, name, type FROM employees WHERE status = true AND deleted_at IS NULL ORDER BY name ASC`
+        `SELECT e.id, e.name, e.type, COALESCE(e.distance_km, 10) as distance_km,
+               COUNT(a.id) as working_days
+        FROM employees e
+        LEFT JOIN attendances a ON a.employee_id = e.id 
+                               AND EXTRACT(MONTH FROM a.date) = $1 
+                               AND EXTRACT(YEAR FROM a.date) = $2
+                               AND a.status = 'Hadir'
+        WHERE e.status = true AND e.deleted_at IS NULL
+        GROUP BY e.id
+        ORDER BY e.name ASC`,
+        [month, year]
     )
-    return result.rows
+    return result.rows.map(r => ({
+        ...r,
+        distance_km: parseFloat(r.distance_km),
+        working_days: parseInt(r.working_days) || 0
+    }));
 }

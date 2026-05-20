@@ -193,9 +193,11 @@ export async function isEmployeeAlreadyUser(client: PoolClient, employeeId: numb
 }
 export async function searchEmployeesWithoutAccount(client: PoolClient, search: string) {
     const query = `
-        SELECT e.id, e.name, e.nip, e.position, e.department
+        SELECT e.id, e.name, e.nip, p.name as position, d.name as department
         FROM employees e
         LEFT JOIN users u ON e.id = u.employee_id
+        LEFT JOIN positions p ON e.position_id = p.id
+        LEFT JOIN departments d ON e.department_id = d.id
         WHERE u.id IS NULL
         AND e.deleted_at IS NULL
         AND (LOWER(e.name) LIKE $1 OR CAST(e.nip AS TEXT) LIKE $1)

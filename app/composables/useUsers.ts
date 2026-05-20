@@ -133,22 +133,35 @@ export const useUsers = () => {
 
     return {
         users,
-        totalCount,
+        totalUsers: totalCount,
         loading,
         error,
         searchQuery,
         filterStatus,
-        currentPage,
+        page: currentPage,
         itemsPerPage,
         totalPages,
-        filteredUsers,
-        paginatedUsers,
-        getUsers,
-        getUserById,
+        fetchUsers: getUsers,
+        fetchUserById: getUserById,
         createUser,
         updateUser,
         deleteUser,
-        getRoles
+        fetchRoles: getRoles,
+        searchEmployees: async (query: string) => {
+            const { $axios } = useNuxtApp();
+            try {
+                const response = await $axios.get('/api/users/employee-search', { params: { search: query } })
+                return response.data.data || response.data
+            } catch (err) {
+                console.error('Failed to search employees:', err)
+                return []
+            }
+        },
+        fetchEmployees: async () => {
+            const { $axios } = useNuxtApp();
+            const res = await $axios.get('/api/employees', { params: { limit: 1000 } });
+            return res.data.employees;
+        }
     }
 }
 

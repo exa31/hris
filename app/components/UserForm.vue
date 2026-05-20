@@ -1,446 +1,351 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <div class="row">
-      <!-- Left Column -->
-      <div class="col-lg-8">
-        <!-- Employee Name (Autosuggest) -->
-        <div class="mb-3">
-          <label class="form-label">Nama Pegawai <span class="text-danger">*</span></label>
-          <div class="position-relative">
-            <input
-              v-model="form.employee_name"
-              type="text"
-              class="form-control"
-              placeholder="Ketik minimal 2 karakter..."
-              :class="{ 'is-invalid': errors.employee_name, 'is-valid': form.employee_id }"
-              :disabled="isEdit"
-              @input="filterEmployees"
-              @focus="showSuggestions = true"
-              @blur="closeSuggestions"
+  <div class="space-y-8">
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
+      <ProgressSpinner strokeWidth="4" />
+      <p class="text-slate-500 dark:text-slate-400 font-bold text-sm">Loading user data...</p>
+    </div>
+
+    <form v-else @submit.prevent="submitForm" class="space-y-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Sidebar / Summary -->
+        <div class="lg:col-span-4 space-y-6">
+          <!-- Profile Preview Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center text-center">
+            <Avatar 
+              :image="selectedEmployeePhoto || 'https://ui-avatars.com/api/?name=' + (form.username || 'U') + '&background=6366f1&color=fff&size=200'" 
+              shape="circle" 
+              class="!w-32 !h-32 border-4 border-white dark:border-slate-800 shadow-lg mb-6" 
             />
-            <!-- Autosuggest Dropdown -->
-            <div
-              v-if="showSuggestions && suggestedEmployees.length > 0"
-              class="position-absolute top-100 start-0 end-0 bg-white border border-light rounded shadow-sm mt-1 z-3"
-              style="max-height: 300px; overflow-y-auto"
-            >
-              <button
-                v-for="emp in suggestedEmployees"
-                :key="emp.id"
-                type="button"
-                class="w-100 text-start px-3 py-2 border-0 bg-white hover-light"
-                @click="selectEmployee(emp)"
-              >
-                <div class="small">
-                  <strong>{{ emp.name }}</strong>
-                  <span class="text-muted">({{ emp.nip }})</span>
-                </div>
-                <small class="text-muted">{{ emp.position }} - {{ emp.department }}</small>
-              </button>
-            </div>
-          </div>
-          <small v-if="errors.employee_name" class="text-danger d-block mt-1">{{ errors.employee_name }}</small>
-          <small v-else-if="form.employee_id" class="text-success d-block mt-1">
-            <i class="bi bi-check-circle"></i> Pegawai dipilih
-          </small>
-        </div>
-
-        <!-- Username -->
-        <div class="mb-3">
-          <label class="form-label">Username <span class="text-danger">*</span></label>
-          <input
-            v-model="form.username"
-            type="text"
-            class="form-control"
-            placeholder="minimal 6 karakter, lowercase, tanpa spasi"
-            :class="{ 'is-invalid': errors.username, 'is-valid': !errors.username && form.username }"
-            :disabled="isEdit"
-            @input="validateUsernameField"
-          />
-          <small v-if="errors.username" class="text-danger d-block mt-1">{{ errors.username }}</small>
-          <div v-else-if="form.username">
-            <small class="text-success d-block mt-1">
-              <i class="bi bi-check-circle"></i> Username valid
-            </small>
-          </div>
-        </div>
-
-        <!-- Password -->
-        <div class="mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label mb-0">Password <span class="text-danger">*</span></label>
-            <button
-              v-if="isEdit"
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              @click="regeneratePassword"
-            >
-              <i class="bi bi-arrow-repeat"></i> Generate Ulang
-            </button>
-          </div>
-          <div class="input-group">
-            <input
-              v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
-              class="form-control"
-              placeholder="Min 8 karakter, huruf besar, kecil, angka, dan karakter khusus"
-              :class="{ 'is-invalid': errors.password }"
-              @input="validatePasswordField"
+            
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              {{ form.username || 'New User' }}
+            </h3>
+            
+            <Tag 
+              :value="selectedRoleName" 
+              class="!rounded-lg !px-3 !py-1 !text-xs !font-bold mb-6" 
+              :class="form.role_id === 1 ? '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600' : '!bg-slate-100 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-400'"
             />
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              @click="showPassword = !showPassword"
-            >
-              <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-            </button>
-          </div>
 
-          <!-- Password Strength Indicator -->
-          <div v-if="form.password" class="mt-2">
-            <small class="d-block mb-1">Kekuatan password:</small>
-            <div class="progress" :style="{ height: '6px' }">
-              <div
-                class="progress-bar"
-                :class="{
-                  'bg-danger': passwordStrength === 'weak',
-                  'bg-warning': passwordStrength === 'medium',
-                  'bg-success': passwordStrength === 'strong'
-                }"
-                :style="{ width: passwordStrength === 'weak' ? '33%' : passwordStrength === 'medium' ? '66%' : '100%' }"
-              ></div>
-            </div>
-          </div>
-
-          <!-- Password Errors -->
-          <small v-if="errors.password" class="text-danger d-block mt-1">{{ errors.password }}</small>
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mb-3">
-          <label class="form-label">Konfirmasi Password <span class="text-danger">*</span></label>
-          <div class="input-group">
-            <input
-              v-model="form.confirmPassword"
-              :type="showConfirmPassword ? 'text' : 'password'"
-              class="form-control"
-              placeholder="Ketik ulang password"
-              :class="{ 'is-invalid': errors.confirmPassword }"
-              @input="validateConfirmPasswordField"
-            />
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              @click="showConfirmPassword = !showConfirmPassword"
-            >
-              <i :class="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-            </button>
-          </div>
-          <small v-if="errors.confirmPassword" class="text-danger d-block mt-1">{{ errors.confirmPassword }}</small>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Role <span class="text-danger">*</span></label>
-          <select v-model.number="form.role_id" class="form-select" :class="{ 'is-invalid': errors.role_id }" :disabled="!canManageRoles">
-            <option value="">-- Pilih Role --</option>
-            <option v-for="role in allRoles" :key="role.id" :value="role.id">
-              {{ role.name }}
-            </option>
-          </select>
-          <small v-if="errors.role_id" class="text-danger d-block mt-1">{{ errors.role_id }}</small>
-          <small v-if="!canManageRoles" class="text-muted d-block mt-1">Anda tidak memiliki izin untuk mengubah role</small>
-        </div>
-      </div>
-
-      <!-- Right Column -->
-      <div class="col-lg-4">
-        <div class="card border-0 bg-light">
-          <div class="card-body">
-            <!-- Status -->
-            <div class="mb-3">
-              <label class="form-label">Status</label>
-              <div class="form-check">
-                <input
-                  id="statusAktif"
-                  v-model="form.is_active"
-                  type="checkbox"
-                  class="form-check-input"
-                  :disabled="!canManageRoles"
-                />
-                <label class="form-check-label" for="statusAktif">
-                  Aktif
-                </label>
+            <div class="w-full pt-6 border-t border-slate-100 dark:border-slate-800 text-left">
+              <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">Linked Employee</label>
+              <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                <i class="bi bi-person-badge text-slate-400 text-lg"></i>
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">
+                  {{ selectedEmployeeName || 'No employee selected' }}
+                </span>
               </div>
-              <small v-if="!form.is_active" class="text-warning d-block mt-2">
-                <i class="bi bi-exclamation-circle"></i> User non-aktif tidak dapat login
-              </small>
             </div>
+          </div>
 
-            <!-- Info Box -->
-            <div class="alert alert-info small mb-0">
-              <strong>Catatan:</strong>
-              <ul class="mb-0 mt-2 ps-3">
-                <li>Password akan di-generate otomatis untuk user baru</li>
-                <li>User dapat mengubah password di halaman profil</li>
-                <li>Username harus unik dan tidak dapat diubah</li>
-              </ul>
+          <!-- Status Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <i class="bi bi-shield-check text-indigo-500"></i> Account Status
+            </h4>
+            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+              <div class="flex flex-col">
+                <span class="text-sm font-bold text-slate-900 dark:text-white">Active</span>
+                <span class="text-xs text-slate-500">Allow system access</span>
+              </div>
+              <ToggleSwitch v-model="statusBoolean" />
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Submit Buttons -->
-    <div class="d-flex gap-2 mt-4">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-check-lg"></i> {{ isEdit ? 'Update' : 'Simpan' }}
-      </button>
-      <NuxtLink to="/user-management" class="btn btn-outline-secondary">
-        <i class="bi bi-x-lg"></i> Batal
-      </NuxtLink>
-    </div>
-  </form>
+        <!-- Right Form Area -->
+        <div class="lg:col-span-8 space-y-6">
+          <!-- Account Details -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                <i class="bi bi-person-circle text-lg"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Account Details</h3>
+                <p class="text-xs font-medium text-slate-500">Basic login information</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Username <span class="text-rose-500">*</span></label>
+                <InputText 
+                  v-model="form.username" 
+                  :class="{ 'p-invalid border border-rose-500': errors.username }"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 focus:!ring-indigo-500" 
+                  placeholder="Enter username" 
+                />
+                <Transition name="p-message-content">
+                  <small v-if="errors.username" class="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
+                    <i class="bi bi-exclamation-circle"></i> {{ errors.username }}
+                  </small>
+                </Transition>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Role & Permissions <span class="text-rose-500">*</span></label>
+                <Select 
+                  v-model="form.role_id" 
+                  :options="roles" 
+                  optionLabel="name" 
+                  optionValue="id" 
+                  placeholder="Select a role"
+                  :disabled="!canManageRoles"
+                  :class="{ 'p-invalid border border-rose-500': errors.role_id }"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700" 
+                />
+                <Transition name="p-message-content">
+                  <small v-if="errors.role_id" class="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
+                    <i class="bi bi-exclamation-circle"></i> {{ errors.role_id }}
+                  </small>
+                </Transition>
+              </div>
+
+              <div class="space-y-2 md:col-span-2">
+                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Password <span v-if="!isEdit" class="text-rose-500">*</span></label>
+                <div class="relative">
+                  <InputText 
+                    v-model="form.password" 
+                    type="password" 
+                    :class="{ 'p-invalid border border-rose-500': errors.password }"
+                    class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 focus:!ring-indigo-500 !pl-10" 
+                    :placeholder="isEdit ? 'Leave blank to keep current password' : 'Enter strong password'" 
+                  />
+                  <i class="bi bi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                </div>
+                <Transition name="p-message-content">
+                  <small v-if="errors.password" class="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
+                    <i class="bi bi-exclamation-circle"></i> {{ errors.password }}
+                  </small>
+                </Transition>
+              </div>
+            </div>
+          </div>
+
+          <!-- Employee Mapping -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                <i class="bi bi-link-45deg text-xl"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Profile Link</h3>
+                <p class="text-xs font-medium text-slate-500">Connect this account to an employee profile</p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Select Employee <span class="text-rose-500">*</span></label>
+              <AutoComplete 
+                v-model="employeeSearch" 
+                :suggestions="filteredEmployees"
+                @complete="searchEmployee"
+                @item-select="onEmployeeSelect"
+                optionLabel="name" 
+                placeholder="Search and select an employee..." 
+                class="!w-full"
+                :class="{ 'p-invalid border border-rose-500 rounded-xl': errors.employee_id }"
+                :pt="{
+                  pcInputText: {
+                    root: {
+                      class: '!w-full !rounded-xl !p-3.5 !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 !text-sm font-medium focus:!ring-indigo-500'
+                    }
+                  }
+                }"
+              >
+                <template #option="slotProps">
+                  <div class="flex items-center gap-3">
+                    <Avatar :image="slotProps.option.photo_url || 'https://ui-avatars.com/api/?name=' + slotProps.option.name" shape="circle" class="!w-6 !h-6" />
+                    <div>
+                      <div class="font-bold text-sm">{{ slotProps.option.name }}</div>
+                      <div class="text-xs text-slate-500">{{ slotProps.option.nip }}</div>
+                    </div>
+                  </div>
+                </template>
+              </AutoComplete>
+              <Transition name="p-message-content">
+                <small v-if="errors.employee_id" class="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
+                  <i class="bi bi-exclamation-circle"></i> {{ errors.employee_id }}
+                </small>
+              </Transition>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex items-center justify-end gap-4 pt-4">
+            <Button label="Cancel" severity="secondary" text class="!rounded-xl !px-6 !py-3 !font-bold" @click="$router.back()" />
+            <Button type="submit" :label="isEdit ? 'Save Changes' : 'Create User'" :loading="submitting" class="!rounded-xl !px-8 !py-3 !bg-indigo-600 hover:!bg-indigo-700 !border-none !font-bold !shadow-md transition-all" />
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { User } from '~/composables/useUsers'
-import { useRoles } from '~/composables/useRoles'
-import {
-  validatePassword,
-  validateConfirmPassword,
-  validateUsername,
-  generatePassword,
-  type PasswordValidation
-} from '~/utils/userValidation'
+import { ref, computed, onMounted, watch } from 'vue';
+import { useUsers } from '~/composables/useUsers';
 
-const props = withDefaults(
-  defineProps<{
-    initialData?: User
-    isEdit?: boolean
-    canManageRoles?: boolean
-  }>(),
-  {
-    isEdit: false,
-    canManageRoles: true
+const props = defineProps({
+  initialData: {
+    type: Object,
+    default: null
+  },
+  isEdit: {
+    type: Boolean,
+    default: false
+  },
+  canManageRoles: {
+    type: Boolean,
+    default: false
   }
-)
+});
 
-const emit = defineEmits<{
-  submit: [data: any]
-}>()
+const emit = defineEmits(['submit']);
 
-// State
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
-const showSuggestions = ref(false)
-const errors = ref<Record<string, string>>({})
-const passwordValidation = ref<PasswordValidation>({ isValid: false, errors: [], strength: 'weak' })
-const suggestedEmployees = ref<any[]>([])
-const { $axios } = useNuxtApp()
+const { fetchRoles, searchEmployees } = useUsers();
 
-// Composables
-const { getRoles } = useRoles()
-const allRoles = ref<any[]>([])
+const loading = ref(true);
+const submitting = ref(false);
 
-// Form data
-const form = ref({
-  employee_id: props.initialData?.employee_id || 0,
-  employee_name: props.initialData?.employee_name || '',
-  username: props.initialData?.username || '',
+const roles = ref<any[]>([]);
+const filteredEmployees = ref<any[]>([]);
+const employeeSearch = ref<any>(null);
+
+const form = ref<any>({
+  username: '',
   password: '',
-  confirmPassword: '',
-  role_id: props.initialData?.role_id || 0,
-  is_active: props.initialData?.is_active ?? true
-})
+  role_id: null,
+  employee_id: null,
+  is_active: true
+});
 
-// Mount
+const errors = ref<any>({
+  username: null,
+  password: null,
+  role_id: null,
+  employee_id: null
+});
+
+const statusBoolean = computed({
+  get: () => form.value.is_active,
+  set: (val) => { form.value.is_active = val; }
+});
+
+const selectedEmployeeName = computed(() => employeeSearch.value?.name || form.value.employee_name);
+const selectedEmployeePhoto = computed(() => employeeSearch.value?.photo_url);
+const selectedRoleName = computed(() => roles.value.find(r => r.id === form.value.role_id)?.name || 'Select a role');
+
+const searchEmployee = async (event: any) => {
+  if (!event.query.trim().length) {
+    filteredEmployees.value = [];
+  } else {
+    filteredEmployees.value = await searchEmployees(event.query);
+  }
+};
+
+const onEmployeeSelect = (event: any) => {
+  form.value.employee_id = event.value.id;
+  // Keep the string representation when selection is done if desired, or object.
+  // We'll leave it as the object so AutoComplete displays the name.
+};
+
 onMounted(async () => {
-  const { user: currentUser } = useAuth()
-  const rolesData = await getRoles()
-  
-  // Jika bukan Super Admin, sembunyikan role Super Admin (ID 1) dari pilihan
-  if (currentUser.value?.role?.id !== 1) {
-    allRoles.value = rolesData.filter((r: any) => r.id !== 1)
-  } else {
-    allRoles.value = rolesData
-  }
-  
-  // Generate password for new user
-  if (!props.isEdit) {
-    if (!props.canManageRoles) {
-      form.value.role_id = 3 // Default to Admin HRD
-    }
-    form.value.password = generatePassword()
-    form.value.confirmPassword = form.value.password
-    validatePasswordField()
-    validateConfirmPasswordField()
-  }
-})
+  try {
+    const rolesData = await fetchRoles();
+    roles.value = rolesData;
 
-const passwordStrength = computed(() => passwordValidation.value.strength)
-
-// Methods
-let employeeTimeout: any = null
-const filterEmployees = async () => {
-  if (form.value.employee_name.length < 2) {
-    showSuggestions.value = false
-    suggestedEmployees.value = []
-    // Reset selection if name cleared
-    if (form.value.employee_name === '') {
-        form.value.employee_id = 0
-    }
-    if (employeeTimeout) clearTimeout(employeeTimeout)
-    return
-  }
-  
-  if (employeeTimeout) clearTimeout(employeeTimeout)
-  employeeTimeout = setTimeout(async () => {
-    try {
-        const response = await $axios.get('/api/users/employee-search', {
-            params: { search: form.value.employee_name }
-        })
-        // The API returns the list directly in response.data (success wrapper handled by axios)
-        suggestedEmployees.value = response.data
-        showSuggestions.value = suggestedEmployees.value.length > 0
-    } catch (error) {
-        console.error('Error searching employees:', error)
-    }
-  }, 300)
-}
-
-const selectEmployee = (employee: any) => {
-  form.value.employee_id = employee.id
-  form.value.employee_name = employee.name
-  showSuggestions.value = false
-  
-  // Clear any error
-  delete errors.value.employee_name
-}
-
-const closeSuggestions = () => {
-  setTimeout(() => {
-    showSuggestions.value = false
-  }, 200)
-}
-
-let usernameTimeout: any = null
-const validateUsernameField = async () => {
-  const validation = validateUsername(form.value.username)
-  if (!validation.isValid) {
-    errors.value.username = validation.errors[0] || 'Username tidak valid'
-    return
-  } else {
-    delete errors.value.username
-  }
-  
-  // Debounce API check
-  if (usernameTimeout) clearTimeout(usernameTimeout)
-  if (!form.value.username || props.isEdit) return // No check and no need for edit mode
-
-  usernameTimeout = setTimeout(async () => {
-    try {
-      const response = await $axios.get('/api/users/check-username', {
-        params: { username: form.value.username }
-      })
-      if (!response.data.isAvailable) {
-        errors.value.username = 'Username sudah digunakan'
-      } else {
-        delete errors.value.username
+    if (props.isEdit && props.initialData) {
+      form.value = { 
+        username: props.initialData.username,
+        role_id: props.initialData.role_id,
+        employee_id: props.initialData.employee_id,
+        is_active: props.initialData.is_active,
+        password: ''
+      };
+      if (props.initialData.employee_id) {
+        employeeSearch.value = {
+          id: props.initialData.employee_id,
+          name: props.initialData.employee_name || 'Linked Employee',
+          photo_url: props.initialData.employee_photo_url || null
+        };
       }
-    } catch (error) {
-      console.error('Error checking username:', error)
     }
-  }, 500)
-}
-
-const validatePasswordField = () => {
-  passwordValidation.value = validatePassword(form.value.password)
-  if (!passwordValidation.value.isValid) {
-    errors.value.password = passwordValidation.value.errors[0] || 'Password tidak valid'
-  } else {
-    delete errors.value.password
+  } catch (e) {
+    console.error(e);
+  } finally {
+    loading.value = false;
   }
-}
+});
 
-const validateConfirmPasswordField = () => {
-  const validation = validateConfirmPassword(form.value.password, form.value.confirmPassword)
-  if (!validation.isValid) {
-    errors.value.confirmPassword = validation.error || 'Konfirmasi password tidak valid'
-  } else {
-    delete errors.value.confirmPassword
-  }
-}
-
-const regeneratePassword = () => {
-  form.value.password = generatePassword()
-  form.value.confirmPassword = form.value.password
-  validatePasswordField()
-  validateConfirmPasswordField()
-}
-
-const validateForm = (): boolean => {
-  errors.value = {}
-
-  if (!form.value.employee_id) {
-    errors.value.employee_name = 'Pilih pegawai dari daftar'
-  }
-
-  const usernameValidation = validateUsername(form.value.username)
-  if (!usernameValidation.isValid) {
-    errors.value.username = usernameValidation.errors[0] || 'Username tidak valid'
-  }
-
-  if (!props.isEdit && !form.value.password) {
-    errors.value.password = 'Password harus diisi'
-  } else if (form.value.password) {
-    const pwValidation = validatePassword(form.value.password)
-    if (!pwValidation.isValid) {
-      errors.value.password = pwValidation.errors[0] || 'Password tidak valid'
+watch(() => props.initialData, (newData) => {
+  if (props.isEdit && newData) {
+    form.value = { 
+      username: newData.username,
+      role_id: newData.role_id,
+      employee_id: newData.employee_id,
+      is_active: newData.is_active,
+      password: ''
+    };
+    if (newData.employee_id) {
+      employeeSearch.value = {
+        id: newData.employee_id,
+        name: newData.employee_name || 'Linked Employee',
+        photo_url: newData.employee_photo_url || null
+      };
     }
   }
+}, { deep: true });
 
-  if (form.value.password || form.value.confirmPassword) {
-    const confirmValidation = validateConfirmPassword(form.value.password, form.value.confirmPassword)
-    if (!confirmValidation.isValid) {
-      errors.value.confirmPassword = confirmValidation.error || 'Konfirmasi password tidak valid'
-    }
+const validateForm = () => {
+  let isValid = true;
+  errors.value = {
+    username: null,
+    password: null,
+    role_id: null,
+    employee_id: null
+  };
+
+  if (!form.value.username || form.value.username.trim().length < 6) {
+    errors.value.username = 'Username minimal 6 karakter';
+    isValid = false;
   }
 
   if (!form.value.role_id) {
-    errors.value.role_id = 'Role harus dipilih'
+    errors.value.role_id = 'Role is required';
+    isValid = false;
   }
 
-  return Object.keys(errors.value).length === 0
-}
+  if (!form.value.employee_id) {
+    errors.value.employee_id = 'Employee is required';
+    isValid = false;
+  }
+
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+  if (!props.isEdit) {
+    if (!form.value.password || !passwordRegex.test(form.value.password)) {
+      errors.value.password = 'Password minimal 8 karakter, 1 huruf besar, 1 angka, dan 1 karakter khusus';
+      isValid = false;
+    }
+  } else {
+    if (form.value.password && !passwordRegex.test(form.value.password)) {
+      errors.value.password = 'Password minimal 8 karakter, 1 huruf besar, 1 angka, dan 1 karakter khusus';
+      isValid = false;
+    }
+  }
+
+  return isValid;
+};
 
 const submitForm = () => {
-  if (validateForm()) {
-    emit('submit', {
-      employee_id: form.value.employee_id,
-      username: form.value.username,
-      password: form.value.password,
-      role_id: form.value.role_id,
-      is_active: form.value.is_active
-    })
-  }
-}
+  if (!validateForm()) return;
+  
+  submitting.value = true;
+  emit('submit', form.value);
+  // submitting will be handled by parent, but we can set timeout to reset just in case
+  setTimeout(() => { submitting.value = false; }, 1000);
+};
 </script>
-
-<style scoped>
-.hover-light {
-  transition: background-color 0.15s ease-in-out;
-}
-
-.hover-light:hover {
-  background-color: #f0f4f8 !important;
-}
-
-.z-3 {
-  z-index: 1000;
-}
-
-.progress {
-  border-radius: 3px;
-}
-</style>

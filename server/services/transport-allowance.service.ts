@@ -151,8 +151,8 @@ export const generateAllowances = async (
         )
     }
 
-    // Get ALL active employees (including non-Tetap, they get amount=0)
-    const employees = await repo.getAllEmployees(client)
+    // Get ALL active employees with their working days for this period
+    const employees = await repo.getAllEmployeesWithWorkingDays(client, month, year)
     if (employees.length === 0) {
         throw new HttpError(400, 'NO_EMPLOYEES', 'Tidak ada pegawai aktif yang ditemukan')
     }
@@ -162,9 +162,9 @@ export const generateAllowances = async (
     let skippedCount = 0
 
     const records: AllowanceRecord[] = employees.map(emp => {
-        // Simulate random working_days (18-25) and distance_km (1.0-30.0)
-        const workingDays = Math.floor(Math.random() * 8) + 18  // 18-25
-        const distanceKm = parseFloat((Math.random() * 29 + 1).toFixed(1))  // 1.0-30.0
+        // Use real working_days and distance_km from database
+        const workingDays = emp.working_days
+        const distanceKm = emp.distance_km
 
         const result = calculateAllowance({
             employeeType: emp.type,

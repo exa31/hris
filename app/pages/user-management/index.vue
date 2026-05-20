@@ -1,288 +1,306 @@
 <template>
-  <div class="user-management-list">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h1><i class="bi bi-people-fill text-primary"></i> Manajemen User</h1>
-          <p class="text-muted mb-0">Kelola user dan hak akses sistem</p>
+  <div class="space-y-8">
+    <!-- Header Section -->
+    <div
+      class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+    >
+      <Motion
+        :initial="{ opacity: 0, x: -20 }"
+        :animate="{ opacity: 1, x: 0 }"
+        class="space-y-2"
+      >
+        <div class="flex items-center gap-4">
+          <div
+            class="w-12 h-12 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-500/20"
+          >
+            <i class="bi bi-people-fill text-2xl"></i>
+          </div>
+          <div>
+            <h1
+              class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+            >
+              User Accounts
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 font-medium mt-1">
+              Manage system access, roles, and credentials.
+            </p>
+          </div>
         </div>
-        <NuxtLink v-if="hasPermission('users', 'create')" to="/user-management/new" class="btn btn-primary">
-          <i class="bi bi-plus-lg"></i> Tambah User
+      </Motion>
+
+      <Motion
+        :initial="{ opacity: 0, x: 20 }"
+        :animate="{ opacity: 1, x: 0 }"
+        class="flex flex-col sm:flex-row items-center gap-4"
+      >
+        <div class="relative group w-full sm:w-auto">
+          <i
+            class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+          ></i>
+          <InputText
+            v-model="searchQuery"
+            placeholder="Search users..."
+            class="!w-full sm:!w-[280px] !pl-11 !py-3 !bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-700 !rounded-xl shadow-sm focus:!ring-2 focus:!ring-indigo-500/20 transition-all text-sm font-medium"
+          />
+        </div>
+        <NuxtLink
+          v-if="hasPermission('users', 'create')"
+          to="/user-management/new"
+          class="w-full sm:w-auto"
+        >
+          <Button
+            icon="bi bi-plus-lg"
+            label="Add User"
+            class="!w-full sm:!w-auto !rounded-xl !px-6 !py-3 !bg-indigo-600 hover:!bg-indigo-700 !border-none !font-bold !text-sm !shadow-lg shadow-indigo-200 dark:shadow-none transition-all"
+          />
         </NuxtLink>
-      </div>
+      </Motion>
     </div>
 
-    <!-- Filters & Search -->
-    <div class="row mb-3 g-2">
-      <div class="col-md-8">
-        <input
-          v-model="searchQuery"
-          type="text"
-          class="form-control"
-          placeholder="Cari berdasarkan username, nama, atau role..."
-        />
-      </div>
-      <div class="col-md-4">
-        <select v-model="filterStatus" class="form-select">
-          <option :value="null">Semua Status</option>
-          <option :value="true">Aktif</option>
-          <option :value="false">Non-Aktif</option>
-        </select>
-      </div>
-    </div>
+    <!-- Data Table Container -->
+    <Motion
+      :initial="{ opacity: 0, y: 20 }"
+      :animate="{ opacity: 1, y: 0 }"
+      :transition="{ delay: 0.2 }"
+    >
+      <div
+        class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"
+      >
+        <DataTable
+          :value="users"
+          class="p-datatable-premium"
+          :loading="loading"
+          :rows="itemsPerPage"
+          scrollable
+        >
+          <template #empty>
+            <div
+              class="flex flex-col items-center justify-center py-20 px-6 text-center"
+            >
+              <div
+                class="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 shadow-inner"
+              >
+                <i class="bi bi-search text-3xl text-slate-400"></i>
+              </div>
+              <h3
+                class="text-xl font-bold text-slate-800 dark:text-white mb-2 tracking-tight"
+              >
+                No Users Found
+              </h3>
+              <p
+                class="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-6"
+              >
+                We couldn't find any user accounts matching your current search
+                criteria.
+              </p>
+              <Button
+                v-if="searchQuery"
+                label="Clear Search"
+                icon="bi bi-x-lg"
+                severity="secondary"
+                class="!rounded-xl !px-6 !py-2.5 !font-bold"
+                @click="searchQuery = ''"
+              />
+            </div>
+          </template>
 
-    <!-- Stats -->
-    <div class="row g-2 mb-3">
-      <div class="col-md-4">
-        <div class="card border-0 bg-light">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <p class="text-muted mb-0 small">Total User</p>
-                <h5 class="mb-0">{{ users.length }}</h5>
-              </div>
-              <i class="bi bi-people text-primary" style="font-size: 2rem"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 bg-light">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <p class="text-muted mb-0 small">User Aktif</p>
-                <h5 class="mb-0">{{ users.filter(u => u.is_active).length }}</h5>
-              </div>
-              <i class="bi bi-check-circle text-success" style="font-size: 2rem"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 bg-light">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <p class="text-muted mb-0 small">User Non-Aktif</p>
-                <h5 class="mb-0">{{ users.filter(u => !u.is_active).length }}</h5>
-              </div>
-              <i class="bi bi-x-circle text-danger" style="font-size: 2rem"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Users Table -->
-    <div class="card border-0 shadow-sm">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th style="width: 5%">#</th>
-              <th>Username</th>
-              <th>Nama Pegawai</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th v-if="hasPermission('users', 'update') || hasPermission('users', 'update_own') || hasPermission('users', 'delete')" style="width: 10%">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Loading State -->
-            <tr v-if="loading">
-              <td colspan="6" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
+          <Column header="User Profile" class="min-w-[250px]">
+            <template #body="slotProps">
+              <div class="flex items-center gap-4 py-2">
+                <Avatar
+                  :image="
+                    slotProps.data.employee?.photo_url ||
+                    'https://ui-avatars.com/api/?name=' +
+                      (slotProps.data.username || 'U') +
+                      '&background=6366f1&color=fff'
+                  "
+                  shape="circle"
+                  class="!w-12 !h-12 border-2 border-slate-100 dark:border-slate-700 shadow-sm"
+                />
+                <div class="flex flex-col">
+                  <span
+                    class="text-sm font-bold text-slate-900 dark:text-white leading-tight mb-1"
+                    >{{ slotProps.data.username }}</span
+                  >
+                  <span
+                    class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+                  >
+                    <i class="bi bi-person-badge text-slate-400"></i>
+                    {{ slotProps.data.employee_name || "No linked employee" }}
+                  </span>
                 </div>
-                <p class="mt-2 mb-0 text-muted">Memuat data user...</p>
-              </td>
-            </tr>
+              </div>
+            </template>
+          </Column>
 
-            <!-- Empty State -->
-            <tr v-else-if="paginatedUsers.length === 0">
-              <td colspan="6" class="text-center py-5 text-muted">
-                <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3"></i>
-                <p class="mt-3 mb-0 fw-semibold">Tidak ada data user</p>
-                <small>Coba gunakan kata kunci pencarian lain</small>
-              </td>
-            </tr>
+          <Column header="Role & Access" class="min-w-[150px]">
+            <template #body="slotProps">
+              <div class="flex items-center gap-2">
+                <Tag
+                  :value="slotProps.data.role_name || 'Guest'"
+                  class="!rounded-lg !px-3 !py-1.5 !text-xs !font-bold"
+                  :class="
+                    slotProps.data.role_id === 1
+                      ? '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !border !border-indigo-100 dark:!border-indigo-500/20'
+                      : '!bg-slate-100 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-300'
+                  "
+                />
+              </div>
+            </template>
+          </Column>
 
-            <!-- Data Rows -->
-            <tr v-else v-for="(user, idx) in paginatedUsers" :key="user.id">
-              <td class="text-muted small">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
-              <td>
-                <div class="d-flex align-items-center">
-                  <div class="p-2 bg-light rounded text-primary me-2">
-                    <i class="bi bi-person-fill fs-5"></i>
-                  </div>
-                  <div>
-                    <strong>{{ user.username }}</strong>
-                    <div class="small text-muted">ID: #{{ user.id }}</div>
-                  </div>
-                </div>
-              </td>
-              <td>{{ user.employee_name }}</td>
-              <td>
-                <span class="badge bg-info text-dark">{{ user.role_name }}</span>
-              </td>
-              <td>
+          <Column header="Status" class="min-w-[120px]">
+            <template #body="slotProps">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-2 h-2 rounded-full"
+                  :class="
+                    slotProps.data.is_active ? 'bg-emerald-500' : 'bg-rose-500'
+                  "
+                ></div>
                 <span
-                  :class="{
-                    'badge bg-success': user.is_active,
-                    'badge bg-secondary': !user.is_active
-                  }"
+                  class="text-xs font-bold"
+                  :class="
+                    slotProps.data.is_active
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : 'text-rose-700 dark:text-rose-400'
+                  "
                 >
-                  {{ user.is_active ? 'Aktif' : 'Non-Aktif' }}
+                  {{ slotProps.data.is_active ? "Active" : "Inactive" }}
                 </span>
-              </td>
-              <td v-if="hasPermission('users', 'update') || hasPermission('users', 'update_own') || hasPermission('users', 'delete')">
-                <div class="btn-group btn-group-sm">
-                  <NuxtLink v-if="hasPermission('users', 'update') || (hasPermission('users', 'update_own') && user.id === currentUser?.id)" :to="`/user-management/${user.id}`" class="btn btn-outline-primary" title="Edit User">
-                    <i class="bi bi-pencil"></i>
-                  </NuxtLink>
-                  <div class="d-inline-block" :title="user.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' ? 'Role Super Admin tidak dapat dihapus' : 'Hapus User'">
-                    <button 
-                      v-if="hasPermission('users', 'delete')" 
-                      type="button" 
-                      class="btn btn-outline-danger" 
-                      @click="confirmDelete(user.id)" 
-                      :disabled="user.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin'"
-                      :class="{ 'opacity-50 cursor-not-allowed': user.role_name?.toLowerCase().replace(/\s/g, '') === 'superadmin' }"
-                    >
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </template>
+          </Column>
 
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="card-footer bg-light d-flex justify-content-between align-items-center">
-        <small class="text-muted">
-          Menampilkan {{ (currentPage - 1) * itemsPerPage + 1 }} -
-          {{ Math.min(currentPage * itemsPerPage, totalCount) }} dari {{ totalCount }}
-        </small>
-        <nav>
-          <ul class="pagination pagination-sm mb-0">
-            <li :class="{ 'page-item disabled': currentPage === 1 }">
-              <button class="page-link" @click="currentPage--" :disabled="currentPage === 1">
-                Sebelumnya
-              </button>
-            </li>
-            <li v-for="page in totalPages" :key="page" :class="{ 'page-item active': currentPage === page }">
-              <button class="page-link" @click="currentPage = page">{{ page }}</button>
-            </li>
-            <li :class="{ 'page-item disabled': currentPage === totalPages }">
-              <button class="page-link" @click="currentPage++" :disabled="currentPage === totalPages">
-                Berikutnya
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </div>
+          <Column header="Actions" class="!text-right min-w-[100px]">
+            <template #body="slotProps">
+              <div class="flex items-center justify-end gap-2 pr-2">
+                <NuxtLink
+                  v-if="hasPermission('users', 'update')"
+                  :to="`/user-management/${slotProps.data.id}`"
+                >
+                  <Button
+                    icon="bi bi-pencil-square"
+                    severity="secondary"
+                    text
+                    rounded
+                    class="!w-10 !h-10 !bg-slate-50 dark:!bg-slate-800 !text-slate-500 dark:!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-indigo-500/20 hover:!text-indigo-600 dark:hover:!text-indigo-400 transition-all"
+                    v-tooltip.top="'Edit Account'"
+                  />
+                </NuxtLink>
+                <Button
+                  v-if="hasPermission('users', 'delete')"
+                  icon="bi bi-trash3-fill"
+                  severity="danger"
+                  text
+                  rounded
+                  class="!w-10 !h-10 !bg-rose-50 dark:!bg-rose-500/10 !text-rose-500 hover:!bg-rose-600 hover:!text-white transition-all"
+                  @click="confirmDelete(slotProps.data)"
+                  v-tooltip.top="'Delete Account'"
+                />
+              </div>
+            </template>
+          </Column>
 
-    <!-- Confirm Modal -->
-    <ConfirmModal
-      :is-open="modalConfig.isOpen"
-      :title="modalConfig.title"
-      :message="modalConfig.message"
-      :type="modalConfig.type"
-      @close="modalConfig.isOpen = false"
-      @confirm="handleConfirm"
-    />
+          <template #footer>
+            <div
+              class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 gap-4"
+            >
+              <div
+                class="text-sm font-medium text-slate-500 dark:text-slate-400"
+              >
+                Showing
+                <span class="font-bold text-slate-900 dark:text-white">{{
+                  users.length
+                }}</span>
+                of
+                <span class="font-bold text-slate-900 dark:text-white">{{
+                  totalUsers
+                }}</span>
+                users
+              </div>
+              <Paginator
+                :rows="itemsPerPage"
+                :totalRecords="totalUsers"
+                template="PrevPageLink PageLinks NextPageLink"
+                class="!bg-transparent !p-0 custom-paginator"
+                @page="onPageChange"
+              />
+            </div>
+          </template>
+        </DataTable>
+      </div>
+    </Motion>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
-import { useUsers } from '~/composables/useUsers'
-import { useAuth } from '~/composables/useAuth'
+import { ref, onMounted } from "vue";
+import { useUsers } from "~/composables/useUsers";
+import { useAuth } from "~/composables/useAuth";
 
-const { hasPermission, user: currentUser } = useAuth()
+import { useConfirm } from "primevue/useconfirm";
 
-const { 
-  users, 
+definePageMeta({ layout: "default" });
+
+const {
+  users,
+  totalUsers,
   loading,
-  totalCount,
-  getUsers, 
-  deleteUser, 
-  searchQuery, 
-  filterStatus, 
-  paginatedUsers, 
-  currentPage, 
-  totalPages, 
-  itemsPerPage 
-} = useUsers()
+  page,
+  searchQuery,
+  itemsPerPage,
+  fetchUsers,
+  deleteUser,
+} = useUsers();
+const { hasPermission } = useAuth();
+const confirm = useConfirm();
 
-// Modal State
-const modalConfig = reactive({
-  isOpen: false,
-  title: '',
-  message: '',
-  type: 'primary' as 'primary' | 'danger' | 'warning' | 'success',
-  targetId: null as number | null
-})
+onMounted(() => fetchUsers());
 
-onMounted(async () => {
-  await getUsers()
-})
+const onPageChange = (event: any) => {
+  page.value = event.page + 1;
+};
 
-const confirmDelete = (userId: number) => {
-  modalConfig.title = 'Hapus User'
-  modalConfig.message = 'Apakah Anda yakin ingin menghapus user ini secara permanen?'
-  modalConfig.type = 'danger'
-  modalConfig.targetId = userId
-  modalConfig.isOpen = true
-}
-
-const handleConfirm = async () => {
-  if (modalConfig.targetId) {
-    try {
-      await deleteUser(modalConfig.targetId)
-      modalConfig.isOpen = false
-      modalConfig.targetId = null
-    } catch (error) {
-      modalConfig.title = 'Error'
-      modalConfig.message = 'Gagal menghapus user.'
-      modalConfig.type = 'danger'
-      modalConfig.targetId = null
-      // Keep it open to show error or close if needed? Usually better as an alert modal
-    }
-  }
-}
+const confirmDelete = (user: any) => {
+  confirm.require({
+    message: `Are you sure you want to permanently delete the account for "${user.username}"? This action cannot be undone.`,
+    header: "Delete User Account",
+    icon: "bi bi-exclamation-triangle text-rose-500 text-2xl",
+    rejectProps: {
+      label: "Cancel",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Delete Account",
+      severity: "danger",
+    },
+    accept: async () => {
+      await deleteUser(user.id);
+      fetchUsers();
+    },
+  });
+};
 </script>
 
-<style scoped>
-.user-management-list {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  padding-top: 1rem;
+<style>
+.p-datatable-premium .p-datatable-thead > tr > th {
+  @apply !bg-slate-50 dark:!bg-slate-800/80 !text-slate-500 dark:!text-slate-400 !text-xs !font-bold !uppercase !tracking-wider !px-6 !py-4 !border-b !border-slate-200 dark:!border-slate-700;
+}
+.p-datatable-premium .p-datatable-tbody > tr > td {
+  @apply !px-6 !py-4 !border-b !border-slate-100 dark:!border-slate-800/60 !bg-white dark:!bg-slate-900 transition-colors duration-200;
+}
+.p-datatable-premium .p-datatable-tbody > tr:hover > td {
+  @apply !bg-slate-50/50 dark:!bg-slate-800/30;
 }
 
-.page-header {
-  margin-bottom: 2rem;
+.custom-paginator .p-paginator-page,
+.custom-paginator .p-paginator-next,
+.custom-paginator .p-paginator-prev {
+  @apply !text-slate-600 dark:!text-slate-400 !bg-transparent border-none hover:!bg-slate-100 dark:hover:!bg-slate-800 !rounded-lg !min-w-[32px] !h-8 !m-1 transition-colors;
 }
-
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.page-header p {
-  font-size: 0.875rem;
-  margin-bottom: 0;
-}
-
-.table-hover tbody tr:hover {
-  background-color: #f8f9fa;
+.custom-paginator .p-highlight {
+  @apply !bg-indigo-600 !text-white hover:!bg-indigo-700;
 }
 </style>

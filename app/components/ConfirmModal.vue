@@ -1,114 +1,131 @@
 <template>
-  <div>
-    <!-- Modal -->
-    <div
-      class="modal fade"
-      :class="{ show: isOpen }"
-      :style="{ display: isOpen ? 'block' : 'none' }"
-      tabindex="-1"
-      role="dialog"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0 shadow">
-          <div class="modal-header border-0 pb-0">
-            <h5 class="modal-title fw-bold">{{ title }}</h5>
-            <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body py-4">
-            <div class="d-flex align-items-start">
-              <div v-if="type === 'danger'" class="bg-danger-subtle p-3 rounded-circle me-3">
-                <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
-              </div>
-              <div v-else-if="type === 'warning'" class="bg-warning-subtle p-3 rounded-circle me-3">
-                <i class="bi bi-exclamation-circle text-warning fs-4"></i>
-              </div>
-              <div v-else-if="type === 'success'" class="bg-success-subtle p-3 rounded-circle me-3">
-                <i class="bi bi-check-circle text-success fs-4"></i>
-              </div>
-              <div v-else class="bg-primary-subtle p-3 rounded-circle me-3">
-                <i class="bi bi-info-circle text-primary fs-4"></i>
-              </div>
-              <div>
-                <p class="mb-0 text-secondary">{{ message }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer border-0 pt-0">
-            <button type="button" class="btn btn-light px-4" @click="closeModal">
-              {{ cancelText }}
-            </button>
-            <button 
-                v-if="isConfirm"
-                type="button" 
-                class="btn px-4" 
-                :class="confirmBtnClass"
-                @click="onConfirm"
-            >
-              {{ confirmText }}
-            </button>
-          </div>
-        </div>
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :header="title"
+    :style="{ width: '450px' }"
+    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+    class="confirm-modal-premium"
+    :closable="true"
+    @hide="closeModal"
+  >
+    <div class="flex items-start gap-5 pt-4">
+      <div
+        :class="[
+          'w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-2xl text-2xl shadow-sm transition-all duration-500',
+          type === 'danger'
+            ? 'bg-rose-50 text-rose-500'
+            : type === 'warning'
+              ? 'bg-amber-50 text-amber-500'
+              : type === 'success'
+                ? 'bg-emerald-50 text-emerald-500'
+                : 'bg-indigo-50 text-indigo-500',
+        ]"
+      >
+        <i
+          :class="[
+            'bi',
+            type === 'danger'
+              ? 'bi-exclamation-triangle'
+              : type === 'warning'
+                ? 'bi-exclamation-circle'
+                : type === 'success'
+                  ? 'bi-check-circle'
+                  : 'bi-info-circle',
+          ]"
+        ></i>
+      </div>
+      <div class="space-y-2">
+        <p class="text-slate-600 font-medium leading-relaxed">{{ message }}</p>
+        <p
+          v-if="type === 'danger'"
+          class="text-[10px] font-black text-rose-400 uppercase tracking-widest"
+        >
+          Tindakan ini tidak dapat dibatalkan
+        </p>
       </div>
     </div>
-    
-    <!-- Backdrop -->
-    <div v-if="isOpen" class="modal-backdrop fade show"></div>
-  </div>
+
+    <template #footer>
+      <div class="flex items-center justify-end gap-3 pt-4">
+        <Button
+          :label="cancelText"
+          severity="secondary"
+          text
+          class="!rounded-xl !px-6 !font-bold !text-slate-400"
+          @click="closeModal"
+        />
+        <Button
+          v-if="isConfirm"
+          :label="confirmText"
+          :severity="
+            type === 'danger'
+              ? 'danger'
+              : type === 'warning'
+                ? 'warn'
+                : type === 'success'
+                  ? 'success'
+                  : 'primary'
+          "
+          class="!rounded-xl !px-8 !font-black !uppercase !text-[11px] !tracking-widest shadow-lg shadow-indigo-100"
+          @click="onConfirm"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, watch } from "vue";
 
 interface Props {
-  isOpen: boolean
-  title?: string
-  message: string
-  type?: 'primary' | 'danger' | 'warning' | 'success'
-  confirmText?: string
-  cancelText?: string
-  isConfirm?: boolean
+  isOpen: boolean;
+  title?: string;
+  message: string;
+  type?: "primary" | "danger" | "warning" | "success";
+  confirmText?: string;
+  cancelText?: string;
+  isConfirm?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isOpen: false,
-  title: 'Konfirmasi',
-  type: 'primary',
-  confirmText: 'Ya, Lanjutkan',
-  cancelText: 'Batal',
-  isConfirm: true
-})
+  title: "Konfirmasi Sistem",
+  type: "primary",
+  confirmText: "Ya, Lanjutkan",
+  cancelText: "Batalkan",
+  isConfirm: true,
+});
 
 const emit = defineEmits<{
-  (e: 'close'): void
-  (e: 'confirm'): void
-}>()
+  (e: "close"): void;
+  (e: "confirm"): void;
+}>();
 
-const confirmBtnClass = computed(() => {
-  switch (props.type) {
-    case 'danger': return 'btn-danger'
-    case 'warning': return 'btn-warning text-white'
-    case 'success': return 'btn-success'
-    default: return 'btn-primary'
-  }
-})
+const visible = ref(props.isOpen);
 
-const closeModal = () => emit('close')
-const onConfirm = () => emit('confirm')
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    visible.value = newVal;
+  },
+);
+
+const closeModal = () => emit("close");
+const onConfirm = () => emit("confirm");
 </script>
 
-<style scoped>
-.modal {
-  z-index: 2200;
+<style>
+.confirm-modal-premium .p-dialog-header {
+  @apply !pt-8 !px-8 !pb-0 !border-none;
 }
-.modal-backdrop {
-  z-index: 2100;
+.confirm-modal-premium .p-dialog-header-title {
+  @apply !text-sm !font-black !uppercase !tracking-[0.2em] !text-slate-400;
 }
-.modal-content {
-  border-radius: 12px;
+.confirm-modal-premium .p-dialog-content {
+  @apply !px-8 !pb-8 !pt-2;
 }
-.bg-danger-subtle { background-color: #fee2e2; }
-.bg-warning-subtle { background-color: #fef3c7; }
-.bg-success-subtle { background-color: #d1fae5; }
-.bg-primary-subtle { background-color: #dbeafe; }
+.confirm-modal-premium .p-dialog-footer {
+  @apply !px-8 !pb-8 !pt-0 !border-none;
+}
 </style>

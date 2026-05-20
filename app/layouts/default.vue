@@ -1,191 +1,198 @@
 <template>
-  <div class="app-layout">
-
-    <!-- Sidebar -->
-    <aside class="sidebar" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
-      <div class="sidebar-header">
-        <div class="logo-section">
-          <i class="bi bi-building"></i>
-          <span class="logo-text">JMC</span>
-        </div>
-        <!-- Toggle button for Desktop -->
-        <button class="btn-collapse d-none d-md-flex" @click="sidebarCollapsed = !sidebarCollapsed">
-          <i class="bi bi-chevron-left"></i>
-        </button>
-        <!-- Close button for Mobile -->
-        <button class="btn-close-mobile d-flex d-md-none" @click="sidebarCollapsed = true">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-
-        <nav class="sidebar-nav">
-        <div class="nav-section">
-          <div class="nav-section-title">MENU UTAMA</div>
-          <NuxtLink 
-            to="/dashboard" 
-            class="nav-item" 
-            :class="{ active: isActive('/dashboard') }"
+  <div :class="{ 'dark': isDarkMode }" class="min-h-screen transition-colors duration-500">
+    <div class="min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans selection:bg-indigo-100 dark:selection:bg-indigo-500/30 selection:text-indigo-700 dark:selection:text-indigo-200">
+      
+      <!-- Sidebar -->
+      <Motion
+        :initial="{ x: -280 }"
+        :animate="{ x: sidebarCollapsed ? (isMobile ? -280 : 0) : 0 }"
+        :transition="{ type: 'spring', damping: 25, stiffness: 120 }"
+        class="fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-none"
+        :class="[sidebarCollapsed && !isMobile ? 'w-20' : 'w-[280px]', isMobile && sidebarCollapsed ? '-translate-x-full' : 'translate-x-0']"
+      >
+        <!-- Sidebar Header -->
+        <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-br from-indigo-50/50 dark:from-slate-900 to-white dark:to-slate-900">
+          <div class="flex items-center gap-3 overflow-hidden">
+            <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+              <i class="bi bi-building text-xl"></i>
+            </div>
+            <span v-if="!sidebarCollapsed || isMobile" class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 truncate tracking-tight">
+              JMC HRIS
+            </span>
+          </div>
+          
+          <button 
+            v-if="!isMobile"
+            @click="sidebarCollapsed = !sidebarCollapsed"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all duration-200"
           >
-            <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
-          </NuxtLink>
-          <NuxtLink 
-            v-if="hasPermission('employees', 'read')"
-            to="/employees" 
-            class="nav-item" 
-            :class="{ active: isActive('/employees') }"
-          >
-            <i class="bi bi-people"></i>
-            <span>Data Pegawai</span>
-          </NuxtLink>
-        </div>
-
-        <!-- Menu Manajemen Data -->
-        <div class="nav-section" v-if="hasPermission('transport', 'read')">
-          <div class="nav-section-title">MANAJEMEN DATA</div>
-          <NuxtLink 
-            to="/transport-allowance" 
-            class="nav-item" 
-            :class="{ active: isActive('/transport-allowance') }"
-          >
-            <i class="bi bi-truck"></i>
-            <span>Tunjangan Transport</span>
-          </NuxtLink>
-        </div>
-
-        <!-- Menu Administrasi -->
-        <div class="nav-section" v-if="hasPermission('users', 'read') || hasPermission('roles', 'read') || hasPermission('logs', 'read') || hasPermission('transport_setting', 'read')">
-          <div class="nav-section-title">ADMINISTRASI</div>
-          <NuxtLink 
-            v-if="hasPermission('users', 'read')"
-            to="/user-management" 
-            class="nav-item" 
-            :class="{ active: isActive('/user-management') }"
-          >
-            <i class="bi bi-person-gear"></i>
-            <span>Manajemen User</span>
-          </NuxtLink>
-          <NuxtLink 
-            v-if="hasPermission('roles', 'read')"
-            to="/roles" 
-            class="nav-item" 
-            :class="{ active: isActive('/roles') }"
-          >
-            <i class="bi bi-shield-lock"></i>
-            <span>Kelola Role</span>
-          </NuxtLink>
-          <NuxtLink 
-            v-if="hasPermission('logs', 'read')"
-            to="/activity-logs" 
-            class="nav-item" 
-            :class="{ active: isActive('/activity-logs') }"
-          >
-            <i class="bi bi-clock-history"></i>
-            <span>Log Aktivitas</span>
-          </NuxtLink>
-          <NuxtLink 
-            v-if="hasPermission('users', 'read') || hasPermission('employees', 'read')"
-            to="/recovery" 
-            class="nav-item" 
-            :class="{ active: isActive('/recovery') }"
-          >
-            <i class="bi bi-recycle"></i>
-            <span>Pemulihan Data</span>
-          </NuxtLink>
-          <NuxtLink 
-            v-if="hasPermission('transport_setting', 'read')"
-            to="/settings/transport-settings" 
-            class="nav-item" 
-            :class="{ active: isActive('/settings/transport-settings') }"
-          >
-            <i class="bi bi-gear"></i>
-            <span>Pengaturan Tunjangan</span>
-          </NuxtLink>
-        </div>
-      </nav>
-
-      <div class="sidebar-footer">
-        <button class="nav-item logout-btn" @click="handleLogout">
-          <i class="bi bi-box-arrow-right"></i>
-          <span>Logout</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Sidebar Overlay for Mobile (Placed after for CSS sibling selector) -->
-    <div class="sidebar-overlay" :class="{ 'show': !sidebarCollapsed }" @click="sidebarCollapsed = true"></div>
-
-    <!-- Main Content -->
-    <div class="main-container">
-      <!-- Header -->
-      <header class="app-header main-header">
-        <div class="header-left">
-          <button class="btn-menu btn-sidebar-toggle" @click="sidebarCollapsed = false" aria-label="Buka menu">
-            <i class="bi bi-list"></i>
+            <i class="bi" :class="sidebarCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
           </button>
         </div>
 
-        <div class="header-right">
-
-          <!-- User Profile Pill -->
-          <div class="profile-pill">
-            <div class="profile-details text-end d-none d-md-block">
-              <div class="profile-name">{{ userName }}</div>
-              <div class="profile-role-badge">
-                <span class="dot"></span>
-                {{ userRole }}
-              </div>
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-8 px-4 space-y-10 custom-scrollbar">
+          <!-- Main Menu -->
+          <div class="space-y-2">
+            <div v-if="!sidebarCollapsed || isMobile" class="px-4 mb-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">
+              Primary
             </div>
-            <div class="avatar-container">
-              <img
-                v-if="userPhotoUrl"
-                :src="userPhotoUrl"
-                alt="User avatar"
-                class="avatar-image"
-              />
-              <div v-else class="avatar-circle">
-                {{ userInitial }}
+            
+            <NuxtLink 
+              v-for="item in mainMenu" 
+              :key="item.to"
+              v-show="!item.permission || hasPermission(item.permission.module, item.permission.action)"
+              :to="item.to" 
+              class="group flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden"
+              :class="[isActive(item.to) ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400']"
+            >
+              <i class="text-xl transition-transform duration-300 group-hover:scale-110" :class="[item.icon, isActive(item.to) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-500']"></i>
+              <span v-if="!sidebarCollapsed || isMobile" class="text-sm font-bold truncate">{{ item.label }}</span>
+              <div v-if="isActive(item.to)" class="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 dark:bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(79,70,229,0.5)]"></div>
+            </NuxtLink>
+          </div>
+
+          <!-- Management Menu -->
+          <div class="space-y-2" v-if="hasAnyPermission(['transport', 'users', 'roles', 'logs', 'transport_setting'])">
+            <div v-if="!sidebarCollapsed || isMobile" class="px-4 mb-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">
+              Governance
+            </div>
+            
+            <NuxtLink 
+              v-for="item in managementMenu" 
+              :key="item.to"
+              v-show="!item.permission || hasPermission(item.permission.module, item.permission.action)"
+              :to="item.to" 
+              class="group flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden"
+              :class="[isActive(item.to) ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400']"
+            >
+              <i class="text-xl transition-transform duration-300 group-hover:scale-110" :class="[item.icon, isActive(item.to) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-500']"></i>
+              <span v-if="!sidebarCollapsed || isMobile" class="text-sm font-bold truncate">{{ item.label }}</span>
+              <div v-if="isActive(item.to)" class="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 dark:bg-indigo-500 rounded-r-full"></div>
+            </NuxtLink>
+          </div>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="p-6 border-t border-slate-100 dark:border-slate-800">
+          <button 
+            @click="handleLogout"
+            class="flex items-center gap-4 w-full px-4 py-3 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all duration-300 group"
+          >
+            <i class="bi bi-box-arrow-right text-xl transition-transform group-hover:translate-x-1"></i>
+            <span v-if="!sidebarCollapsed || isMobile" class="font-black text-xs uppercase tracking-widest">Logout</span>
+          </button>
+        </div>
+      </Motion>
+
+      <!-- Overlay -->
+      <div 
+        v-if="isMobile && !sidebarCollapsed" 
+        @click="sidebarCollapsed = true"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 transition-opacity duration-300"
+      ></div>
+
+      <!-- Main Container -->
+      <div 
+        class="transition-all duration-500 ease-in-out"
+        :class="[sidebarCollapsed || isMobile ? 'ml-0' : 'ml-[280px]', (sidebarCollapsed && !isMobile ? 'ml-20' : (!isMobile ? 'ml-[280px]' : 'ml-0'))]"
+      >
+        <!-- Header -->
+        <header class="sticky top-0 z-30 h-24 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between px-6 md:px-12">
+          <div class="flex items-center gap-6">
+            <button 
+              v-if="isMobile"
+              @click="sidebarCollapsed = false"
+              class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm"
+            >
+              <i class="bi bi-list text-xl"></i>
+            </button>
+            
+            <div class="hidden md:block space-y-1">
+              <h2 class="text-lg font-black text-slate-800 dark:text-white tracking-tight leading-none">{{ pageTitle }}</h2>
+              <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">System Health: Optimal</p>
               </div>
-              <div class="avatar-status online"></div>
             </div>
           </div>
-        </div>
-      </header>
 
-      <!-- Page Content -->
-      <main class="app-content">
-        <slot />
-      </main>
+          <div class="flex items-center gap-4 md:gap-8">
+            <!-- Search & Dark Mode & Notification -->
+            <div class="flex items-center gap-2 p-1 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200/50 dark:border-slate-800/50">
+              <button 
+                @click="toggleDarkMode"
+                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm group"
+                v-tooltip.bottom="isDarkMode ? 'Light Mode' : 'Dark Mode'"
+              >
+                <i class="bi transition-transform duration-500 group-hover:rotate-[360deg]" :class="isDarkMode ? 'bi-sun-fill' : 'bi-moon-stars-fill'"></i>
+              </button>
+              <div class="w-px h-6 bg-slate-200 dark:bg-slate-800"></div>
+              <button class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm">
+                <i class="bi bi-bell text-lg"></i>
+                <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>
+              </button>
+            </div>
+
+            <div class="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+
+            <!-- User Profile -->
+            <div class="flex items-center gap-4 cursor-pointer group">
+              <div class="hidden md:block text-right">
+                <div class="text-sm font-black text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ userName }}</div>
+                <div class="text-[9px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mt-0.5">{{ userRole }}</div>
+              </div>
+              
+              <Avatar 
+                :image="userPhotoUrl" 
+                :label="userInitial"
+                shape="circle" 
+                size="large"
+                class="!w-10 !h-10 border-2 border-white dark:border-slate-800 shadow-lg ring-2 ring-indigo-50 dark:ring-indigo-900 ring-offset-2 dark:ring-offset-slate-950 transition-transform group-hover:scale-110" 
+              />
+            </div>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <main class="p-6 md:p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-96px)]">
+          <Motion
+            :initial="{ opacity: 0, y: 30 }"
+            :animate="{ opacity: 1, y: 0 }"
+            :transition="{ duration: 0.6, ease: 'easeOut' }"
+          >
+            <slot />
+          </Motion>
+        </main>
+      </div>
+
+      <!-- Global Modals -->
+      <GlobalNotificationModal />
     </div>
-    <!-- Global Auth Modal -->
-    <ConfirmModal
-      :is-open="authModal.isOpen"
-      :title="authModal.title"
-      :message="authModal.message"
-      :type="authModal.type"
-      :is-confirm="false"
-      cancel-text="Tutup"
-      @close="handleModalConfirm"
-      @confirm="handleModalConfirm"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-
-useHead({
-  titleTemplate: (titleChunk) => {
-    return 'JMC System - HRIS';
-  },
-});
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const sidebarCollapsed = ref(false);
-const isSearchActive = ref(false);
+const isMobile = ref(false);
+const isDarkMode = ref(false);
 
-const { user, hasPermission, authModal, handleModalConfirm } = useAuth();
+const { user, hasPermission } = useAuth();
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light');
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+};
 
 const userName = computed(() => user.value?.employee?.name || 'User');
 const userRole = computed(() => user.value?.role?.name || '');
@@ -195,790 +202,119 @@ const userInitial = computed(() => {
   return name.charAt(0).toUpperCase();
 });
 
+const pageTitle = computed(() => {
+  const path = route.path;
+  if (path === '/dashboard') return 'Intelligence Center';
+  if (path.includes('/employees')) return 'Talent Directory';
+  if (path.includes('/attendance')) return 'Presence Flow';
+  if (path.includes('/leaves')) return 'Leave Governance';
+  if (path.includes('/announcements')) return 'Broadcasting';
+  if (path.includes('/user-management')) return 'Identity Hub';
+  if (path.includes('/roles')) return 'Access Permissions';
+  if (path.includes('/activity-logs')) return 'Security Audit';
+  if (path.includes('/transport-allowance')) return 'Financial Logistics';
+  if (path.includes('/recovery')) return 'Data Recovery';
+  if (path.includes('/settings')) return 'System Config';
+  return 'JMC HRIS';
+});
+
 const isActive = (path: string) => {
-  return router.currentRoute.value.path.startsWith(path);
+  if (path === '/dashboard') return route.path === '/dashboard';
+  return route.path.startsWith(path);
+};
+
+const hasAnyPermission = (modules: string[]) => {
+  return modules.some(m => hasPermission(m, 'read'));
 };
 
 const handleLogout = async () => {
   const { logout } = useAuth();
   await logout();
 };
+
+const mainMenu = [
+  { label: 'Intelligence', to: '/dashboard', icon: 'bi bi-grid-fill' },
+  { label: 'Talent Directory', to: '/employees', icon: 'bi bi-people-fill', permission: { module: 'employees', action: 'read' } },
+  { label: 'Presence Flow', to: '/attendance', icon: 'bi bi-calendar-check-fill', permission: { module: 'attendance', action: 'read' } },
+  { label: 'Leave Governance', to: '/leaves', icon: 'bi bi-calendar2-week-fill', permission: { module: 'leaves', action: 'read' } },
+  { label: 'Broadcasting', to: '/announcements', icon: 'bi bi-megaphone-fill', permission: { module: 'announcements', action: 'read' } },
+];
+
+const managementMenu = [
+  { label: 'Financial Logistics', to: '/transport-allowance', icon: 'bi bi-cash-stack', permission: { module: 'transport', action: 'read' } },
+  { label: 'Identity Hub', to: '/user-management', icon: 'bi bi-person-badge-fill', permission: { module: 'users', action: 'read' } },
+  { label: 'Access Permissions', to: '/roles', icon: 'bi bi-shield-lock-fill', permission: { module: 'roles', action: 'read' } },
+  { label: 'Security Audit', to: '/activity-logs', icon: 'bi bi-shield-shaded', permission: { module: 'logs', action: 'read' } },
+  { label: 'Data Recovery', to: '/recovery', icon: 'bi bi-arrow-counterclockwise', permission: { module: 'employees', action: 'read' } },
+  { label: 'System Config', to: '/settings/transport-settings', icon: 'bi bi-gear-fill', permission: { module: 'transport_setting', action: 'read' } },
+];
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 1024;
+  if (isMobile.value) sidebarCollapsed.value = true;
+};
+
+onMounted(() => {
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+  
+  // Theme initialization
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    isDarkMode.value = true;
+    document.documentElement.classList.add('dark');
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile);
+});
 </script>
 
-<style scoped>
-:root {
-  --sidebar-width: 280px;
-  --sidebar-width-collapsed: 80px;
-  --header-height: 70px;
-  --primary-color: #667eea;
-  --primary-light: #7c8ef4;
-  --sidebar-bg: #1e293b;
-  --sidebar-hover: #334155;
-  --text-light: #ecf0f1;
-  --border-color: #bdc3c7;
-  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  @apply antialiased overflow-x-hidden;
 }
 
-.app-layout {
-  display: flex;
-  height: 100vh;
-  background: #f1f5f9;
-  overflow: hidden;
-  flex-wrap: nowrap;
-}
-
-/* === SIDEBAR === */
-.sidebar {
-  width: var(--sidebar-width);
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  color: #334155;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.08);
-  z-index: 1100;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
-  border-right: 1px solid rgba(0, 0, 0, 0.06);
-  position: relative;
-}
-
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(15, 23, 42, 0.4);
-  z-index: 1050;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-}
-
-.sidebar-overlay.show {
-  display: block;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.sidebar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
-}
-
-.sidebar::-webkit-scrollbar {
+.custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
-
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-indigo-500/50;
 }
 
-.sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
+/* Page transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.4s;
 }
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.sidebar.sidebar-collapsed {
-  width: var(--sidebar-width-collapsed);
-}
-
-.sidebar-header {
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, transparent 100%);
-}
-
-.logo-section {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.5rem;
-  font-weight: bold;
-  flex: 1;
-  min-width: 0;
-}
-
-.logo-section i { 
-  font-size: 1.75rem;
-  animation: logoFloat 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-  color: var(--primary-light);
-  text-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
-}
-
-.sidebar.sidebar-collapsed .logo-section i {
-  display: none;
-}
-
-@keyframes logoFloat {
-  0%, 100% {
-    transform: translateY(0px) rotateZ(0deg);
-  }
-  50% {
-    transform: translateY(-5px) rotateZ(5deg);
-  }
-}
-
-.logo-text {
-  white-space: nowrap;
-  background: linear-gradient(135deg, #7c8ef4, #667eea);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-  transition: opacity 0.2s ease, width 0.3s ease;
-  overflow: hidden;
-  width: 60px;
-  opacity: 1;
-}
-
-.sidebar.sidebar-collapsed .logo-text {
-  width: 0;
+.page-enter-from,
+.page-leave-to {
   opacity: 0;
+  filter: blur(1rem);
 }
 
-.btn-collapse, .btn-close-mobile {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #64748b;
-  cursor: pointer;
-  font-size: 1.1rem;
-  padding: 0.4rem;
-  border-radius: 0.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+/* Global PrimeVue Dark Mode Overrides */
+.dark .p-datatable {
+  @apply bg-slate-900 border-slate-800;
 }
-
-.btn-collapse:hover, .btn-close-mobile:hover {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.btn-collapse i, .btn-close-mobile i {
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar.sidebar-collapsed .btn-collapse i {
-  transform: rotate(180deg);
-}
-
-.btn-collapse:hover {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: rgba(102, 126, 234, 0.5);
-  color: #667eea;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 1.5rem 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Hide scrollbar for sidebar nav */
-.sidebar-nav::-webkit-scrollbar {
-  display: none;
-}
-.sidebar-nav {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-.nav-section {
-  position: relative;
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.nav-section::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 1.5rem;
-  right: 1.5rem;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-}
-
-.sidebar.sidebar-collapsed .nav-section::after {
-  left: 1rem;
-  right: 1rem;
-}
-
-.nav-section:last-child::after {
-  display: none;
-}
-
-.nav-section-title {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #94a3b8;
-  padding: 0 1.5rem;
-  margin-bottom: 0.75rem;
-  margin-top: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-  min-width: 1.5rem;
-  opacity: 1;
-  overflow: hidden;
-}
-
-.sidebar.sidebar-collapsed .nav-section-title {
-  display: none;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  color: #64748b;
-  text-decoration: none;
-  cursor: pointer;
-  border-left: 3px solid transparent;
-  margin: 0.35rem 0.75rem;
-  border-radius: 0.5rem;
-  position: relative;
-  justify-content: flex-start;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar.sidebar-collapsed .nav-item {
-  justify-content: center;
-  padding: 0.85rem 0.5rem;
-}
-
-.sidebar.sidebar-collapsed .nav-item i {
-  margin-right: 0;
- }
-
-.nav-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 4px;
-  background: var(--primary-color);
-  border-radius: 0 4px 4px 0;
-  opacity: 0;
-  transform: scaleY(0.5);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-item:hover {
-  color: #1e293b;
-  background: rgba(102, 126, 234, 0.08);
-}
-
-.nav-item:hover i {
-  color: var(--primary-light);
-  transform: scale(1.1);
-}
-
-.nav-item.active {
-  color: #667eea;
-  background: linear-gradient(90deg, rgba(102, 126, 234, 0.12) 0%, transparent 100%);
-}
-
-.nav-item.active i {
-  color: var(--primary-color);
-  filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.4));
-}
-
-.nav-item.active::before {
-  opacity: 1;
-  transform: scaleY(1);
-}
-
-.nav-item span {
-  transition: opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
-  opacity: 1;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.sidebar.sidebar-collapsed .nav-item span {
-  opacity: 0;
-  width: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  display: none;
-}
-
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  margin-top: auto;
-}
-
-.logout-btn {
-  width: 100%;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid transparent;
-  padding: 0.8rem 1.5rem;
-  border-radius: 0.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0;
-}
-
-.sidebar.sidebar-collapsed .logout-btn {
-  padding: 0.8rem 0.5rem;
-  justify-content: center;
-}
-
-.sidebar.sidebar-collapsed .logout-btn:hover span {
-  opacity: 0;
-  width: 0;
-  display: none;
-}
-
-.logout-btn i {
-  color: #ef4444;
-  transition: transform 0.3s ease;
-  min-width: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logout-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
-}
-
-.logout-btn:hover i {
-  transform: scale(1.1);
-}
-
-/* === MAIN CONTAINER === */
-.main-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: linear-gradient(135deg, #f0f4f8 0%, #d9e0ea 100%);
-  border-radius: 20px 0 0 0;
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.1);
-}
-
-/* === HEADER === */
-.app-header.main-header {
-  height: var(--header-height);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 1.75rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  z-index: 1000;
-  position: sticky;
-  top: 0;
-  transition: all 0.3s ease;
-}
-
-.header-left, .header-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.btn-sidebar-toggle {
-  background: white;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #667eea;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 1.25rem;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
-}
-
-.btn-sidebar-toggle:hover {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-/* --- Search Bar --- */
-.header-search-bar {
-  background: #f1f5f9;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 0.5rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 300px;
-  transition: all 0.3s var(--transition);
-}
-
-.header-search-bar:focus-within {
-  background: white;
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  width: 380px;
+.dark .p-datatable-thead > tr > th {
+  @apply bg-slate-800 text-slate-400 border-slate-700;
 }
-
-.header-search-bar i { color: #94a3b8; font-size: 0.9rem; }
-.header-search-bar input {
-  background: transparent;
-  border: none;
-  font-size: 0.875rem;
-  color: #1e293b;
-  width: 100%;
-  outline: none;
-}
-.search-shortcut {
-  background: white;
-  border: 1px solid #e2e8f0;
-  color: #94a3b8;
-  font-size: 0.7rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-  font-weight: 700;
-}
-
-/* --- Quick Actions --- */
-.header-quick-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-item {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.action-item:hover {
-  background: #f1f5f9;
-  color: #667eea;
-}
-
-.badge-count {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: #ef4444;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid white;
-}
-
-.PulsatingBadge {
-  animation: pulseBadge 2s infinite;
-}
-
-@keyframes pulseBadge {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-.header-divider {
-  width: 1px;
-  height: 24px;
-  background: #e2e8f0;
-}
-
-/* --- Profile Pill --- */
-.profile-pill {
-  display: flex;
-  align-items: center;
-  padding: 0.4rem;
-  padding-left: 1rem;
-  border-radius: 50px;
-  background: white;
-  border: 1px solid #f1f5f9;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-}
-
-.profile-pill:hover {
-  background: #f8fafc;
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-}
-
-.profile-name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1.2;
-}
-
-.profile-role-badge {
-  font-size: 0.7rem;
-  color: #667eea;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.35rem;
-}
-
-.profile-role-badge .dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #10b981;
-}
-
-.avatar-container {
-  position: relative;
-  margin-left: 0.75rem;
-}
-
-.avatar-circle {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
-}
-
-.avatar-image {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
-}
-
-.avatar-status {
-  position: absolute;
-  bottom: 1px;
-  right: 1px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-.avatar-status.online { background: #10b981; }
-
-.fs-xs { font-size: 0.7rem; }
-
-.btn-menu:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #334155;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.4rem 1rem;
-  border-radius: 2rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-}
-
-.user-profile:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-}
-
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), #7c8ef4);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-weight: 600;
-  color: #1e293b;
-  font-size: 0.9rem;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* === CONTENT === */
-.app-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 2rem;
-  background: #f8fafc;
-}
-
-/* Custom Scrollbar for Content */
-.app-content::-webkit-scrollbar {
-  width: 6px;
-}
-.app-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-.app-content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-.app-content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* === RESPONSIVE === */
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    transform: translateX(-100%);
-    box-shadow: none;
-  }
-
-  .sidebar.sidebar-collapsed {
-    width: var(--sidebar-width-collapsed);
-    transform: translateX(-100%);
-  }
-
-  .sidebar:not(.sidebar-collapsed) {
-    transform: translateX(0);
-    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
-  }
-
-  .sidebar:not(.sidebar-collapsed) + .sidebar-overlay {
-    display: block;
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .btn-menu {
-    display: flex !important;
-  }
-  
-  .btn-collapse {
-    display: none; /* Hide toggle from inside sidebar on mobile */
-  }
-
-  .app-content {
-    padding: 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .app-header {
-    padding: 0 1rem;
-  }
-
-  .user-info {
-    display: none;
-  }
-
-  .user-profile {
-    padding: 0.4rem;
-    border-radius: 50%;
-  }
-
-  .app-content {    
-    padding: 1rem;
-  }
+.dark .p-datatable-tbody > tr {
+  @apply bg-slate-900 text-slate-300 border-slate-800;
 }
-
-@media (min-width: 769px) {
-  .sidebar {
-    position: relative;
-    transform: translateX(0);
-  }
-
-  .sidebar-overlay {
-    display: none !important;
-  }
-
-  .btn-menu {
-    display: none !important;
-  }
+.dark .p-paginator {
+  @apply bg-slate-900 border-slate-800;
 }
-</style>        
+</style>
