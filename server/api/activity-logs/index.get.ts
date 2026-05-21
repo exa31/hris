@@ -1,15 +1,26 @@
-import { withPermission } from '~~/server/utils/withPermission'
-import { withTransaction } from '~~/server/db/postgres'
-import * as activityLogService from '~~/server/services/activity-log.service'
+import { findActivityLogFilterSchema } from "./../../model/activity-log.model";
+import { withPermission } from "~~/server/utils/withPermission";
+import { withTransaction } from "~~/server/db/postgres";
+import * as activityLogService from "~~/server/services/activity-log.service";
 
-export default withPermission(async (event) => {
-    const query = getQuery(event)
-    const options = {
-        limit: query.limit ? parseInt(query.limit as string) : 50,
-        offset: query.offset ? parseInt(query.offset as string) : 0
+export default withPermission(
+  async (event) => {
+    const parsed = await getValidatedQuery(event, (query) =>
+      findActivityLogFilterSchema.safeParse(query),
+    );
+
+    if (!parsed.success) {
+      throw new HttpError(
+        400,
+        "INVALID_QUERY",
+        "Satu atau lebih parameter query tidak valid",
+        z.treeifyError(parsed.error).properties,
+      );
     }
-    
+
     return withTransaction(async (client) => {
-        return activityLogService.getActivityLogs(client, options)
-    })
-}, [{ module: 'logs', action: 'read' }])
+      return activityLogService.getActivityLogs(client, parsed.data);
+    });
+  },
+  [{ module: "logs", action: "read" }],
+);
