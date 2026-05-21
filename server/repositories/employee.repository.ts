@@ -462,10 +462,12 @@ export const getDashboardStats = async (client: PoolClient) => {
 
   // Latest 5 employees
   const latestResult = await client.query(`
-        SELECT id, name, email, join_date, type, position, department, photo_url
-        FROM employees
-        WHERE deleted_at IS NULL
-        ORDER BY join_date DESC, id DESC
+        SELECT e.id, e.name, e.email, e.join_date, e.type, p.name as position, d.name as department, e.photo_url
+        FROM employees e
+        LEFT JOIN positions p ON e.position_id = p.id
+        LEFT JOIN departments d ON e.department_id = d.id
+        WHERE e.deleted_at IS NULL
+        ORDER BY e.join_date DESC, e.id DESC
         LIMIT 5
     `);
 

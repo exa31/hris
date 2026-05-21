@@ -204,10 +204,6 @@ export async function getEmployeeStats(client: PoolClient) {
   return employeeRepository.getEmployeeStats(client);
 }
 
-export async function getEmployeeMetadata(client: PoolClient) {
-  return employeeRepository.getEmployeeMetadata(client);
-}
-
 export async function getNewContractEmployees(client: PoolClient) {
 
   return employeeRepository.getNewContractEmployees(client);
