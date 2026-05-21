@@ -37,15 +37,15 @@
               stiffness: 200,
               delay: 0.2,
             }"
-            class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-xl shadow-indigo-500/20 mb-6"
+            class="inline-flex items-center justify-center mb-6"
           >
-            <i class="bi bi-building text-4xl"></i>
+            <NexusLogo :size="84" />
           </Motion>
           <h2 class="text-3xl font-extrabold text-white tracking-tight mb-2">
             Selamat Datang
           </h2>
           <p class="text-slate-400 font-medium">
-            JMC System - Human Resource Portal
+            NexusHR - Human Resource Portal
           </p>
         </div>
 

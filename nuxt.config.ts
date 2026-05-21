@@ -26,10 +26,10 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: "JMC System - Login",
+      title: "NexusHR - Next-Gen Human Resource Intelligence",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { name: "description", content: "JMC System Login" },
+        { name: "description", content: "NexusHR is a premium, next-gen Human Resource Intelligence platform for modern teams." },
       ],
     },
   },

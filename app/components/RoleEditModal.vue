@@ -13,6 +13,22 @@
     }"
   >
     <div class="space-y-8">
+      <!-- Superadmin Lock Banner -->
+      <div
+        v-if="isSuperAdmin"
+        class="flex items-center gap-3 px-5 py-4 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30"
+      >
+        <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+          <i class="bi bi-shield-lock-fill text-amber-600 dark:text-amber-400"></i>
+        </div>
+        <div>
+          <div class="text-sm font-black text-amber-800 dark:text-amber-300 leading-tight">Role Terlindungi</div>
+          <div class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+            Role <span class="font-black">Super Admin</span> tidak dapat diubah karena memiliki akses penuh ke seluruh sistem.
+          </div>
+        </div>
+      </div>
+
       <!-- Role Name Input -->
       <div class="space-y-2">
         <label
@@ -22,8 +38,9 @@
         <InputText
           v-model="formData.name"
           placeholder="Masukkan nama role"
+          :disabled="isSuperAdmin"
           class="w-full !py-3.5 !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !rounded-2xl focus:!bg-white dark:focus:!bg-slate-900 focus:!ring-4 focus:!ring-indigo-500/10 transition-all font-bold text-slate-700 dark:text-white"
-          :class="{ 'p-invalid': errors.name }"
+          :class="{ 'p-invalid': errors.name, 'opacity-60 cursor-not-allowed': isSuperAdmin }"
         />
         <small
           v-if="errors.name"
@@ -68,7 +85,7 @@
                   {{ formatModuleName(String(module)) }}
                 </h4>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2" v-if="!isSuperAdmin">
                 <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
                   >Pilih Semua</span
                 >
@@ -79,6 +96,9 @@
                   @change="toggleModulePermissions(String(module))"
                 />
               </div>
+              <div v-else class="w-5 h-5 flex items-center justify-center text-slate-300 dark:text-slate-600">
+                <i class="bi bi-lock-fill text-[11px]"></i>
+              </div>
             </div>
 
             <!-- Permissions Grid -->
@@ -88,13 +108,15 @@
               <div
                 v-for="perm in permsByModule"
                 :key="perm.id"
-                @click="togglePermission(perm.id)"
-                class="p-4 rounded-2xl border transition-all cursor-pointer group select-none"
-                :class="
-                  formData.selectedPermissions.includes(perm.id)
-                    ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 shadow-sm'
-                    : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-slate-50 dark:hover:bg-slate-800'
-                "
+                @click="!isSuperAdmin && togglePermission(perm.id)"
+                class="p-4 rounded-2xl border transition-all select-none"
+                :class="[
+                  isSuperAdmin
+                    ? 'cursor-not-allowed opacity-50 bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'
+                    : formData.selectedPermissions.includes(perm.id)
+                      ? 'cursor-pointer group bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 shadow-sm'
+                      : 'cursor-pointer group bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-slate-50 dark:hover:bg-slate-800',
+                ]"
               >
                 <div class="flex items-start gap-3">
                   <div
@@ -132,19 +154,27 @@
     <template #footer>
       <div class="flex items-center justify-end gap-3 mt-4">
         <Button
-          label="Batalkan"
+          label="Tutup"
           severity="secondary"
           text
           class="!rounded-2xl !font-bold dark:!text-slate-400"
           @click="closeModal"
         />
         <Button
+          v-if="!isSuperAdmin"
           label="Simpan Konfigurasi"
           icon="bi bi-check-lg"
           :loading="isSubmitting"
           class="!rounded-2xl !px-8 !py-3.5 !bg-indigo-600 !border-none !font-bold shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors text-white"
           @click="handleSubmit"
         />
+        <div
+          v-else
+          class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold"
+        >
+          <i class="bi bi-lock-fill text-[11px]"></i>
+          Role Terlindungi
+        </div>
       </div>
     </template>
   </Dialog>
@@ -182,6 +212,13 @@ const errors = ref<Record<string, string>>({});
 const isSubmitting = ref(false);
 
 const groupedPermissions = computed(() => getPermissionsByModule.value);
+
+// Superadmin is identified by id === 1 OR name 'superadmin' (case-insensitive)
+const isSuperAdmin = computed(
+  () =>
+    props.role?.id === 1 ||
+    props.role?.name?.toLowerCase() === 'superadmin',
+);
 
 const isModuleAllChecked = (module: string) => {
   const modulePerms = groupedPermissions.value[module] || [];

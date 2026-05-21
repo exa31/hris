@@ -147,7 +147,7 @@ export const useAuthStore = defineStore("auth", () => {
       user.value = null;
       permissions.value = [];
       closeSSE();
-      navigateTo("/");
+      navigateTo("/login");
     } catch (error) {
       console.error("Logout error:", getErrorMessageAxios(error));
     } finally {

@@ -160,7 +160,6 @@
         Hubungi administrator sistem untuk inisialisasi data.
       </p>
     </div>
-
     <!-- Edit Role Modal -->
     <RoleEditModal
       :is-open="showEditModal"

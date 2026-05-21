@@ -16,11 +16,9 @@
           :class="sidebarCollapsed && !isMobile ? 'justify-center px-0' : 'justify-between px-6'"
         >
           <div class="flex items-center gap-3 overflow-hidden w-full" :class="sidebarCollapsed && !isMobile ? 'justify-center' : ''">
-            <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <i class="bi bi-building text-xl"></i>
-            </div>
+            <NexusLogo :size="40" class="flex-shrink-0" />
             <span v-if="!sidebarCollapsed || isMobile" class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 truncate tracking-tight">
-              JMC HRIS
+              NexusHR
             </span>
           </div>
           
@@ -218,7 +216,7 @@ const pageTitle = computed(() => {
   if (path.includes('/transport-allowance')) return 'Financial Logistics';
   if (path.includes('/recovery')) return 'Data Recovery';
   if (path.includes('/settings')) return 'System Config';
-  return 'JMC HRIS';
+  return 'Nexus HRIS';
 });
 
 const isActive = (path: string) => {

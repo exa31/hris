@@ -120,7 +120,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         return api(originalRequest);
       } catch (err) {
         if (import.meta.client) {
-          navigateTo("/");
+          navigateTo("/login");
         }
         return Promise.reject(error);
       }

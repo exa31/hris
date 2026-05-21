@@ -23,7 +23,7 @@
         <h1
           class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
         >
-          Presensi Tim JMC
+          Presensi Tim Nexus
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
           Pantau kedisiplinan dan riwayat kehadiran harian pegawai.

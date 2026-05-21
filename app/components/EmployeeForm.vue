@@ -160,7 +160,7 @@
                   <InputText
                     v-model="form.email"
                     class="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300"
-                    placeholder="talent@jmc.cloud"
+                    placeholder="talent@nexushr.io"
                   />
                 </div>
                 <small

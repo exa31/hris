@@ -42,7 +42,7 @@
               ></span>
               <span
                 class="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-100"
-                >JMC Engine Active • {{ todayFormatted }}</span
+                >Nexus Engine Active • {{ todayFormatted }}</span
               >
             </div>
 

@@ -261,7 +261,7 @@ const rules = [
 
 onMounted(async () => {
   if (!hasPermission("transport_setting", "read")) {
-    return navigateTo("/");
+    return navigateTo("/dashboard");
   }
   await fetchSettings();
   localSettings.value = {
