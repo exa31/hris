@@ -1,6 +1,6 @@
-import {
+import type {
   FindActivityLogFilter,
-  type CreateActivityLogInput,
+  CreateActivityLogInput,
 } from "./../model/activity-log.model";
 import { type PoolClient } from "pg";
 import * as activityLogRepository from "~~/server/repositories/activity-log.repository";

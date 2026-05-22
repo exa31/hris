@@ -1,3 +1,4 @@
+import { HttpError } from "./../../errors/HttpError";
 import { findActivityLogFilterSchema } from "./../../model/activity-log.model";
 import { withPermission } from "~~/server/utils/withPermission";
 import { withTransaction } from "~~/server/db/postgres";
