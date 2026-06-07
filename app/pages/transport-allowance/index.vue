@@ -155,6 +155,11 @@
           :value="allowances"
           class="p-datatable-overhaul"
           :loading="loading"
+          :pt="{
+            footer: { class: '!bg-transparent' },
+            footerRow: { class: '!bg-transparent' },
+            footerCell: { class: '!bg-transparent !p-0 !border-none' },
+          }"
         >
           <Column header="No." class="!w-20">
             <template #body="slotProps">
@@ -271,7 +276,7 @@
                 <div class="w-20 h-20 bg-white dark:bg-slate-800 rounded-2xl shadow-xl flex items-center justify-center relative z-10 border border-slate-100 dark:border-slate-700">
                   <i class="bi bi-car-front text-4xl text-indigo-500"></i>
                 </div>
-                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg z-20">
+                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg dark:shadow-none z-20">
                   <i class="bi bi-search text-xs"></i>
                 </div>
               </div>
@@ -298,20 +303,32 @@
 
           <template #footer>
             <div
-              class="flex items-center justify-between px-8 py-4 bg-slate-50/50 dark:bg-slate-900/50"
-            >
-              <span
-                class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                >Periode Aktif: {{ getMonthYear() }}</span
+              class="flex items-center justify-between px-8 py-4 bg-white dark:bg-slate-900/50"
               >
-              <Paginator
-                v-model:first="first"
-                :rows="itemsPerPage"
-                :totalRecords="totalAllowances"
-                template="PrevPageLink PageLinks NextPageLink"
-                @page="(e) => (currentPage = e.page + 1)"
-                class="!bg-transparent !p-0"
-              />
+                <span
+                  class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+                  >Periode Aktif: {{ getMonthYear() }}</span
+                >
+                <Paginator
+                  v-model:first="first"
+                  :rows="itemsPerPage"
+                  :totalRecords="totalAllowances"
+                  template="PrevPageLink PageLinks NextPageLink"
+                  @page="(e) => (currentPage = e.page + 1)"
+                  class="!bg-transparent !p-0"
+                  :pt="{
+                    page: ({ context }: any) => ({
+                      class: [
+                        '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
+                        context.active
+                          ? '!text-indigo-600 dark:!text-indigo-400'
+                          : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
+                      ],
+                    }),
+                    prev: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                    next: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                  }"
+                />
             </div>
           </template>
         </DataTable>
@@ -562,3 +579,17 @@ const handleGenerate = async () => {
 
 definePageMeta({ layout: "default" });
 </script>
+
+<style>
+.p-paginator {
+  @apply !bg-transparent !p-0 !border-none;
+}
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-prev {
+  @apply !w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !bg-transparent !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 transition-colors;
+}
+.p-paginator .p-paginator-page.p-highlight {
+  @apply !bg-transparent !text-indigo-600 dark:!text-indigo-400 !shadow-none;
+}
+</style>

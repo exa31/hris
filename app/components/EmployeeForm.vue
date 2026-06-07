@@ -80,7 +80,7 @@
           <Motion
             :initial="{ opacity: 0, scale: 0.95 }"
             :animate="{ opacity: 1, scale: 1 }"
-            class="bg-indigo-950 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl"
+            class="bg-indigo-950 dark:bg-indigo-900/70 dark:border dark:border-indigo-700/50 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl dark:shadow-none"
           >
             <!-- Decorative elements -->
             <div
@@ -110,7 +110,7 @@
                 <button
                   type="button"
                   @click="triggerPhotoUpload"
-                  class="absolute bottom-1 right-1 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-indigo-950 text-white shadow-xl z-20 hover:scale-110 transition-transform"
+                  class="absolute bottom-1 right-1 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-indigo-950 dark:border-indigo-800 text-white shadow-xl z-20 hover:scale-110 transition-transform"
                 >
                   <i class="bi bi-camera-fill"></i>
                 </button>

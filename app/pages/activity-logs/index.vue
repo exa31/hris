@@ -48,7 +48,7 @@
       :transition="{ delay: 0.2 }"
     >
       <div
-        class="bg-indigo-600 rounded-[32px] p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-100"
+        class="bg-indigo-600 rounded-[32px] p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-100 dark:shadow-none"
       >
         <i
           class="bi bi-activity absolute -right-8 -bottom-8 text-[12rem] opacity-10 rotate-12"
@@ -177,7 +177,7 @@
                 <div class="w-20 h-20 bg-white dark:bg-slate-800 rounded-2xl shadow-xl flex items-center justify-center relative z-10 border border-slate-100 dark:border-slate-700">
                   <i class="bi bi-shield-slash text-4xl text-indigo-500"></i>
                 </div>
-                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg z-20">
+                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg dark:shadow-none z-20">
                   <i class="bi bi-search text-xs"></i>
                 </div>
               </div>

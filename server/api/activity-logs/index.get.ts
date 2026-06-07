@@ -3,6 +3,7 @@ import { findActivityLogFilterSchema } from "./../../model/activity-log.model";
 import { withPermission } from "~~/server/utils/withPermission";
 import { withTransaction } from "~~/server/db/postgres";
 import * as activityLogService from "~~/server/services/activity-log.service";
+import { z } from "zod";
 
 export default withPermission(
   async (event) => {

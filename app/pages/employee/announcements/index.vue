@@ -13,7 +13,7 @@
     </div>
     
     <div v-else-if="announcements.length === 0" class="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700">
-      <i class="bi bi-megaphone text-6xl text-slate-300 mb-6"></i>
+      <i class="bi bi-megaphone text-6xl text-slate-300 dark:text-slate-500 mb-6"></i>
       <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">Tidak Ada Pengumuman</h3>
       <p class="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">Belum ada informasi terbaru untuk saat ini.</p>
     </div>
@@ -55,7 +55,7 @@
               />
               <div>
                 <div class="text-xs font-black text-slate-800 dark:text-white">{{ announcement.author?.name || 'HRD' }}</div>
-                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Penulis</div>
+                <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Penulis</div>
               </div>
             </div>
           </div>

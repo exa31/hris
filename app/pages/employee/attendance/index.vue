@@ -45,7 +45,7 @@
             v-if="!hasClockedIn"
             label="Clock In"
             icon="bi bi-box-arrow-in-right"
-            class="!px-8 !py-4 !rounded-2xl !font-black !text-sm !tracking-widest !bg-emerald-500 !border-none shadow-lg shadow-emerald-500/30 hover:!scale-105 transition-transform"
+            class="!px-8 !py-4 !rounded-2xl !font-black !text-sm !tracking-widest !bg-emerald-500 !border-none shadow-lg shadow-emerald-500/30 dark:shadow-none hover:!scale-105 transition-transform"
             @click="handleClock('in')"
             :loading="actionLoading"
           />
@@ -53,7 +53,7 @@
             v-else-if="!hasClockedOut"
             label="Clock Out"
             icon="bi bi-box-arrow-right"
-            class="!px-8 !py-4 !rounded-2xl !font-black !text-sm !tracking-widest !bg-amber-500 !border-none shadow-lg shadow-amber-500/30 hover:!scale-105 transition-transform"
+            class="!px-8 !py-4 !rounded-2xl !font-black !text-sm !tracking-widest !bg-amber-500 !border-none shadow-lg shadow-amber-500/30 dark:shadow-none hover:!scale-105 transition-transform"
             @click="handleClock('out')"
             :loading="actionLoading"
           />
@@ -123,8 +123,8 @@
 
         <template #empty>
           <div class="flex flex-col items-center justify-center py-12">
-            <i class="bi bi-inbox text-4xl text-slate-300 mb-4"></i>
-            <p class="text-slate-500 font-medium">Belum ada riwayat absensi.</p>
+            <i class="bi bi-inbox text-4xl text-slate-300 dark:text-slate-500 mb-4"></i>
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Belum ada riwayat absensi.</p>
           </div>
         </template>
       </DataTable>

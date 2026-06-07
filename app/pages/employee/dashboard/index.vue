@@ -60,7 +60,7 @@
                 <Button
                   label="Catat Presensi"
                   icon="bi bi-fingerprint"
-                  class="!rounded-xl !px-8 !py-4 !bg-emerald-500 !text-white !border-none !font-black !text-xs !tracking-widest shadow-lg shadow-emerald-500/30 hover:!scale-105 transition-transform"
+                  class="!rounded-xl !px-8 !py-4 !bg-emerald-500 !text-white !border-none !font-black !text-xs !tracking-widest shadow-lg shadow-emerald-500/30 dark:shadow-none hover:!scale-105 transition-transform"
                 />
               </NuxtLink>
               <NuxtLink to="/employee/leaves">
@@ -97,7 +97,7 @@
             <div
               :class="[
                 stat.color,
-                'w-14 h-14 rounded-xl flex items-center justify-center text-xl shadow-lg mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500',
+                'w-14 h-14 rounded-xl flex items-center justify-center text-xl shadow-lg dark:shadow-none mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500',
               ]"
             >
               <i :class="stat.icon"></i>

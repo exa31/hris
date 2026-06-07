@@ -30,26 +30,22 @@ export const createActivityLogSchema = z.object({
 export type CreateActivityLogInput = z.infer<typeof createActivityLogSchema>;
 
 export const findActivityLogFilterSchema = z.object({
-  user_id: z.number().optional(),
+  user_id: z.coerce.number().optional(),
+
   action: z
     .enum(["CREATE", "UPDATE", "DELETE", "LOGIN", "LOGOUT", "ACCESS"])
     .or(z.string().min(1).max(255))
     .optional(),
+
   module: z.string().optional(),
-  startDate: z
-    .string()
-    .refine((date) => !isNaN(Date.parse(date)), {
-      message: "Invalid date format",
-    })
-    .optional(),
-  endDate: z
-    .string()
-    .refine((date) => !isNaN(Date.parse(date)), {
-      message: "Invalid date format",
-    })
-    .optional(),
-  limit: z.number().min(1).max(1000).optional().default(50),
-  offset: z.number().min(0).optional().default(0),
+
+  startDate: z.string().datetime().optional(),
+
+  endDate: z.string().datetime().optional(),
+
+  limit: z.coerce.number().min(1).max(1000).default(50),
+
+  offset: z.coerce.number().min(0).default(0),
 });
 
 export type FindActivityLogFilter = z.infer<typeof findActivityLogFilterSchema>;

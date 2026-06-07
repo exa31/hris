@@ -93,6 +93,11 @@
             :value="displayData"
             class="p-datatable-premium"
             :loading="loading"
+            :pt="{
+              footer: { class: '!bg-transparent' },
+              footerRow: { class: '!bg-transparent' },
+              footerCell: { class: '!bg-transparent !p-0 !border-none' },
+            }"
           >
             <template v-if="activeTab === 'employees'">
               <Column header="Pegawai">
@@ -208,7 +213,7 @@
                     <i class="bi bi-shield-check text-4xl text-emerald-500"></i>
                   </div>
                   <div
-                    class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg z-20"
+                    class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg dark:shadow-none z-20"
                   >
                     <i class="bi bi-search text-xs"></i>
                   </div>
@@ -236,7 +241,7 @@
 
             <template #footer>
               <div
-                class="flex items-center justify-between px-8 py-4 bg-slate-50/50 dark:bg-slate-800/30"
+                class="flex items-center justify-between px-8 py-4 bg-white dark:bg-slate-800/30"
               >
                 <span
                   class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase"
@@ -252,6 +257,18 @@
                   template="PrevPageLink PageLinks NextPageLink"
                   class="!bg-transparent !p-0"
                   @page="onPageChange"
+                  :pt="{
+                    page: ({ context }: any) => ({
+                      class: [
+                        '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
+                        context.active
+                          ? '!text-indigo-600 dark:!text-indigo-400'
+                          : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
+                      ],
+                    }),
+                    prev: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                    next: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                  }"
                 />
               </div>
             </template>
@@ -350,3 +367,17 @@ const formatDate = (dateStr: string) => {
 };
 definePageMeta({ layout: "default" });
 </script>
+
+<style>
+.p-paginator {
+  @apply !bg-transparent !p-0 !border-none;
+}
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-prev {
+  @apply !w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !bg-transparent !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 transition-colors;
+}
+.p-paginator .p-paginator-page.p-highlight {
+  @apply !bg-transparent !text-indigo-600 dark:!text-indigo-400 !shadow-none;
+}
+</style>

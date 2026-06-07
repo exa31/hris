@@ -6,21 +6,21 @@
         <div class="space-y-10">
           <div class="flex items-center gap-4">
             <div
-              class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm"
+              class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm"
             >
               <i class="bi bi-person-badge"></i>
             </div>
             <h3
-              class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]"
+              class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]"
             >
               Parameter Tunjangan
             </h3>
-            <div class="h-px flex-1 bg-slate-50"></div>
+            <div class="h-px flex-1 bg-slate-50 dark:bg-slate-800"></div>
           </div>
 
           <div class="space-y-2">
             <label
-              class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1"
+              class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
               >Pilih Pegawai <span class="text-rose-500">*</span></label
             >
             <Select
@@ -30,21 +30,21 @@
               optionValue="id"
               placeholder="Cari Pegawai..."
               filter
-              class="w-full !rounded-2xl !bg-slate-50 !border-slate-100 !shadow-none !py-1"
+              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !shadow-none !py-1"
             >
               <template #option="slotProps">
                 <div class="flex items-center gap-3 py-1">
                   <Avatar
                     :label="slotProps.option.name.charAt(0)"
                     shape="circle"
-                    class="!bg-slate-100 !text-slate-500 !font-bold"
+                    class="!bg-slate-100 dark:!bg-slate-800 !text-slate-500 dark:!text-slate-400 !font-bold"
                   />
                   <div>
-                    <div class="text-xs font-black text-slate-700">
+                    <div class="text-xs font-black text-slate-700 dark:text-slate-300">
                       {{ slotProps.option.name }}
                     </div>
                     <div
-                      class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter"
+                      class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter"
                     >
                       {{ slotProps.option.nip }} •
                       {{ slotProps.option.position }}
@@ -58,7 +58,7 @@
           <div class="grid grid-cols-2 gap-8">
             <div class="space-y-2">
               <label
-                class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1"
+                class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
                 >Bulan Pelaporan</label
               >
               <Select
@@ -66,19 +66,19 @@
                 :options="monthOptions"
                 optionLabel="label"
                 optionValue="value"
-                class="w-full !rounded-2xl !bg-slate-50 !border-slate-100 !shadow-none"
+                class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !shadow-none"
               />
             </div>
             <div class="space-y-2">
               <label
-                class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1"
+                class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
                 >Tahun</label
               >
               <InputNumber
                 v-model="formData.year"
                 :useGrouping="false"
                 class="w-full"
-                inputClass="w-full !rounded-2xl !bg-slate-50 !border-slate-100 !py-3.5 !font-bold"
+                inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
               />
             </div>
           </div>
@@ -86,20 +86,20 @@
           <div class="grid grid-cols-2 gap-8">
             <div class="space-y-2">
               <label
-                class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1"
+                class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
                 >Jarak Tempuh (KM) <span class="text-rose-500">*</span></label
               >
               <InputNumber
                 v-model="formData.distance_km"
                 :minFractionDigits="1"
                 class="w-full"
-                inputClass="w-full !rounded-2xl !bg-slate-50 !border-slate-100 !py-3.5 !font-bold"
+                inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
                 suffix=" KM"
               />
             </div>
             <div class="space-y-2">
               <label
-                class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1"
+                class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
                 >Hari Kerja <span class="text-rose-500">*</span></label
               >
               <InputNumber
@@ -107,7 +107,7 @@
                 :min="0"
                 :max="31"
                 class="w-full"
-                inputClass="w-full !rounded-2xl !bg-slate-50 !border-slate-100 !py-3.5 !font-bold"
+                inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
                 suffix=" HARI"
               />
             </div>
@@ -115,14 +115,14 @@
 
           <div class="space-y-2">
             <label
-              class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1"
+              class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
               >Keterangan Opsional</label
             >
             <Textarea
               v-model="formData.keterangan"
               rows="3"
               placeholder="Tambahkan catatan khusus jika diperlukan..."
-              class="w-full !rounded-2xl !bg-slate-50 !border-slate-100 !p-4 !font-medium"
+              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !p-4 !font-medium"
             />
           </div>
         </div>
@@ -131,7 +131,7 @@
       <!-- Right Column: Calculation Preview -->
       <div class="lg:col-span-5 space-y-8">
         <div
-          class="bg-indigo-950 rounded-[40px] p-10 text-white shadow-2xl shadow-indigo-100 space-y-10 relative overflow-hidden"
+          class="bg-indigo-950 rounded-[40px] p-10 text-white shadow-2xl shadow-indigo-100 dark:shadow-none space-y-10 relative overflow-hidden"
         >
           <i
             class="bi bi-calculator absolute -right-6 -bottom-6 text-[10rem] opacity-5"

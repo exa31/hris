@@ -144,6 +144,11 @@
         class="p-datatable-overhaul"
         :loading="loading"
         :rows="itemsPerPage"
+        :pt="{
+          footer: { class: '!bg-transparent' },
+          footerRow: { class: '!bg-transparent' },
+          footerCell: { class: '!bg-transparent !p-0 !border-none' },
+        }"
       >
         <Column header="Anggota Tim">
           <template #body="slotProps">
@@ -197,8 +202,8 @@
                 :class="[
                   'w-2 h-2 rounded-full',
                   slotProps.data.status === 'Hadir'
-                    ? 'bg-emerald-500 shadow-lg shadow-emerald-200'
-                    : 'bg-rose-500 shadow-lg shadow-rose-200',
+                    ? 'bg-emerald-500 shadow-lg shadow-emerald-200 dark:shadow-none'
+                    : 'bg-rose-500 shadow-lg shadow-rose-200 dark:shadow-none',
                 ]"
               ></div>
               <span
@@ -242,7 +247,7 @@
 
         <template #footer>
           <div
-            class="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 bg-slate-50/50 dark:bg-slate-900/50"
+            class="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 bg-white dark:bg-slate-900/50"
           >
             <span
               class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
@@ -254,6 +259,18 @@
               template="PrevPageLink PageLinks NextPageLink"
               class="!bg-transparent !p-0"
               @page="onPageChange"
+              :pt="{
+                page: ({ context }: any) => ({
+                  class: [
+                    '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
+                    context.active
+                      ? '!text-indigo-600 dark:!text-indigo-400'
+                      : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
+                  ],
+                }),
+                prev: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                next: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+              }"
             />
           </div>
         </template>
@@ -272,7 +289,7 @@
                 <i class="bi bi-clock-history text-4xl text-indigo-500"></i>
               </div>
               <div
-                class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg z-20"
+                class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg dark:shadow-none z-20"
               >
                 <i class="bi bi-search text-xs"></i>
               </div>
@@ -395,5 +412,17 @@ watch([searchQuery, page, selectedStatus, selectedMonth, selectedYear], () => fe
 }
 .p-datatable-overhaul .p-datatable-tbody > tr:hover > td {
   @apply !bg-slate-50/30 dark:!bg-slate-800/30;
+}
+
+.p-paginator {
+  @apply !bg-transparent !p-0 !border-none;
+}
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-prev {
+  @apply !w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !bg-transparent !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 transition-colors;
+}
+.p-paginator .p-paginator-page.p-highlight {
+  @apply !bg-transparent !text-indigo-600 dark:!text-indigo-400 !shadow-none;
 }
 </style>

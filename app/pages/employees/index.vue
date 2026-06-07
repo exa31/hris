@@ -316,6 +316,11 @@
           :loading="loading"
           :rows="itemsPerPage"
           scrollable
+          :pt="{
+            footer: { class: '!bg-transparent' },
+            footerRow: { class: '!bg-transparent' },
+            footerCell: { class: '!bg-transparent !p-0 !border-none' },
+          }"
         >
           <template #empty>
             <div
@@ -331,7 +336,7 @@
                   <i class="bi bi-person-slash text-4xl text-indigo-500"></i>
                 </div>
                 <div
-                  class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg z-20"
+                  class="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg dark:shadow-none z-20"
                 >
                   <i class="bi bi-search text-xs"></i>
                 </div>
@@ -431,15 +436,15 @@
                 <div
                   class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400"
                 >
-                  <i class="bi bi-envelope text-slate-300"></i>
+                  <i class="bi bi-envelope text-slate-300 dark:text-slate-600"></i>
                   <span class="truncate max-w-[150px]">{{
                     slotProps.data.email
                   }}</span>
                 </div>
                 <div
-                  class="flex items-center gap-2 text-[10px] font-bold text-slate-400"
+                  class="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500"
                 >
-                  <i class="bi bi-phone text-slate-300"></i>
+                  <i class="bi bi-phone text-slate-300 dark:text-slate-600"></i>
                   {{ slotProps.data.phone }}
                 </div>
               </div>
@@ -512,7 +517,7 @@
 
           <template #footer>
             <div
-              class="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 bg-slate-50/50 dark:bg-slate-900/50"
+              class="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 bg-white dark:bg-slate-900/50"
             >
               <div class="flex items-center gap-4">
                 <span
@@ -525,15 +530,27 @@
                   icon="bi bi-file-earmark-spreadsheet"
                   text
                   @click="exportExcel"
-                  class="!rounded-lg !text-[9px] !font-black !uppercase !tracking-widest !text-emerald-600 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10 transition-colors"
+                  class="!rounded-lg !text-[9px] !font-black !uppercase !tracking-widest !text-emerald-600 dark:!text-emerald-400 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10 transition-colors"
                 />
               </div>
               <Paginator
                 :rows="itemsPerPage"
                 :totalRecords="totalEmployees"
                 template="PrevPageLink PageLinks NextPageLink"
-                class="!bg-transparent !p-0 paginator-elegant"
+                class="!bg-transparent !p-0"
                 @page="onPageChange"
+                :pt="{
+                  page: ({ context }: any) => ({
+                    class: [
+                      '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
+                      context.active
+                        ? '!text-indigo-600 dark:!text-indigo-400'
+                        : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
+                    ],
+                  }),
+                  prev: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                  next: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                }"
               />
             </div>
           </template>
@@ -741,13 +758,16 @@ const confirmDelete = (employee: any) => {
   @apply !bg-slate-50/50 dark:!bg-slate-800/30;
 }
 
-.paginator-elegant .p-paginator-page,
-.paginator-elegant .p-paginator-next,
-.paginator-elegant .p-paginator-prev {
+.p-paginator {
+  @apply !bg-transparent !p-0 !border-none;
+}
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-prev {
   @apply !w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !bg-transparent !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 transition-colors;
 }
-
-.paginator-elegant .p-highlight {
-  @apply !bg-indigo-600 !text-white !shadow-lg shadow-indigo-200 dark:shadow-none;
+.p-paginator .p-paginator-page.p-highlight {
+  @apply !bg-transparent !text-indigo-600 dark:!text-indigo-400 !shadow-none;
 }
+
 </style>

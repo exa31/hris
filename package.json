@@ -13,6 +13,7 @@
     "migrate:make": "npx node-pg-migrate create -m migrations"
   },
   "dependencies": {
+    "@nuxtjs/color-mode": "^4.0.0",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@pinia/nuxt": "^0.11.3",
     "@primevue/nuxt-module": "^4.5.5",

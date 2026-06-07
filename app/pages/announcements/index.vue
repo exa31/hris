@@ -457,11 +457,11 @@ const priorityLabel = (p: string) => {
 
 const priorityBadgeClass = (p: string) => {
   const map: Record<string, string> = {
-    Normal: "!bg-indigo-50 !text-indigo-600 !border-indigo-100",
-    Important: "!bg-amber-50 !text-amber-600 !border-amber-100",
-    Urgent: "!bg-rose-50 !text-rose-600 !border-rose-100",
+    Normal: "!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !border-indigo-100 dark:!border-indigo-500/20",
+    Important: "!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:!text-amber-400 !border-amber-100 dark:!border-amber-500/20",
+    Urgent: "!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:!text-rose-400 !border-rose-100 dark:!border-rose-500/20",
   };
-  return map[p] || "!bg-slate-50 !text-slate-400";
+  return map[p] || "!bg-slate-50 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500";
 };
 
 const prioritySideColor = (p: string) => {

@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ dark: isDarkMode }" class="min-h-screen transition-colors duration-500">
+  <div class="min-h-screen transition-colors duration-500">
     <div
       class="min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans selection:bg-indigo-100 dark:selection:bg-indigo-500/30 selection:text-indigo-700 dark:selection:text-indigo-200"
     >
@@ -17,7 +17,11 @@
         <!-- Sidebar Header -->
         <div
           class="h-20 flex items-center border-b border-slate-100 dark:border-slate-800 bg-gradient-to-br from-indigo-50/50 dark:from-slate-900 to-white dark:to-slate-900 relative transition-all duration-300"
-          :class="sidebarCollapsed && !isMobile ? 'justify-center px-0' : 'justify-between px-6'"
+          :class="
+            sidebarCollapsed && !isMobile
+              ? 'justify-center px-0'
+              : 'justify-between px-6'
+          "
         >
           <div
             class="flex items-center gap-3 overflow-hidden w-full"
@@ -37,12 +41,17 @@
             class="absolute -right-4 top-6 z-50 w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 shadow-sm transition-colors"
             @click="sidebarCollapsed = !sidebarCollapsed"
           >
-            <i class="bi" :class="sidebarCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+            <i
+              class="bi"
+              :class="sidebarCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"
+            ></i>
           </button>
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-8 px-4 space-y-10 custom-scrollbar">
+        <nav
+          class="flex-1 overflow-y-auto py-8 px-4 space-y-10 custom-scrollbar"
+        >
           <!-- Main Menu (Admin) -->
           <div v-if="!isEmployee" class="space-y-2">
             <div
@@ -55,7 +64,8 @@
             <NuxtLink
               v-for="item in mainMenu"
               v-show="
-                !item.permission || hasPermission(item.permission.module, item.permission.action)
+                !item.permission ||
+                hasPermission(item.permission.module, item.permission.action)
               "
               :key="item.to"
               :to="item.to"
@@ -75,9 +85,11 @@
                     : 'text-slate-400 group-hover:text-indigo-500',
                 ]"
               ></i>
-              <span v-if="!sidebarCollapsed || isMobile" class="text-sm font-bold truncate">{{
-                item.label
-              }}</span>
+              <span
+                v-if="!sidebarCollapsed || isMobile"
+                class="text-sm font-bold truncate"
+                >{{ item.label }}</span
+              >
               <div
                 v-if="isActive(item.to)"
                 class="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 dark:bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(79,70,229,0.5)]"
@@ -114,9 +126,11 @@
                     : 'text-slate-400 group-hover:text-indigo-500',
                 ]"
               ></i>
-              <span v-if="!sidebarCollapsed || isMobile" class="text-sm font-bold truncate">{{
-                item.label
-              }}</span>
+              <span
+                v-if="!sidebarCollapsed || isMobile"
+                class="text-sm font-bold truncate"
+                >{{ item.label }}</span
+              >
               <div
                 v-if="isActive(item.to)"
                 class="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 dark:bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(79,70,229,0.5)]"
@@ -128,7 +142,13 @@
           <div
             v-if="
               !isEmployee &&
-              hasAnyPermission(['transport', 'users', 'roles', 'logs', 'transport_setting'])
+              hasAnyPermission([
+                'transport',
+                'users',
+                'roles',
+                'logs',
+                'transport_setting',
+              ])
             "
             class="space-y-2"
           >
@@ -142,7 +162,8 @@
             <NuxtLink
               v-for="item in managementMenu"
               v-show="
-                !item.permission || hasPermission(item.permission.module, item.permission.action)
+                !item.permission ||
+                hasPermission(item.permission.module, item.permission.action)
               "
               :key="item.to"
               :to="item.to"
@@ -162,9 +183,11 @@
                     : 'text-slate-400 group-hover:text-indigo-500',
                 ]"
               ></i>
-              <span v-if="!sidebarCollapsed || isMobile" class="text-sm font-bold truncate">{{
-                item.label
-              }}</span>
+              <span
+                v-if="!sidebarCollapsed || isMobile"
+                class="text-sm font-bold truncate"
+                >{{ item.label }}</span
+              >
               <div
                 v-if="isActive(item.to)"
                 class="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 dark:bg-indigo-500 rounded-r-full"
@@ -203,7 +226,11 @@
         class="transition-all duration-500 ease-in-out"
         :class="[
           sidebarCollapsed || isMobile ? 'ml-0' : 'ml-[280px]',
-          sidebarCollapsed && !isMobile ? 'ml-20' : !isMobile ? 'ml-[280px]' : 'ml-0',
+          sidebarCollapsed && !isMobile
+            ? 'ml-20'
+            : !isMobile
+              ? 'ml-[280px]'
+              : 'ml-0',
         ]"
       >
         <!-- Header -->
@@ -262,7 +289,9 @@
               </button>
             </div>
 
-            <div class="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+            <div
+              class="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"
+            ></div>
 
             <!-- User Profile -->
             <div class="flex items-center gap-4 cursor-pointer group">
@@ -291,7 +320,9 @@
         </header>
 
         <!-- Content -->
-        <main class="p-6 md:p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-96px)]">
+        <main
+          class="p-6 md:p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-96px)]"
+        >
           <Motion
             :initial="{ opacity: 0, y: 30 }"
             :animate="{ opacity: 1, y: 0 }"
@@ -309,60 +340,54 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
 const sidebarCollapsed = ref(false);
 const isMobile = ref(false);
-const isDarkMode = ref(false);
 
 const { user, hasPermission } = useAuth();
+const { isDarkMode, toggleDarkMode, initTheme } = useTheme();
 
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value;
-  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light');
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-};
-
-const userName = computed(() => user.value?.employee?.name || 'User');
-const userRole = computed(() => user.value?.role?.name || '');
-const userPhotoUrl = computed(() => (user.value?.employee as any)?.photo_url || '');
+const userName = computed(() => user.value?.employee?.name || "User");
+const userRole = computed(() => user.value?.role?.name || "");
+const userPhotoUrl = computed(
+  () => (user.value?.employee as any)?.photo_url || "",
+);
 const userInitial = computed(() => {
-  const name = user.value?.employee?.name || 'U';
+  const name = user.value?.employee?.name || "U";
   return name.charAt(0).toUpperCase();
 });
 
-const isEmployee = computed(() => user.value?.role?.name?.toLowerCase() === 'pegawai');
+const isEmployee = computed(
+  () => user.value?.role?.name?.toLowerCase() === "pegawai",
+);
 
 const pageTitle = computed(() => {
   const path = route.path;
-  if (path === '/dashboard') return 'Intelligence Center';
-  if (path.includes('/employees')) return 'Talent Directory';
-  if (path.includes('/attendance')) return 'Presence Flow';
-  if (path.includes('/leaves')) return 'Leave Governance';
-  if (path.includes('/announcements')) return 'Broadcasting';
-  if (path.includes('/user-management')) return 'Identity Hub';
-  if (path.includes('/roles')) return 'Access Permissions';
-  if (path.includes('/activity-logs')) return 'Security Audit';
-  if (path.includes('/transport-allowance')) return 'Financial Logistics';
-  if (path.includes('/recovery')) return 'Data Recovery';
-  if (path.includes('/settings')) return 'System Config';
-  return 'Nexus HRIS';
+  if (path === "/dashboard") return "Intelligence Center";
+  if (path.includes("/employees")) return "Talent Directory";
+  if (path.includes("/attendance")) return "Presence Flow";
+  if (path.includes("/leaves")) return "Leave Governance";
+  if (path.includes("/announcements")) return "Broadcasting";
+  if (path.includes("/user-management")) return "Identity Hub";
+  if (path.includes("/roles")) return "Access Permissions";
+  if (path.includes("/activity-logs")) return "Security Audit";
+  if (path.includes("/transport-allowance")) return "Financial Logistics";
+  if (path.includes("/recovery")) return "Data Recovery";
+  if (path.includes("/settings")) return "System Config";
+  return "Nexus HRIS";
 });
 
 const isActive = (path: string) => {
-  if (path === '/dashboard') return route.path === '/dashboard';
+  if (path === "/dashboard") return route.path === "/dashboard";
   return route.path.startsWith(path);
 };
 
 const hasAnyPermission = (modules: string[]) => {
-  return modules.some((m) => hasPermission(m, 'read'));
+  return modules.some((m) => hasPermission(m, "read"));
 };
 
 const handleLogout = async () => {
@@ -371,77 +396,89 @@ const handleLogout = async () => {
 };
 
 const mainMenu = [
-  { label: 'Intelligence', to: '/dashboard', icon: 'bi bi-grid-fill' },
+  { label: "Intelligence", to: "/dashboard", icon: "bi bi-grid-fill" },
   {
-    label: 'Talent Directory',
-    to: '/employees',
-    icon: 'bi bi-people-fill',
-    permission: { module: 'employees', action: 'read' },
+    label: "Talent Directory",
+    to: "/employees",
+    icon: "bi bi-people-fill",
+    permission: { module: "employees", action: "read" },
   },
   {
-    label: 'Presence Flow',
-    to: '/attendance',
-    icon: 'bi bi-calendar-check-fill',
-    permission: { module: 'attendance', action: 'read' },
+    label: "Presence Flow",
+    to: "/attendance",
+    icon: "bi bi-calendar-check-fill",
+    permission: { module: "attendance", action: "read" },
   },
   {
-    label: 'Leave Governance',
-    to: '/leaves',
-    icon: 'bi bi-calendar2-week-fill',
-    permission: { module: 'leaves', action: 'read' },
+    label: "Leave Governance",
+    to: "/leaves",
+    icon: "bi bi-calendar2-week-fill",
+    permission: { module: "leaves", action: "read" },
   },
   {
-    label: 'Broadcasting',
-    to: '/announcements',
-    icon: 'bi bi-megaphone-fill',
-    permission: { module: 'announcements', action: 'read' },
+    label: "Broadcasting",
+    to: "/announcements",
+    icon: "bi bi-megaphone-fill",
+    permission: { module: "announcements", action: "read" },
   },
 ];
 
 const managementMenu = [
   {
-    label: 'Financial Logistics',
-    to: '/transport-allowance',
-    icon: 'bi bi-cash-stack',
-    permission: { module: 'transport', action: 'read' },
+    label: "Financial Logistics",
+    to: "/transport-allowance",
+    icon: "bi bi-cash-stack",
+    permission: { module: "transport", action: "read" },
   },
   {
-    label: 'Identity Hub',
-    to: '/user-management',
-    icon: 'bi bi-person-badge-fill',
-    permission: { module: 'users', action: 'read' },
+    label: "Identity Hub",
+    to: "/user-management",
+    icon: "bi bi-person-badge-fill",
+    permission: { module: "users", action: "read" },
   },
   {
-    label: 'Access Permissions',
-    to: '/roles',
-    icon: 'bi bi-shield-lock-fill',
-    permission: { module: 'roles', action: 'read' },
+    label: "Access Permissions",
+    to: "/roles",
+    icon: "bi bi-shield-lock-fill",
+    permission: { module: "roles", action: "read" },
   },
   {
-    label: 'Security Audit',
-    to: '/activity-logs',
-    icon: 'bi bi-shield-shaded',
-    permission: { module: 'logs', action: 'read' },
+    label: "Security Audit",
+    to: "/activity-logs",
+    icon: "bi bi-shield-shaded",
+    permission: { module: "logs", action: "read" },
   },
   {
-    label: 'Data Recovery',
-    to: '/recovery',
-    icon: 'bi bi-arrow-counterclockwise',
-    permission: { module: 'employees', action: 'read' },
+    label: "Data Recovery",
+    to: "/recovery",
+    icon: "bi bi-arrow-counterclockwise",
+    permission: { module: "employees", action: "read" },
   },
   {
-    label: 'System Config',
-    to: '/settings/transport-settings',
-    icon: 'bi bi-gear-fill',
-    permission: { module: 'transport_setting', action: 'read' },
+    label: "System Config",
+    to: "/settings/transport-settings",
+    icon: "bi bi-gear-fill",
+    permission: { module: "transport_setting", action: "read" },
   },
 ];
 
 const employeeMenu = [
-  { label: 'My Dashboard', to: '/employee/dashboard', icon: 'bi bi-grid-fill' },
-  { label: 'My Attendance', to: '/employee/attendance', icon: 'bi bi-calendar-check-fill' },
-  { label: 'My Leaves', to: '/employee/leaves', icon: 'bi bi-calendar2-week-fill' },
-  { label: 'Announcements', to: '/employee/announcements', icon: 'bi bi-megaphone-fill' },
+  { label: "My Dashboard", to: "/employee/dashboard", icon: "bi bi-grid-fill" },
+  {
+    label: "My Attendance",
+    to: "/employee/attendance",
+    icon: "bi bi-calendar-check-fill",
+  },
+  {
+    label: "My Leaves",
+    to: "/employee/leaves",
+    icon: "bi bi-calendar2-week-fill",
+  },
+  {
+    label: "Announcements",
+    to: "/employee/announcements",
+    icon: "bi bi-megaphone-fill",
+  },
 ];
 
 const checkMobile = () => {
@@ -451,27 +488,22 @@ const checkMobile = () => {
 
 onMounted(() => {
   checkMobile();
-  window.addEventListener('resize', checkMobile);
+  window.addEventListener("resize", checkMobile);
 
-  // Theme initialization
-  const savedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-    isDarkMode.value = true;
-    document.documentElement.classList.add('dark');
-  }
+  // Initialize theme from localStorage / system preference
+  initTheme();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile);
+  window.removeEventListener("resize", checkMobile);
 });
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   @apply antialiased overflow-x-hidden;
 }
 

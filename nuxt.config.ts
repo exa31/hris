@@ -6,13 +6,13 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true,
   },
-
   ssr: false,
   modules: [
     "@pinia/nuxt",
     "@nuxtjs/tailwindcss",
     "motion-v/nuxt",
     "@primevue/nuxt-module",
+    "@nuxtjs/color-mode",
   ],
   css: ["bootstrap-icons/font/bootstrap-icons.css"],
   primevue: {
@@ -29,7 +29,11 @@ export default defineNuxtConfig({
       title: "NexusHR - Next-Gen Human Resource Intelligence",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { name: "description", content: "NexusHR is a premium, next-gen Human Resource Intelligence platform for modern teams." },
+        {
+          name: "description",
+          content:
+            "NexusHR is a premium, next-gen Human Resource Intelligence platform for modern teams.",
+        },
       ],
     },
   },

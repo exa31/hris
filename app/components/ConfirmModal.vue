@@ -14,12 +14,12 @@
         :class="[
           'w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-2xl text-2xl shadow-sm transition-all duration-500',
           type === 'danger'
-            ? 'bg-rose-50 text-rose-500'
+            ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400'
             : type === 'warning'
-              ? 'bg-amber-50 text-amber-500'
+              ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-500 dark:text-amber-400'
               : type === 'success'
-                ? 'bg-emerald-50 text-emerald-500'
-                : 'bg-indigo-50 text-indigo-500',
+                ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 dark:text-emerald-400'
+                : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 dark:text-indigo-400',
         ]"
       >
         <i
@@ -36,10 +36,10 @@
         ></i>
       </div>
       <div class="space-y-2">
-        <p class="text-slate-600 font-medium leading-relaxed">{{ message }}</p>
+        <p class="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">{{ message }}</p>
         <p
           v-if="type === 'danger'"
-          class="text-[10px] font-black text-rose-400 uppercase tracking-widest"
+          class="text-[10px] font-black text-rose-400 dark:text-rose-300 uppercase tracking-widest"
         >
           Tindakan ini tidak dapat dibatalkan
         </p>
@@ -52,7 +52,7 @@
           :label="cancelText"
           severity="secondary"
           text
-          class="!rounded-xl !px-6 !font-bold !text-slate-400"
+          class="!rounded-xl !px-6 !font-bold !text-slate-400 dark:!text-slate-500"
           @click="closeModal"
         />
         <Button
@@ -67,7 +67,7 @@
                   ? 'success'
                   : 'primary'
           "
-          class="!rounded-xl !px-8 !font-black !uppercase !text-[11px] !tracking-widest shadow-lg shadow-indigo-100"
+          class="!rounded-xl !px-8 !font-black !uppercase !text-[11px] !tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none"
           @click="onConfirm"
         />
       </div>
@@ -127,5 +127,15 @@ const onConfirm = () => emit("confirm");
 }
 .confirm-modal-premium .p-dialog-footer {
   @apply !px-8 !pb-8 !pt-0 !border-none;
+}
+
+.dark .confirm-modal-premium .p-dialog-header-title {
+  @apply !text-slate-500;
+}
+.dark .confirm-modal-premium .p-dialog-content {
+  @apply !bg-slate-950;
+}
+.dark .confirm-modal-premium .p-dialog-footer {
+  @apply !bg-slate-950;
 }
 </style>

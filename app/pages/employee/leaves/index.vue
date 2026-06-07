@@ -9,7 +9,7 @@
         label="Ajukan Cuti Baru" 
         icon="bi bi-plus-lg" 
         @click="showRequestModal = true"
-        class="!rounded-xl !px-6 !py-3 !font-black !text-xs !tracking-widest !bg-indigo-600 hover:!bg-indigo-700 !border-none shadow-lg shadow-indigo-500/30 transition-transform hover:scale-105"
+        class="!rounded-xl !px-6 !py-3 !font-black !text-xs !tracking-widest !bg-indigo-600 hover:!bg-indigo-700 !border-none shadow-lg shadow-indigo-500/30 dark:shadow-none transition-transform hover:scale-105"
       />
     </div>
 
@@ -59,8 +59,8 @@
         
         <template #empty>
           <div class="flex flex-col items-center justify-center py-12">
-            <i class="bi bi-inbox text-4xl text-slate-300 mb-4"></i>
-            <p class="text-slate-500 font-medium">Belum ada riwayat pengajuan cuti.</p>
+            <i class="bi bi-inbox text-4xl text-slate-300 dark:text-slate-500 mb-4"></i>
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Belum ada riwayat pengajuan cuti.</p>
           </div>
         </template>
       </DataTable>
@@ -82,7 +82,7 @@
             v-model="form.type" 
             :options="leaveTypes" 
             placeholder="Pilih Tipe Cuti" 
-            class="w-full !rounded-xl"
+            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700"
             required
           />
         </div>
@@ -95,7 +95,7 @@
               dateFormat="dd/mm/yy"
               placeholder="Pilih Tanggal Mulai"
               class="w-full"
-              inputClass="!rounded-xl"
+              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700"
               required
             />
           </div>
@@ -107,7 +107,7 @@
               :minDate="form.start_date"
               placeholder="Pilih Tanggal Selesai"
               class="w-full"
-              inputClass="!rounded-xl"
+              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700"
               required
             />
           </div>
@@ -119,7 +119,7 @@
             v-model="form.reason" 
             rows="4" 
             placeholder="Jelaskan alasan cuti Anda secara singkat..."
-            class="w-full !rounded-xl resize-none"
+            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700 resize-none"
             required
           ></Textarea>
         </div>
@@ -137,7 +137,7 @@
             type="submit" 
             label="Kirim Pengajuan" 
             :loading="submitting"
-            class="!rounded-xl !px-6 !py-3 !bg-indigo-600 hover:!bg-indigo-700 !border-none !font-black !text-xs !tracking-widest shadow-lg"
+            class="!rounded-xl !px-6 !py-3 !bg-indigo-600 hover:!bg-indigo-700 !border-none !font-black !text-xs !tracking-widest shadow-lg dark:shadow-none"
           />
         </div>
       </form>

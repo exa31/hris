@@ -27,7 +27,7 @@
           />
           <div
             v-if="employee.status"
-            class="absolute bottom-4 right-4 w-6 h-6 bg-emerald-500 border-4 border-white dark:border-slate-900 rounded-full shadow-lg z-20 animate-pulse"
+            class="absolute bottom-4 right-4 w-6 h-6 bg-emerald-500 border-4 border-white dark:border-slate-900 rounded-full shadow-lg dark:shadow-none z-20 animate-pulse"
           ></div>
         </Motion>
 

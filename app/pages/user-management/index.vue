@@ -72,6 +72,11 @@
           :loading="loading"
           :rows="itemsPerPage"
           scrollable
+          :pt="{
+            footer: { class: '!bg-transparent' },
+            footerRow: { class: '!bg-transparent' },
+            footerCell: { class: '!bg-transparent !p-0 !border-none' },
+          }"
         >
           <template #empty>
             <div
@@ -204,7 +209,7 @@
 
           <template #footer>
             <div
-              class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 gap-4"
+              class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-white dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 gap-4"
             >
               <div
                 class="text-sm font-medium text-slate-500 dark:text-slate-400"
@@ -223,8 +228,20 @@
                 :rows="itemsPerPage"
                 :totalRecords="totalUsers"
                 template="PrevPageLink PageLinks NextPageLink"
-                class="!bg-transparent !p-0 custom-paginator"
+                class="!bg-transparent !p-0"
                 @page="onPageChange"
+                :pt="{
+                  page: ({ context }: any) => ({
+                    class: [
+                      '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
+                      context.active
+                        ? '!text-indigo-600 dark:!text-indigo-400'
+                        : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
+                    ],
+                  }),
+                  prev: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                  next: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                }"
               />
             </div>
           </template>
@@ -295,12 +312,15 @@ const confirmDelete = (user: any) => {
   @apply !bg-slate-50/50 dark:!bg-slate-800/30;
 }
 
-.custom-paginator .p-paginator-page,
-.custom-paginator .p-paginator-next,
-.custom-paginator .p-paginator-prev {
-  @apply !text-slate-600 dark:!text-slate-400 !bg-transparent border-none hover:!bg-slate-100 dark:hover:!bg-slate-800 !rounded-lg !min-w-[32px] !h-8 !m-1 transition-colors;
+.p-paginator {
+  @apply !bg-transparent !p-0 !border-none;
 }
-.custom-paginator .p-highlight {
-  @apply !bg-indigo-600 !text-white hover:!bg-indigo-700;
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-prev {
+  @apply !w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !bg-transparent !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 transition-colors;
+}
+.p-paginator .p-paginator-page.p-highlight {
+  @apply !bg-transparent !text-indigo-600 dark:!text-indigo-400 !shadow-none;
 }
 </style>
