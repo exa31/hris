@@ -313,7 +313,7 @@
                 :label="userInitial"
                 shape="circle"
                 size="large"
-                class="!w-10 !h-10 border-2 border-white dark:border-slate-800 shadow-lg ring-2 ring-indigo-50 dark:ring-indigo-900 ring-offset-2 dark:ring-offset-slate-950 transition-transform group-hover:scale-110"
+                class="!w-10 text-black dark:text-white !h-10 border-2 border-white dark:border-slate-800 shadow-lg ring-2 ring-indigo-50 dark:ring-indigo-900 ring-offset-2 dark:ring-offset-slate-950 transition-transform group-hover:scale-110"
               />
             </div>
           </div>

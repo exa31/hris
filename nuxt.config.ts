@@ -35,6 +35,7 @@ export default defineNuxtConfig({
             "NexusHR is a premium, next-gen Human Resource Intelligence platform for modern teams.",
         },
       ],
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
     },
   },
 

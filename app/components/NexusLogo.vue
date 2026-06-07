@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     class="relative flex items-center justify-center transition-transform duration-300 hover:scale-105"
     :style="{ width: size + 'px', height: size + 'px' }"
   >
@@ -29,8 +29,26 @@
       </defs>
 
       <!-- Connection/Network background grid pattern (subtle) -->
-      <circle cx="50" cy="50" r="42" stroke="currentColor" class="text-slate-100 dark:text-slate-800" stroke-width="1" stroke-dasharray="3 3" opacity="0.3" />
-      <circle cx="50" cy="50" r="26" stroke="currentColor" class="text-slate-100 dark:text-slate-800" stroke-width="1" stroke-dasharray="2 2" opacity="0.3" />
+      <circle
+        cx="50"
+        cy="50"
+        r="42"
+        stroke="currentColor"
+        class="text-slate-100 dark:text-slate-800"
+        stroke-width="1"
+        stroke-dasharray="3 3"
+        opacity="0.3"
+      />
+      <circle
+        cx="50"
+        cy="50"
+        r="26"
+        stroke="currentColor"
+        class="text-slate-100 dark:text-slate-800"
+        stroke-width="1"
+        stroke-dasharray="2 2"
+        opacity="0.3"
+      />
 
       <!-- Interconnected paths forming stylized N and X -->
       <!-- Left pillar of N -->
@@ -75,19 +93,47 @@
       <circle cx="28" cy="25" r="8" fill="url(#nodeGlow)" opacity="0.6" />
 
       <!-- Center Conjunction -->
-      <circle cx="50" cy="50" r="6" fill="#8b5cf6" class="pulse-node" style="animation-delay: 0.5s" />
+      <circle
+        cx="50"
+        cy="50"
+        r="6"
+        fill="#8b5cf6"
+        class="pulse-node"
+        style="animation-delay: 0.5s"
+      />
       <circle cx="50" cy="50" r="10" fill="url(#nodeGlow)" opacity="0.8" />
 
       <!-- Bottom Right Node -->
-      <circle cx="72" cy="75" r="5" fill="#ffffff" class="pulse-node" style="animation-delay: 0.8s" />
+      <circle
+        cx="72"
+        cy="75"
+        r="5"
+        fill="#ffffff"
+        class="pulse-node"
+        style="animation-delay: 0.8s"
+      />
       <circle cx="72" cy="75" r="8" fill="url(#nodeGlow)" opacity="0.6" />
 
       <!-- Top Right Node -->
-      <circle cx="72" cy="25" r="5" fill="#ffffff" class="pulse-node" style="animation-delay: 0.3s" />
+      <circle
+        cx="72"
+        cy="25"
+        r="5"
+        fill="#ffffff"
+        class="pulse-node"
+        style="animation-delay: 0.3s"
+      />
       <circle cx="72" cy="25" r="8" fill="url(#nodeGlow)" opacity="0.6" />
 
       <!-- Bottom Left Node -->
-      <circle cx="28" cy="75" r="5" fill="#ffffff" class="pulse-node" style="animation-delay: 0.7s" />
+      <circle
+        cx="28"
+        cy="75"
+        r="5"
+        fill="#ffffff"
+        class="pulse-node"
+        style="animation-delay: 0.7s"
+      />
       <circle cx="28" cy="75" r="8" fill="url(#nodeGlow)" opacity="0.6" />
     </svg>
   </div>
