@@ -61,3 +61,18 @@ export async function deleteAnnouncement(client: PoolClient, id: number) {
 export async function getActiveAnnouncements(client: PoolClient, department?: string) {
     return announcementRepository.getActiveAnnouncements(client, department)
 }
+
+export async function getPublishedAnnouncements(client: PoolClient) {
+    const rows = await announcementRepository.getPublishedAnnouncements(client)
+    const announcements = rows.map((r: any) => ({
+        id: r.id,
+        title: r.title,
+        content: r.content,
+        created_at: r.created_at,
+        author: {
+            name: r.author_name,
+            photo_url: r.author_photo,
+        },
+    }))
+    return { announcements }
+}

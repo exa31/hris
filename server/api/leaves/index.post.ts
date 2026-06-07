@@ -9,15 +9,14 @@ import { createLeaveRequestSchema } from '~~/server/model/leave-request.model'
 import z from 'zod'
 
 export default withPermission(async (event) => {
-    const body = await readBody(event)
-    const validation = createLeaveRequestSchema.safeParse(body)
+    const parsed = await readValidatedBody(event, (body) => createLeaveRequestSchema.safeParse(body))
 
-    if (!validation.success) {
+    if (!parsed.success) {
         throw new HttpError(
             400,
             'INVALID_REQUEST',
             'Data pengajuan cuti tidak valid',
-            z.treeifyError(validation.error).properties
+            z.treeifyError(parsed.error).properties
         )
     }
 

@@ -6,12 +6,11 @@
 import { HttpError } from "~~/server/errors/HttpError";
 import * as employeeRepository from "~~/server/repositories/employee.repository";
 import {
-  createEmployeeSchema,
-  updateEmployeeSchema,
+  type CreateEmployeeInput,
+  type UpdateEmployeeInput,
   type SearchEmployeesInput,
 } from "~~/server/model/employee.model";
 import type { PoolClient } from "pg";
-import z from "zod";
 
 export async function getEmployees(
   client: PoolClient,
@@ -56,46 +55,17 @@ export async function getEmployeeById(client: PoolClient, id: number) {
   return employee;
 }
 
-export async function createEmployee(client: PoolClient, data: unknown) {
-  const validation = createEmployeeSchema.safeParse(data);
-
-  if (!validation.success) {
-    throw new HttpError(
-      400,
-      "INVALID_REQUEST",
-      "Invalid request body",
-      z.treeifyError(validation.error).properties,
-    );
-  }
-
-  const employee = await employeeRepository.createEmployee(
-    client,
-    validation.data,
-  );
+export async function createEmployee(client: PoolClient, data: CreateEmployeeInput) {
+  const employee = await employeeRepository.createEmployee(client, data);
   return employee;
 }
 
 export async function updateEmployee(
   client: PoolClient,
   id: number,
-  data: unknown,
+  data: UpdateEmployeeInput,
 ) {
-  const validation = updateEmployeeSchema.safeParse(data);
-
-  if (!validation.success) {
-    throw new HttpError(
-      400,
-      "INVALID_REQUEST",
-      "Invalid request body",
-      z.treeifyError(validation.error).properties,
-    );
-  }
-
-  const employee = await employeeRepository.updateEmployee(
-    client,
-    id,
-    validation.data,
-  );
+  const employee = await employeeRepository.updateEmployee(client, id, data);
 
   if (!employee) {
     throw new HttpError(404, "NOT_FOUND", "Employee not found");
@@ -138,14 +108,6 @@ export async function deleteEmployee(client: PoolClient, id: number) {
 }
 
 export async function bulkDeleteEmployees(client: PoolClient, ids: number[]) {
-  if (!Array.isArray(ids) || ids.length === 0) {
-    throw new HttpError(
-      400,
-      "INVALID_REQUEST",
-      "Invalid request body: ids array required",
-    );
-  }
-
   // Check if any of these employees are superadmin
   const superAdmins = await employeeRepository.checkSuperAdminByIds(
     client,
@@ -176,22 +138,6 @@ export async function bulkUpdateStatus(
   ids: number[],
   status: boolean,
 ) {
-  if (!Array.isArray(ids) || ids.length === 0) {
-    throw new HttpError(
-      400,
-      "INVALID_REQUEST",
-      "Invalid request body: ids array required",
-    );
-  }
-
-  if (typeof status !== "boolean") {
-    throw new HttpError(
-      400,
-      "INVALID_REQUEST",
-      "Invalid request body: status must be boolean",
-    );
-  }
-
   const count = await employeeRepository.bulkUpdateStatus(client, ids, status);
   return { success: true, updatedCount: count };
 }

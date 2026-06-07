@@ -5,6 +5,7 @@
 
 import { HttpError } from '~~/server/errors/HttpError'
 import * as leaveRepository from '~~/server/repositories/leave-request.repository'
+import * as userRepository from '~~/server/repositories/user.repository'
 import { type CreateLeaveRequestInput, type ApproveLeaveInput, type SearchLeaveRequestInput } from '~~/server/model/leave-request.model'
 import type { PoolClient } from 'pg'
 
@@ -109,6 +110,21 @@ export async function getLeaveBalance(client: PoolClient, employeeId: number, le
         throw new HttpError(404, 'NOT_FOUND', 'Tipe cuti tidak ditemukan')
     }
     return balance
+}
+
+export async function getEmployeeLeaveRequests(client: PoolClient, userId: number) {
+    const employeeId = await userRepository.getEmployeeIdByUserId(client, userId)
+    if (!employeeId) return { leaves: [] }
+
+    const rows = await leaveRepository.getEmployeeLeaveRequests(client, employeeId)
+    return { leaves: rows }
+}
+
+export async function createEmployeeLeaveRequest(client: PoolClient, userId: number, data: Omit<CreateLeaveRequestInput, 'employee_id'>) {
+    const employeeId = await userRepository.getEmployeeIdByUserId(client, userId)
+    if (!employeeId) throw new HttpError(400, 'NO_EMPLOYEE', 'User ini bukan pegawai.')
+
+    return createLeaveRequest(client, { ...data, employee_id: employeeId })
 }
 
 export async function getLeaveSummary(client: PoolClient, params: SearchLeaveRequestInput) {

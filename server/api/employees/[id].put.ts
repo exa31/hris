@@ -4,6 +4,8 @@ import { withTransaction } from '~~/server/db/postgres'
 import * as employeeService from '~~/server/services/employee.service'
 import { logActivity } from '~~/server/services/activity-log.service'
 import { sendSuccess } from '~~/server/utils/response'
+import { updateEmployeeSchema } from '~~/server/model/employee.model'
+import z from 'zod'
 
 export default withPermission(async (event) => {
     const id = parseInt(getRouterParam(event, 'id') || '0')
@@ -12,11 +14,14 @@ export default withPermission(async (event) => {
         throw new HttpError(400, 'INVALID_ID', 'Invalid employee ID')
     }
 
-    const body = await readBody(event) || {}
-    body.id = id // inject the URL id to satisfy the schema validation
+    const parsed = await readValidatedBody(event, (body) => updateEmployeeSchema.safeParse({ ...(body || {}), id }))
+
+    if (!parsed.success) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body', z.treeifyError(parsed.error).properties)
+    }
 
     return withTransaction(async (client) => {
-        const data = await employeeService.updateEmployee(client, id, body)
+        const data = await employeeService.updateEmployee(client, id, parsed.data)
         
         // Log Activity
         await logActivity(client, {

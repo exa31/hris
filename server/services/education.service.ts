@@ -6,34 +6,16 @@
 import { HttpError } from '~~/server/errors/HttpError'
 import * as educationRepository from '~~/server/repositories/education.repository'
 import type { PoolClient } from 'pg'
-import z from 'zod'
-
-const createEducationSchema = z.object({
-    name: z.string().min(1, 'Nama pendidikan harus diisi').max(255),
-})
+import type { CreateEducationInput } from '~~/server/model/education.model'
 
 export async function getEducations(client: PoolClient) {
     return educationRepository.getEducations(client)
 }
 
-export async function createEducation(client: PoolClient, data: unknown) {
-    const validation = createEducationSchema.safeParse(data)
+export async function createEducation(client: PoolClient, data: CreateEducationInput) {
+    const existing = await educationRepository.findEducationByName(client, data.name)
 
-    if (!validation.success) {
-        throw new HttpError(
-            400,
-            'INVALID_REQUEST',
-            'Invalid request body',
-            z.treeifyError(validation.error).properties
-        )
-    }
-
-    const existing = await client.query(
-        'SELECT id FROM educations WHERE LOWER(name) = LOWER($1)',
-        [validation.data.name]
-    )
-
-    if (existing.rows.length > 0) {
+    if (existing) {
         throw new HttpError(
             400,
             'DUPLICATE_EDUCATION',
@@ -41,7 +23,7 @@ export async function createEducation(client: PoolClient, data: unknown) {
         )
     }
 
-    return educationRepository.createEducation(client, validation.data.name)
+    return educationRepository.createEducation(client, data.name)
 }
 
 export async function getEmployeeEducations(client: PoolClient, employeeId: number) {

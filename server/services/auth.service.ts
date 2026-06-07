@@ -41,11 +41,6 @@ interface LoginResponse {
  */
 export const login = async (event: H3Event, loginData: LoginRequest): Promise<LoginResponse> => {
     return withTransaction(async (client) => {
-        // Validate input
-        if (!loginData.username || !loginData.password) {
-            throw new HttpError(400, 'INVALID_CREDENTIALS', 'Username and password are required')
-        }
-
         const user = await userRepository.getUserByUsername(client, loginData.username)
 
         if (!user) {

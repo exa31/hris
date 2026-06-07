@@ -10,8 +10,10 @@ import z from "zod";
 
 export default withPermission(
   async (event) => {
-    const body = await readValidatedBody(event, createAnnouncementSchema.safeParse);
-    const validation = createAnnouncementSchema.safeParse(body);
+    const validation = await readValidatedBody(
+      event,
+      createAnnouncementSchema.safeParse,
+    );
 
     if (!validation.success) {
       throw new HttpError(

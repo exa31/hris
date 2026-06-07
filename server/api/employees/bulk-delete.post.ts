@@ -4,10 +4,18 @@ import * as employeeService from '~~/server/services/employee.service'
 import { logActivity } from '~~/server/services/activity-log.service'
 import { sendSuccess } from '~~/server/utils/response'
 import { sseEmitter } from '~~/server/utils/sse'
+import { bulkDeleteEmployeesSchema } from '~~/server/model/employee.model'
+import { HttpError } from '~~/server/errors/HttpError'
+import z from 'zod'
 
 export default withPermission(async (event) => {
-    const body = await readBody(event)
-    const { ids } = body
+    const parsed = await readValidatedBody(event, (body) => bulkDeleteEmployeesSchema.safeParse(body))
+
+    if (!parsed.success) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body', z.treeifyError(parsed.error).properties)
+    }
+
+    const { ids } = parsed.data
 
     return withTransaction(async (client) => {
         const data = await employeeService.bulkDeleteEmployees(client, ids)

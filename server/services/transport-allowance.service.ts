@@ -109,14 +109,6 @@ export const generateAllowances = async (
     year: number,
     force: boolean = false
 ) => {
-    // Validate period
-    if (month < 1 || month > 12) {
-        throw new HttpError(400, 'INVALID_PERIOD', 'Bulan harus antara 1-12')
-    }
-    if (year < 2000 || year > 2100) {
-        throw new HttpError(400, 'INVALID_PERIOD', 'Tahun tidak valid')
-    }
-
     // Check duplicate
     const exists = await repo.existsForPeriod(client, month, year)
     if (exists && !force) {
@@ -225,12 +217,5 @@ export const updateTransportSettings = async (
     client: PoolClient,
     data: { base_fare: number; is_active: boolean }
 ) => {
-    if (typeof data.base_fare !== 'number' || data.base_fare < 0) {
-        throw new HttpError(400, 'INVALID_REQUEST', 'Base fare harus berupa angka positif')
-    }
-    if (typeof data.is_active !== 'boolean') {
-        throw new HttpError(400, 'INVALID_REQUEST', 'Status aktif harus berupa boolean')
-    }
-
     return repo.upsertTransportSettings(client, data)
 }

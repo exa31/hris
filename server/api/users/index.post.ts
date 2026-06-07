@@ -8,15 +8,14 @@ import { HttpError } from '~~/server/errors/HttpError'
 import z from 'zod'
 
 export default withPermission(async (event) => {
-    const body = await readBody(event)
-    const validation = createUserSchema.safeParse(body)
+    const parsed = await readValidatedBody(event, (body) => createUserSchema.safeParse(body))
 
-    if (!validation.success) {
+    if (!parsed.success) {
         throw new HttpError(
             400,
             'INVALID_REQUEST',
             'Data user tidak valid',
-            z.treeifyError(validation.error).properties
+            z.treeifyError(parsed.error).properties
         )
     }
 
@@ -24,11 +23,11 @@ export default withPermission(async (event) => {
         const currentUser = event.context.user
         
         // Aturan: Hanya Super Admin yang boleh membuat user dengan role Super Admin
-        if (validation.data.role_id === 1 && currentUser.role_id !== 1) {
+        if (parsed.data.role_id === 1 && currentUser.role_id !== 1) {
             throw new HttpError(403, 'FORBIDDEN', 'Hanya Super Admin yang dapat membuat user dengan role Super Admin')
         }
 
-        const data = await userService.createUser(client, validation.data)
+        const data = await userService.createUser(client, parsed.data)
         
         // Log Activity
         await logActivity(client, {

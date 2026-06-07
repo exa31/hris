@@ -104,6 +104,10 @@ export async function updateRolePermissions(client: PoolClient, roleId: number, 
     return userRepository.updateRolePermissions(client, roleId, name, permissionIds)
 }
 
+export async function countSuperAdmins(client: PoolClient) {
+    return userRepository.countSuperAdmins(client)
+}
+
 export async function checkUsername(client: PoolClient, username: string, excludeId?: number) {
     const user = await userRepository.getUserByUsername(client, username)
     if (!user) return true

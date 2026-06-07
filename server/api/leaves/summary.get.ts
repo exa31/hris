@@ -7,20 +7,19 @@ import { HttpError } from '~~/server/errors/HttpError'
 import z from 'zod'
 
 export default withPermission(async (event) => {
-    const query = getQuery(event)
-    const validation = searchLeaveRequestSchema.safeParse(query)
+    const parsed = await getValidatedQuery(event, (query) => searchLeaveRequestSchema.safeParse(query))
 
-    if (!validation.success) {
+    if (!parsed.success) {
         throw new HttpError(
             400,
             'INVALID_QUERY',
             'Parameter query tidak valid',
-            z.treeifyError(validation.error).properties
+            z.treeifyError(parsed.error).properties
         )
     }
 
     return withTransaction(async (client) => {
-        const data = await leaveService.getLeaveSummary(client, validation.data)
+        const data = await leaveService.getLeaveSummary(client, parsed.data)
         return sendSuccess(event, data)
     })
 }, [{ module: 'leaves', action: 'read' }])

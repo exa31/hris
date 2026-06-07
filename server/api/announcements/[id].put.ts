@@ -17,7 +17,10 @@ export default withPermission(
     }
 
     const parsed = await readValidatedBody(event, (data) =>
-      updateAnnouncementSchema.safeParse({ ...data, id: Number(id) }),
+      updateAnnouncementSchema.safeParse({
+        ...(data as Object),
+        id: Number(id),
+      }),
     );
 
     if (!parsed.success) {

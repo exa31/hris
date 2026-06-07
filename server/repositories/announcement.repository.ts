@@ -138,6 +138,19 @@ export async function deleteAnnouncement(client: PoolClient, id: number) {
     return result.rowCount! > 0
 }
 
+export async function getPublishedAnnouncements(client: PoolClient) {
+    const result = await client.query(
+        `SELECT a.id, a.title, a.content, a.created_at, e.name as author_name, e.photo_url as author_photo
+         FROM announcements a
+         LEFT JOIN users u ON a.created_by = u.id
+         LEFT JOIN employees e ON u.employee_id = e.id
+         WHERE a.status = 'Published'
+         ORDER BY a.created_at DESC
+         LIMIT 20`
+    )
+    return result.rows
+}
+
 export async function getActiveAnnouncements(client: PoolClient, department?: string) {
     let query = `
         SELECT an.*,

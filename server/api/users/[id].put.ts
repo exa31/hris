@@ -4,7 +4,7 @@ import * as userService from '~~/server/services/user.service'
 import { sendSuccess } from '~~/server/utils/response'
 import { updateUserSchema } from '~~/server/model/user.model'
 import { HttpError } from '~~/server/errors/HttpError'
-import * as userRepository from '~~/server/repositories/user.repository'
+
 import z from 'zod'
 import { logActivity } from '~~/server/services/activity-log.service'
 
@@ -12,20 +12,19 @@ import { sseEmitter } from '~~/server/utils/sse'
 
 export default withPermission(async (event) => {
     const id = parseInt(getRouterParam(event, 'id') || '0')
-    const body = await readBody(event)
 
     if (!id) {
         throw new HttpError(400, 'INVALID_ID', 'ID user tidak valid')
     }
 
-    const validation = updateUserSchema.safeParse({ ...body, id })
+    const parsed = await readValidatedBody(event, (body) => updateUserSchema.safeParse({ ...body, id }))
 
-    if (!validation.success) {
+    if (!parsed.success) {
         throw new HttpError(
             400,
             'INVALID_REQUEST',
             'Data user tidak valid',
-            z.treeifyError(validation.error).properties
+            z.treeifyError(parsed.error).properties
         )
     }
 
@@ -36,7 +35,7 @@ export default withPermission(async (event) => {
         const hasFullUpdate = userPermissions.some(p => p.module === 'users' && p.action === 'update')
 
         // 1. Cek proteksi role
-        if (validation.data.role_id !== undefined && validation.data.role_id !== targetUser.role_id) {
+        if (parsed.data.role_id !== undefined && parsed.data.role_id !== targetUser.role_id) {
             // Hanya Super Admin yang boleh ganti role_id
             if (currentUser.role_id !== 1) {
                 throw new HttpError(403, 'FORBIDDEN', 'Hanya Super Admin yang dapat mengubah role user')
@@ -44,7 +43,7 @@ export default withPermission(async (event) => {
 
             // Jika target adalah Super Admin, cek apakah dia satu-satunya Super Admin aktif
             if (targetUser.role_id === 1) {
-                const superAdminCount = await userRepository.countSuperAdmins(client)
+                const superAdminCount = await userService.countSuperAdmins(client)
                 if (superAdminCount <= 1) {
                     throw new HttpError(403, 'FORBIDDEN', 'Gagal mengubah role. Harus ada minimal satu Super Admin yang aktif di sistem.')
                 }
@@ -52,8 +51,8 @@ export default withPermission(async (event) => {
         }
 
         // 2. Proteksi deaktifasi (is_active)
-        if (validation.data.is_active === false && targetUser.role_id === 1) {
-            const superAdminCount = await userRepository.countSuperAdmins(client)
+        if (parsed.data.is_active === false && targetUser.role_id === 1) {
+            const superAdminCount = await userService.countSuperAdmins(client)
             if (superAdminCount <= 1) {
                 throw new HttpError(403, 'FORBIDDEN', 'Gagal menonaktifkan user. Super Admin terakhir tidak dapat dinonaktifkan.')
             }
@@ -66,7 +65,7 @@ export default withPermission(async (event) => {
             }
         }
 
-        const data = await userService.updateUser(client, id, validation.data)
+        const data = await userService.updateUser(client, id, parsed.data)
 
         // Log Activity
         await logActivity(client, {
@@ -78,7 +77,7 @@ export default withPermission(async (event) => {
         })
 
         // Jika user dinonaktifkan atau diubah role-nya, tendang dari session
-        if (validation.data.is_active === false) {
+        if (parsed.data.is_active === false) {
             sseEmitter.emit('user_logout', id);
         } else {
             // Beri tahu klien untuk memuat ulang permission/state-nya

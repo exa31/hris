@@ -8,15 +8,19 @@ import { withTransaction } from '~~/server/db/postgres'
 import * as transportService from '~~/server/services/transport-allowance.service'
 import { sendSuccess } from '~~/server/utils/response'
 import { logActivity } from '~~/server/services/activity-log.service'
+import { transportSettingSchema } from '~~/server/model/transport-allowance.model'
+import { HttpError } from '~~/server/errors/HttpError'
+import z from 'zod'
 
 export default withPermission(async (event) => {
-    const body = await readBody(event)
+    const parsed = await readValidatedBody(event, (body) => transportSettingSchema.safeParse(body))
+
+    if (!parsed.success) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body', z.treeifyError(parsed.error).properties)
+    }
 
     return withTransaction(async (client) => {
-        const settings = await transportService.updateTransportSettings(client, {
-            base_fare: body.base_fare,
-            is_active: body.is_active,
-        })
+        const settings = await transportService.updateTransportSettings(client, parsed.data)
 
         await logActivity(client, {
             user_id: event.context.user.id,

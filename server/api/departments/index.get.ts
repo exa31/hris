@@ -1,16 +1,11 @@
-/**
- * Get all departments
- * GET /api/departments
- */
-
 import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
-import * as departmentRepository from '~~/server/repositories/department.repository'
+import * as departmentService from '~~/server/services/department.service'
 import { sendSuccess } from '~~/server/utils/response'
 
 export default withPermission(async (event) => {
     return withTransaction(async (client) => {
-        const departments = await departmentRepository.getDepartments(client)
+        const departments = await departmentService.getDepartments(client)
         return sendSuccess(event, departments)
     })
 }, [{ module: 'employees', action: 'read' }])

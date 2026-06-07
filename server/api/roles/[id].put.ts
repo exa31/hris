@@ -4,6 +4,8 @@ import * as userService from '~~/server/services/user.service'
 import { sendSuccess } from '~~/server/utils/response'
 import { HttpError } from '~~/server/errors/HttpError'
 import { logActivity } from '~~/server/services/activity-log.service'
+import { updateRolePermissionsSchema } from '~~/server/model/role.model'
+import z from 'zod'
 
 import { sseEmitter } from '~~/server/utils/sse'
 
@@ -13,12 +15,13 @@ export default withPermission(async (event) => {
         throw new HttpError(400, 'INVALID_ID', 'ID role tidak valid')
     }
 
-    const body = await readBody(event)
-    const { name, permissionIds } = body
+    const parsed = await readValidatedBody(event, (body) => updateRolePermissionsSchema.safeParse(body))
 
-    if (!name || !Array.isArray(permissionIds)) {
-        throw new HttpError(400, 'INVALID_BODY', 'Nama role dan daftar permission harus disertakan')
+    if (!parsed.success) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'Invalid request body', z.treeifyError(parsed.error).properties)
     }
+
+    const { name, permissionIds } = parsed.data
 
     return withTransaction(async (client) => {
         const data = await userService.updateRolePermissions(client, id, name, permissionIds)

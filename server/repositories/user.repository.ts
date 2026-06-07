@@ -1,6 +1,12 @@
 import { PoolClient } from 'pg'
 import type { User, SearchUsersInput, CreateUserInput, UpdateUserInput } from '~~/server/model/user.model'
 
+export async function getEmployeeIdByUserId(client: PoolClient, userId: number): Promise<number | null> {
+    const query = 'SELECT employee_id FROM users WHERE id = $1'
+    const { rows } = await client.query<{ employee_id: number }>(query, [userId])
+    return rows[0]?.employee_id ?? null
+}
+
 export async function getUsers(client: PoolClient, params: SearchUsersInput) {
     const { limit, offset, search, role_id, is_active, sortColumn, sortDirection } = params
 

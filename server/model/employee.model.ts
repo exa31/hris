@@ -163,3 +163,16 @@ export const searchEmployeesSchema = z.object({
 
 
 export type SearchEmployeesInput = z.infer<typeof searchEmployeesSchema>;
+
+export const bulkDeleteEmployeesSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, "Minimal 1 ID pegawai"),
+})
+
+export type BulkDeleteEmployeesInput = z.infer<typeof bulkDeleteEmployeesSchema>
+
+export const bulkUpdateStatusSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, "Minimal 1 ID pegawai"),
+  status: z.boolean(),
+})
+
+export type BulkUpdateStatusInput = z.infer<typeof bulkUpdateStatusSchema>

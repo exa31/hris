@@ -56,3 +56,9 @@ export const searchAttendanceSchema = z.object({
 })
 
 export type SearchAttendanceInput = z.infer<typeof searchAttendanceSchema>
+
+export const attendanceClockSchema = z.object({
+  type: z.enum(["in", "out"]),
+})
+
+export type AttendanceClockInput = z.infer<typeof attendanceClockSchema>

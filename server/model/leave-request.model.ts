@@ -65,3 +65,13 @@ export const leaveTypeModel = z.object({
 })
 
 export type LeaveType = z.infer<typeof leaveTypeModel>
+
+export const employeeLeaveRequestSchema = z.object({
+  leave_type_id: z.coerce.number({ message: "Tipe cuti harus dipilih" }),
+  start_date: z.string().refine((d) => !isNaN(Date.parse(d)), { message: "Format tanggal mulai tidak valid" }),
+  end_date: z.string().refine((d) => !isNaN(Date.parse(d)), { message: "Format tanggal selesai tidak valid" }),
+  total_days: z.coerce.number().int().positive("Jumlah hari harus positif"),
+  reason: z.string().min(1, "Alasan tidak boleh kosong"),
+})
+
+export type EmployeeLeaveRequestInput = z.infer<typeof employeeLeaveRequestSchema>

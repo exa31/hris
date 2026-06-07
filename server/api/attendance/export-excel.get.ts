@@ -7,22 +7,16 @@ import { searchAttendanceSchema } from "~~/server/model/attendance.model";
 
 export default withPermission(
   async (event) => {
-    const query = getQuery(event);
-    
-    const params = {
-      ...query,
-      limit: -1,
-      offset: 0,
-    };
-    
-    const validation = searchAttendanceSchema.safeParse(params);
-    
-    if (!validation.success) {
+    const parsed = await getValidatedQuery(event, (query) =>
+      searchAttendanceSchema.safeParse({ ...query, limit: -1, offset: 0 })
+    );
+
+    if (!parsed.success) {
       throw createError({ statusCode: 400, message: "Invalid parameters" });
     }
 
     return withTransaction(async (client) => {
-      const { attendances } = await attendanceService.getAttendances(client, validation.data);
+      const { attendances } = await attendanceService.getAttendances(client, parsed.data);
 
       await logActivity(client, {
         user_id: event.context.user.id,

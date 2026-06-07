@@ -150,6 +150,38 @@ export async function deleteAttendance(client: PoolClient, id: number) {
     return result.rowCount! > 0
 }
 
+export async function getTodayAttendance(client: PoolClient, employeeId: number, date: string) {
+    const result = await client.query(
+        `SELECT id, clock_in, clock_out FROM attendances WHERE employee_id = $1 AND date = $2`,
+        [employeeId, date]
+    )
+    return { row: result.rows[0] || null }
+}
+
+export async function insertAttendance(client: PoolClient, employeeId: number, date: string, clockIn: string, status: string) {
+    const result = await client.query(
+        `INSERT INTO attendances (employee_id, date, clock_in, status) VALUES ($1, $2, $3, $4) RETURNING *`,
+        [employeeId, date, clockIn, status]
+    )
+    return result.rows[0]
+}
+
+export async function updateClockOut(client: PoolClient, attendanceId: number, clockOut: string) {
+    const result = await client.query(
+        `UPDATE attendances SET clock_out = $1 WHERE id = $2 RETURNING *`,
+        [clockOut, attendanceId]
+    )
+    return result.rows[0]
+}
+
+export async function getEmployeeAttendances(client: PoolClient, employeeId: number, limit: number = 30) {
+    const result = await client.query(
+        `SELECT id, date, clock_in, clock_out, status FROM attendances WHERE employee_id = $1 ORDER BY date DESC LIMIT $2`,
+        [employeeId, limit]
+    )
+    return result.rows
+}
+
 export async function getAttendanceSummary(client: PoolClient, month: number, year: number) {
     const result = await client.query(
         `SELECT
@@ -173,6 +205,24 @@ export async function getAttendanceSummary(client: PoolClient, month: number, ye
         [month, year]
     )
     return result.rows
+}
+
+export async function getEmployeeMonthlyAttendance(client: PoolClient, employeeId: number) {
+    const result = await client.query(
+        `SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN status IN ('Hadir', 'Terlambat') THEN 1 ELSE 0 END) as present
+         FROM attendances
+         WHERE employee_id = $1
+           AND EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM CURRENT_DATE)
+           AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
+        [employeeId]
+    )
+    const row = result.rows[0]
+    return {
+        total: parseInt(row?.total || '0'),
+        present: parseInt(row?.present || '0'),
+    }
 }
 
 export async function getTodayStats(client: PoolClient): Promise<{

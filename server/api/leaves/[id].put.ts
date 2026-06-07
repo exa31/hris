@@ -10,29 +10,28 @@ import z from 'zod'
 
 export default withPermission(async (event) => {
     const id = Number(getRouterParam(event, 'id'))
-    const body = await readBody(event)
-    const validation = approveLeaveSchema.safeParse(body)
+    const parsed = await readValidatedBody(event, (body) => approveLeaveSchema.safeParse(body))
 
-    if (!validation.success) {
+    if (!parsed.success) {
         throw new HttpError(
             400,
             'INVALID_REQUEST',
             'Data approval tidak valid',
-            z.treeifyError(validation.error).properties
+            z.treeifyError(parsed.error).properties
         )
     }
 
     return withTransaction(async (client) => {
-        const data = await leaveService.approveLeaveRequest(client, id, validation.data, event.context.user.id)
+        const data = await leaveService.approveLeaveRequest(client, id, parsed.data, event.context.user.id)
 
         await logActivity(client, {
             user_id: event.context.user.id,
             action: 'UPDATE',
             module: 'LEAVE_MANAGEMENT',
-            description: `${body.status === 'Approved' ? 'Menyetujui' : 'Menolak'} pengajuan cuti ID: ${id}`,
-            metadata: { leave_request_id: id, status: body.status }
+            description: `${parsed.data.status === 'Approved' ? 'Menyetujui' : 'Menolak'} pengajuan cuti ID: ${id}`,
+            metadata: { leave_request_id: id, status: parsed.data.status }
         })
 
-        return sendSuccess(event, data, `Pengajuan cuti berhasil ${body.status === 'Approved' ? 'disetujui' : 'ditolak'}`)
+        return sendSuccess(event, data, `Pengajuan cuti berhasil ${parsed.data.status === 'Approved' ? 'disetujui' : 'ditolak'}`)
     })
 }, [{ module: 'leaves', action: 'approve' }])

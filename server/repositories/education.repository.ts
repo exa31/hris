@@ -82,6 +82,12 @@ export async function isEducationInUse(client: PoolClient, educationId: number):
     return (result.rowCount ?? 0) > 0
 }
 
+export async function findEducationByName(client: PoolClient, name: string): Promise<Education | null> {
+    const query = 'SELECT id, name FROM educations WHERE LOWER(name) = LOWER($1)'
+    const result = await client.query<Education>(query, [name])
+    return result.rows[0] || null
+}
+
 export async function deleteEducation(client: PoolClient, educationId: number): Promise<void> {
     const query = 'DELETE FROM educations WHERE id = $1'
     await client.query(query, [educationId])

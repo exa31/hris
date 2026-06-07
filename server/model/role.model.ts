@@ -24,3 +24,10 @@ export const updateRoleSchema = z.object({
 })
 
 export type UpdateRoleInput = z.infer<typeof updateRoleSchema>
+
+export const updateRolePermissionsSchema = z.object({
+  name: z.string().min(1, "Nama role harus diisi"),
+  permissionIds: z.array(z.number().int().positive()).min(1, "Minimal 1 permission harus dipilih"),
+})
+
+export type UpdateRolePermissionsInput = z.infer<typeof updateRolePermissionsSchema>

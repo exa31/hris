@@ -163,6 +163,27 @@ export async function getLeaveBalance(client: PoolClient, employeeId: number, le
     }
 }
 
+export async function getEmployeeLeaveRequests(client: PoolClient, employeeId: number) {
+    const result = await client.query(
+        `SELECT id, leave_type_id, start_date, end_date, total_days, reason, status, created_at
+         FROM leave_requests
+         WHERE employee_id = $1
+         ORDER BY created_at DESC`,
+        [employeeId]
+    )
+    return result.rows
+}
+
+export async function getEmployeeYearlyLeaves(client: PoolClient, employeeId: number) {
+    const result = await client.query(
+        `SELECT status FROM leave_requests
+         WHERE employee_id = $1
+           AND EXTRACT(YEAR FROM start_date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
+        [employeeId]
+    )
+    return result.rows
+}
+
 export async function getLeaveSummary(client: PoolClient, params: SearchLeaveRequestInput) {
     const conditions: string[] = ['1=1']
     const values: any[] = []

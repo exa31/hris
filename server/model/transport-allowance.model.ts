@@ -41,3 +41,18 @@ export const updateTransportAllowanceSchema = z.object({
 })
 
 export type UpdateTransportAllowanceInput = z.infer<typeof updateTransportAllowanceSchema>
+
+export const transportSettingSchema = z.object({
+  base_fare: z.number().positive("Base fare harus berupa angka positif"),
+  is_active: z.boolean(),
+})
+
+export type TransportSettingInput = z.infer<typeof transportSettingSchema>
+
+export const transportGenerateSchema = z.object({
+  month: z.number().int().min(1, "Bulan harus antara 1-12").max(12, "Bulan harus antara 1-12"),
+  year: z.number().int().min(2000, "Tahun tidak valid").max(2100, "Tahun tidak valid"),
+  force: z.boolean().optional().default(false),
+})
+
+export type TransportGenerateInput = z.infer<typeof transportGenerateSchema>
