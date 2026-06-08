@@ -80,7 +80,7 @@
         </h3>
       </div>
 
-      <DataTable :value="attendances" :loading="loading" class="p-datatable-dashboard-overhaul">
+      <DataTable :value="attendances" :loading="loading" class="p-datatable-dashboard-overhaul" :pt="{ wrapper: { class: '!bg-transparent' } }">
         <Column field="date" header="Tanggal">
           <template #body="slotProps">
             <div class="font-bold text-slate-800 dark:text-white">

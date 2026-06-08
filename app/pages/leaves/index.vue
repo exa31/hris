@@ -95,7 +95,7 @@
             <InputText
               v-model="searchQuery"
               placeholder="Nama pegawai..."
-              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold dark:!text-white"
+              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
             />
           </span>
         </div>
@@ -109,7 +109,8 @@
             :options="statusOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none"
+            placeholder="Pilih Status"
+            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
         <div class="md:col-span-3 space-y-1.5">
@@ -122,7 +123,8 @@
             :options="leaveTypeOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none"
+            placeholder="Pilih Jenis Cuti"
+            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
         <div class="md:col-span-2">
@@ -152,6 +154,7 @@
           class="p-datatable-overhaul"
           :loading="loading"
           :pt="{
+            wrapper: { class: '!bg-transparent' },
             footer: { class: '!bg-transparent' },
             footerRow: { class: '!bg-transparent' },
             footerCell: { class: '!bg-transparent !p-0 !border-none' },
@@ -349,31 +352,37 @@
           <template #footer>
             <div
               class="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 bg-white dark:bg-slate-800/30"
+            >
+              <span
+                class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+                >Total: {{ totalRequests }} Data</span
               >
-                <span
-                  class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                  >Total: {{ totalRequests }} Data</span
-                >
-                <Paginator
-                  v-model:first="first"
-                  :rows="itemsPerPage"
-                  :totalRecords="totalRequests"
-                  template="PrevPageLink PageLinks NextPageLink"
-                  @page="onPageChange"
-                  class="!bg-transparent !p-0"
-                  :pt="{
-                    page: ({ context }: any) => ({
-                      class: [
-                        '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
-                        context.active
-                          ? '!text-indigo-600 dark:!text-indigo-400'
-                          : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
-                      ],
-                    }),
-                    prev: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
-                    next: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
-                  }"
-                />
+              <Paginator
+                v-model:first="first"
+                :rows="itemsPerPage"
+                :totalRecords="totalRequests"
+                template="PrevPageLink PageLinks NextPageLink"
+                @page="onPageChange"
+                class="!bg-transparent !p-0"
+                :pt="{
+                  page: ({ context }: any) => ({
+                    class: [
+                      '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
+                      context.active
+                        ? '!text-indigo-600 dark:!text-indigo-400'
+                        : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
+                    ],
+                  }),
+                  prev: {
+                    class:
+                      '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors',
+                  },
+                  next: {
+                    class:
+                      '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors',
+                  },
+                }"
+              />
             </div>
           </template>
         </DataTable>
@@ -416,7 +425,7 @@
             placeholder="Pilih Pegawai"
             filter
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none',
+              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200',
               formErrors.employee_id ? '!border !border-rose-500' : '',
             ]"
           />
@@ -440,7 +449,7 @@
               optionValue="value"
               placeholder="Pilih Tipe"
               :class="[
-                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none',
+                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200',
                 formErrors.leave_type_id ? '!border !border-rose-500' : '',
               ]"
             />
@@ -472,8 +481,9 @@
             <InputText
               type="date"
               v-model="createForm.start_date"
+              placeholder="Pilih Tanggal Mulai"
               :class="[
-                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none dark:!text-white',
+                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white',
                 formErrors.start_date ? '!border !border-rose-500' : '',
               ]"
             />
@@ -491,8 +501,9 @@
             <InputText
               type="date"
               v-model="createForm.end_date"
+              placeholder="Pilih Tanggal Selesai"
               :class="[
-                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none dark:!text-white',
+                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white',
                 formErrors.end_date ? '!border !border-rose-500' : '',
               ]"
             />
@@ -514,7 +525,7 @@
             rows="3"
             placeholder="Jelaskan secara singkat keperluan Anda..."
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 dark:!text-white dark:placeholder:!text-slate-500',
+              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
               formErrors.reason ? '!border !border-rose-500' : '',
             ]"
           />
@@ -579,7 +590,7 @@
             rows="3"
             placeholder="Tuliskan alasan penolakan..."
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 dark:!text-white dark:placeholder:!text-slate-500',
+              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
               formErrors.rejectionReason ? '!border !border-rose-500' : '',
             ]"
           />
@@ -765,11 +776,17 @@ const formatDate = (d: string) => {
 
 const leaveStatusClass = (status: string) => {
   const map: Record<string, string> = {
-    Pending: "!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:!text-amber-400 !border-amber-100 dark:!border-amber-500/20",
-    Approved: "!bg-emerald-50 dark:!bg-emerald-500/10 !text-emerald-600 dark:!text-emerald-400 !border-emerald-100 dark:!border-emerald-500/20",
-    Rejected: "!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:!text-rose-400 !border-rose-100 dark:!border-rose-500/20",
+    Pending:
+      "!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:!text-amber-400 !border-amber-100 dark:!border-amber-500/20",
+    Approved:
+      "!bg-emerald-50 dark:!bg-emerald-500/10 !text-emerald-600 dark:!text-emerald-400 !border-emerald-100 dark:!border-emerald-500/20",
+    Rejected:
+      "!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:!text-rose-400 !border-rose-100 dark:!border-rose-500/20",
   };
-  return map[status] || "!bg-slate-50 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-400 !border-slate-100 dark:!border-slate-700";
+  return (
+    map[status] ||
+    "!bg-slate-50 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-400 !border-slate-100 dark:!border-slate-700"
+  );
 };
 
 const leaveStatusIcon = (status: string) => {

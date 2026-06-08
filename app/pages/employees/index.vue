@@ -86,14 +86,14 @@
           <InputText
             v-model="searchQuery"
             placeholder="Search by Name, NIP, or Email..."
-            class="!w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800/50 !border-none !rounded-xl !text-xs !font-bold transition-all focus:!ring-2 focus:!ring-indigo-500/10"
+            class="!w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800/50 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-slate-200 transition-all focus:!ring-2 focus:!ring-indigo-500/10"
           />
         </div>
         <div class="h-8 w-px bg-slate-100 dark:bg-slate-800"></div>
         <Select
           v-model="selectedType"
           :options="selectedTypeOptions"
-          class="!bg-transparent !border-none !shadow-none !text-[10px] !font-black !uppercase !tracking-widest !h-10 flex items-center"
+          class="!bg-transparent !border-none !shadow-none !text-[10px] !font-black !uppercase !tracking-widest !h-10 flex items-center !text-slate-800 dark:!text-slate-200"
         />
       </div>
 
@@ -162,7 +162,7 @@
                 :options="sortOptions"
                 optionLabel="label"
                 optionValue="value"
-                class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+                class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
               />
             </div>
             <div class="flex flex-col gap-2">
@@ -177,7 +177,7 @@
                 ]"
                 optionLabel="label"
                 optionValue="value"
-                class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+                class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
               />
             </div>
           </div>
@@ -201,7 +201,7 @@
               optionValue="id"
               placeholder="All Departments"
               showClear
-              class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
             />
           </div>
 
@@ -216,7 +216,7 @@
               optionValue="id"
               placeholder="Select Positions"
               :maxSelectedLabels="2"
-              class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
             />
           </div>
 
@@ -233,7 +233,7 @@
                   :value="null"
                   inputId="status-all"
                 />
-                <label for="status-all" class="text-xs font-bold">All</label>
+                <label for="status-all" class="text-xs font-bold text-slate-800 dark:text-slate-200">All</label>
               </div>
               <div class="flex items-center gap-2">
                 <RadioButton
@@ -243,7 +243,7 @@
                 />
                 <label
                   for="status-active"
-                  class="text-xs font-bold text-emerald-500"
+                  class="text-xs font-bold text-emerald-500 dark:text-emerald-400"
                   >Active</label
                 >
               </div>
@@ -253,7 +253,7 @@
                   :value="false"
                   inputId="status-off"
                 />
-                <label for="status-off" class="text-xs font-bold text-slate-400"
+                <label for="status-off" class="text-xs font-bold text-slate-500 dark:text-slate-400"
                   >Off-duty</label
                 >
               </div>
@@ -268,14 +268,14 @@
               <Select
                 v-model="localFilters.tenureOperator"
                 :options="['>', '<', '=']"
-                class="!w-20 !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+                class="!w-20 !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
               />
               <InputNumber
                 v-model="localFilters.tenureValue"
                 placeholder="Years"
                 :min="0"
                 class="!flex-1"
-                inputClass="!rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !w-full !px-4 !py-3 !text-xs !font-bold"
+                inputClass="!rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !w-full !px-4 !py-3 !text-xs !font-bold !text-slate-800 dark:!text-slate-200"
               />
             </div>
           </div>

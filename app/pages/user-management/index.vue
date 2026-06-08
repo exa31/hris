@@ -40,7 +40,7 @@
           <InputText
             v-model="searchQuery"
             placeholder="Search users..."
-            class="!w-full sm:!w-[280px] !pl-11 !py-3 !bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-700 !rounded-xl shadow-sm focus:!ring-2 focus:!ring-indigo-500/20 transition-all text-sm font-medium"
+            class="!w-full sm:!w-[280px] !pl-11 !py-3 !bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-700 !rounded-xl shadow-sm focus:!ring-2 focus:!ring-indigo-500/20 transition-all !text-sm !font-medium !text-slate-800 dark:!text-slate-200"
           />
         </div>
         <NuxtLink
@@ -73,6 +73,7 @@
           :rows="itemsPerPage"
           scrollable
           :pt="{
+            wrapper: { class: '!bg-transparent' },
             footer: { class: '!bg-transparent' },
             footerRow: { class: '!bg-transparent' },
             footerCell: { class: '!bg-transparent !p-0 !border-none' },
@@ -85,7 +86,7 @@
               <div
                 class="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 shadow-inner"
               >
-                <i class="bi bi-search text-3xl text-slate-400"></i>
+                <i class="bi bi-search text-3xl text-slate-400 dark:text-slate-500"></i>
               </div>
               <h3
                 class="text-xl font-bold text-slate-800 dark:text-white mb-2 tracking-tight"

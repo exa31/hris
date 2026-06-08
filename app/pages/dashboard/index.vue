@@ -270,7 +270,7 @@
           </NuxtLink>
         </div>
 
-        <DataTable :value="newEmployees" class="p-datatable-dashboard" :loading="loading">
+        <DataTable :value="newEmployees" class="p-datatable-dashboard" :loading="loading" :pt="{ wrapper: { class: '!bg-transparent' } }">
 
           <Column header="Personil">
             <template #body="slotProps">

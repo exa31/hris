@@ -100,7 +100,7 @@
             <InputText
               v-model="searchQuery"
               placeholder="Cari pegawai..."
-              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold dark:!text-white"
+               class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
             />
           </span>
         </div>
@@ -124,6 +124,7 @@
             <InputText
               v-model.number="filterYear"
               type="number"
+              placeholder="Tahun"
               class="!w-20 !bg-transparent !border-none !shadow-none !text-xs font-bold !p-0 !text-center dark:!text-white"
             />
           </div>
@@ -156,6 +157,7 @@
           class="p-datatable-overhaul"
           :loading="loading"
           :pt="{
+            wrapper: { class: '!bg-transparent' },
             footer: { class: '!bg-transparent' },
             footerRow: { class: '!bg-transparent' },
             footerCell: { class: '!bg-transparent !p-0 !border-none' },
@@ -365,7 +367,7 @@
               :options="monthOptions"
               optionLabel="label"
               optionValue="value"
-              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
             />
           </div>
           <div class="space-y-2">
@@ -376,7 +378,8 @@
             <InputText
               v-model.number="genYear"
               type="number"
-              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-none !font-bold dark:!text-white"
+              placeholder="Cth: 2025"
+              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-none !font-bold !text-slate-800 dark:!text-white"
             />
           </div>
         </div>

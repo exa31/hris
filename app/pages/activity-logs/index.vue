@@ -93,7 +93,7 @@
       <div
         class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
       >
-        <DataTable :value="logs" class="p-datatable-premium" :loading="loading">
+        <DataTable :value="logs" class="p-datatable-premium" :loading="loading" :pt="{ wrapper: { class: '!bg-transparent' } }">
           <Column header="Waktu Kejadian">
             <template #body="slotProps">
               <div class="flex items-center gap-3">

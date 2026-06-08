@@ -38,7 +38,7 @@ export const getEmployees = async (
         WHERE e.deleted_at IS NULL
     `;
   let countQuery =
-    "SELECT COUNT(*) as total FROM employees e WHERE e.deleted_at IS NULL";
+    "SELECT COUNT(*) as total FROM employees e LEFT JOIN users u ON e.id = u.employee_id LEFT JOIN roles r ON u.role_id = r.id LEFT JOIN departments d ON e.department_id = d.id LEFT JOIN positions p ON e.position_id = p.id WHERE e.deleted_at IS NULL";
   const params: any[] = [];
   let paramCount = 1;
 

@@ -1,0 +1,261 @@
+/* ============================================
+   PrimeVue Dark Mode Overlay Overrides
+   Applied globally for all Select/Dropdown/MultiSelect/Calendar panels
+   ============================================ */
+
+/* --- Select/Dropdown overlay panel --- */
+.dark .p-select-overlay,
+.dark .p-dropdown-panel {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .p-select-overlay .p-select-header {
+  border-bottom: 1px solid #334155 !important;
+  padding: 12px 16px !important;
+}
+
+.dark .p-select-overlay .p-select-header .p-select-filter {
+  background: #1e293b !important;
+  border: 1px solid #475569 !important;
+  color: #e2e8f0 !important;
+  border-radius: 8px !important;
+}
+
+.dark .p-select-overlay .p-select-header .p-select-filter::placeholder {
+  color: #64748b !important;
+}
+
+.dark .p-select-overlay .p-select-list-container {
+  padding: 4px !important;
+}
+
+.dark .p-select-overlay .p-select-option {
+  color: #e2e8f0 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  transition: background 0.15s ease !important;
+}
+
+.dark .p-select-overlay .p-select-option.p-select-option-selected {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: #818cf8 !important;
+}
+
+.dark .p-select-overlay .p-select-option:not(.p-select-option-selected):not(.p-disabled):hover {
+  background: #1e293b !important;
+}
+
+.dark .p-select-overlay .p-select-empty-message {
+  color: #94a3b8 !important;
+}
+
+.dark .p-select-overlay .p-select-filter-icon {
+  color: #94a3b8 !important;
+}
+
+/* --- MultiSelect panel --- */
+.dark .p-multiselect-panel {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-header {
+  background: #0f172a !important;
+  border-bottom: 1px solid #334155 !important;
+  padding: 12px 16px !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-header .p-checkbox-box {
+  background: #1e293b !important;
+  border: 1px solid #475569 !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-header .p-checkbox.p-highlight .p-checkbox-box {
+  background: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-close {
+  color: #94a3b8 !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-close:hover {
+  color: #e2e8f0 !important;
+  background: #1e293b !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-header .p-multiselect-filter {
+  background: #1e293b !important;
+  border: 1px solid #475569 !important;
+  color: #e2e8f0 !important;
+  border-radius: 8px !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-header .p-multiselect-filter::placeholder {
+  color: #64748b !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-items-wrapper {
+  padding: 4px !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-item {
+  color: #e2e8f0 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  transition: background 0.15s ease !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-item:hover {
+  background: #1e293b !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-item.p-highlight {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: #818cf8 !important;
+}
+
+.dark .p-multiselect-panel .p-checkbox-box {
+  background: #1e293b !important;
+  border: 1px solid #475569 !important;
+}
+
+.dark .p-multiselect-panel .p-checkbox.p-highlight .p-checkbox-box {
+  background: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+}
+
+.dark .p-multiselect-panel .p-multiselect-empty-message {
+  color: #94a3b8 !important;
+}
+
+.dark .p-multiselect-header .p-multiselect-filter-icon {
+  color: #94a3b8 !important;
+}
+
+/* --- Input placeholders --- */
+.p-inputtext::placeholder,
+.p-textarea::placeholder {
+  color: #94a3b8 !important;
+}
+.dark .p-inputtext::placeholder,
+.dark .p-textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* --- Textarea dark mode --- */
+.dark .p-textarea {
+  color: #e2e8f0 !important;
+}
+
+/* --- Select trigger icon in dark mode --- */
+.dark .p-select-trigger {
+  color: #94a3b8 !important;
+}
+
+.dark .p-select-trigger:hover {
+  color: #e2e8f0 !important;
+}
+
+/* --- DatePicker/Calendar panel --- */
+.dark .p-datepicker-panel {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-header {
+  background: #0f172a !important;
+  border-bottom: 1px solid #334155 !important;
+  color: #e2e8f0 !important;
+  padding: 12px 16px !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-title button {
+  color: #e2e8f0 !important;
+  font-weight: 700 !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-prev,
+.dark .p-datepicker-panel .p-datepicker-next {
+  color: #94a3b8 !important;
+  border-radius: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-prev:hover,
+.dark .p-datepicker-panel .p-datepicker-next:hover {
+  color: #e2e8f0 !important;
+  background: #1e293b !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-calendar th {
+  color: #94a3b8 !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-calendar td span {
+  color: #e2e8f0 !important;
+  border-radius: 8px !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-calendar td span:hover {
+  background: #1e293b !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-calendar td.p-datepicker-today span {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #818cf8 !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-calendar td span.p-highlight {
+  background: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-weeknumber {
+  color: #94a3b8 !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-group {
+  border-color: #334155 !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-timepicker {
+  border-top: 1px solid #334155 !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-timepicker > div {
+  color: #e2e8f0 !important;
+}
+
+.dark .p-datepicker-panel .p-datepicker-timepicker .p-inputtext {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #475569 !important;
+}
+
+/* --- Dialog backdrop --- */
+.dark .p-dialog-mask {
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* --- InputSwitch --- */
+.dark .p-inputswitch-slider {
+  background: #334155 !important;
+}
+
+.dark .p-inputswitch.p-highlight .p-inputswitch-slider {
+  background: #4f46e5 !important;
+}

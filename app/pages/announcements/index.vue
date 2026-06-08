@@ -62,7 +62,7 @@
             <InputText
               v-model="searchQuery"
               placeholder="Judul atau kata kunci isi pengumuman..."
-              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold dark:!text-white"
+               class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
             />
           </span>
         </div>
@@ -77,7 +77,7 @@
             :options="priorityOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none"
+            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
       </div>
@@ -272,7 +272,7 @@
             v-model="formData.title"
             placeholder="Gunakan judul yang menarik perhatian..."
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none dark:!text-white',
+              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white',
               formErrors.title ? '!border !border-rose-500' : '',
             ]"
           />
@@ -294,7 +294,7 @@
               :options="priorityOptions.slice(1)"
               optionLabel="label"
               optionValue="value"
-              class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
             />
           </div>
           <div class="space-y-1.5">
@@ -308,7 +308,7 @@
               optionLabel="label"
               optionValue="value"
               placeholder="Seluruh Perusahaan"
-              class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none"
+              class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
             />
           </div>
         </div>
@@ -323,7 +323,7 @@
             rows="6"
             placeholder="Tuliskan detail pengumuman secara lengkap di sini..."
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 dark:!text-white dark:placeholder:!text-slate-500',
+              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
               formErrors.content ? '!border !border-rose-500' : '',
             ]"
           />

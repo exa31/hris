@@ -5,12 +5,13 @@
     :header="notificationModal.title || 'Informasi'" 
     :style="{ width: '450px' }"
     :breakpoints="{ '1199px': '75vw', '575px': '95vw' }"
-    class="confirm-dialog-premium dark:bg-slate-900 dark:text-white"
+    class="confirm-dialog-premium"
     :pt="{
-      root: { class: 'dark:border dark:border-slate-800 !rounded-2xl overflow-hidden' },
-      header: { class: 'dark:bg-slate-900 !px-8 !pt-8 !pb-4 !border-none' },
-      content: { class: 'dark:bg-slate-900 !px-8 !pb-8 !bg-transparent' },
-      footer: { class: 'dark:bg-slate-900 !px-8 !pb-8 !border-none' }
+      root: { class: '!bg-white dark:!bg-slate-900 dark:border dark:border-slate-800 !rounded-2xl overflow-hidden' },
+      header: { class: '!bg-white dark:!bg-slate-900 !px-8 !pt-8 !pb-4' },
+      title: { class: 'text-slate-900 dark:!text-white !font-semibold' },
+      content: { class: '!bg-white dark:!bg-slate-900 !px-8 !pb-8' },
+      footer: { class: '!bg-white dark:!bg-slate-900 !px-8 !pb-8' }
     }"
   >
     <div class="flex items-start gap-5">

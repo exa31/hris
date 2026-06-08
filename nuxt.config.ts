@@ -14,12 +14,18 @@ export default defineNuxtConfig({
     "@primevue/nuxt-module",
     "@nuxtjs/color-mode",
   ],
-  css: ["bootstrap-icons/font/bootstrap-icons.css"],
+  css: [
+    "bootstrap-icons/font/bootstrap-icons.css",
+    "./app/assets/css/primevue-dark.css",
+  ],
   primevue: {
     usePrimeVue: true,
     options: {
       theme: {
         preset: Aura,
+        options: {
+          darkModeSelector: ".dark",
+        },
       },
       ripple: true,
     },

@@ -82,7 +82,7 @@
             <InputText
               v-model="searchQuery"
               placeholder="Cari Nama / NIP..."
-              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold dark:text-white"
+               class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
             />
           </div>
         </div>
@@ -94,7 +94,7 @@
             :options="monthOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none"
+            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
 
@@ -105,7 +105,7 @@
             :options="yearOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none"
+            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
 
@@ -116,7 +116,8 @@
             :options="statusOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none"
+            placeholder="Pilih Status"
+            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
 
@@ -145,6 +146,7 @@
         :loading="loading"
         :rows="itemsPerPage"
         :pt="{
+          wrapper: { class: '!bg-transparent' },
           footer: { class: '!bg-transparent' },
           footerRow: { class: '!bg-transparent' },
           footerCell: { class: '!bg-transparent !p-0 !border-none' },

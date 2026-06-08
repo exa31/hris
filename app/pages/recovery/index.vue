@@ -75,7 +75,7 @@
                   ? 'Cari Nama / NIP...'
                   : 'Cari Username / Nama...'
               "
-              class="w-full !pl-12 !py-3 !bg-white dark:!bg-slate-900 !border-slate-100 dark:!border-slate-700 !rounded-xl !text-sm dark:text-white focus:!ring-indigo-500/20"
+               class="w-full !pl-12 !py-3 !bg-white dark:!bg-slate-900 !border-slate-100 dark:!border-slate-700 !rounded-xl !text-sm !text-slate-800 dark:!text-white focus:!ring-indigo-500/20"
             />
           </div>
           <Button
@@ -94,6 +94,7 @@
             class="p-datatable-premium"
             :loading="loading"
             :pt="{
+              wrapper: { class: '!bg-transparent' },
               footer: { class: '!bg-transparent' },
               footerRow: { class: '!bg-transparent' },
               footerCell: { class: '!bg-transparent !p-0 !border-none' },

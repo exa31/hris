@@ -23,7 +23,7 @@
         <h3 class="text-lg font-black text-slate-800 dark:text-white tracking-tight">Riwayat Pengajuan</h3>
       </div>
       
-      <DataTable :value="leaves" :loading="loading" class="p-datatable-dashboard-overhaul">
+      <DataTable :value="leaves" :loading="loading" class="p-datatable-dashboard-overhaul" :pt="{ wrapper: { class: '!bg-transparent' } }">
         <Column field="type" header="Tipe Cuti">
           <template #body="slotProps">
             <div class="font-bold text-slate-800 dark:text-white">{{ slotProps.data.type }}</div>
@@ -82,7 +82,7 @@
             v-model="form.type" 
             :options="leaveTypes" 
             placeholder="Pilih Tipe Cuti" 
-            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700"
+            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200"
             required
           />
         </div>
@@ -95,7 +95,7 @@
               dateFormat="dd/mm/yy"
               placeholder="Pilih Tanggal Mulai"
               class="w-full"
-              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700"
+              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200"
               required
             />
           </div>
@@ -107,7 +107,7 @@
               :minDate="form.start_date"
               placeholder="Pilih Tanggal Selesai"
               class="w-full"
-              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700"
+              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200"
               required
             />
           </div>
@@ -119,7 +119,7 @@
             v-model="form.reason" 
             rows="4" 
             placeholder="Jelaskan alasan cuti Anda secara singkat..."
-            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700 resize-none"
+            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200 resize-none"
             required
           ></Textarea>
         </div>

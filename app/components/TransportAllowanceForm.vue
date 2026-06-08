@@ -77,6 +77,7 @@
               <InputNumber
                 v-model="formData.year"
                 :useGrouping="false"
+                placeholder="2025"
                 class="w-full"
                 inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
               />
@@ -92,6 +93,7 @@
               <InputNumber
                 v-model="formData.distance_km"
                 :minFractionDigits="1"
+                placeholder="0 KM"
                 class="w-full"
                 inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
                 suffix=" KM"
@@ -106,6 +108,7 @@
                 v-model="formData.working_days"
                 :min="0"
                 :max="31"
+                placeholder="0 HARI"
                 class="w-full"
                 inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
                 suffix=" HARI"
