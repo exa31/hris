@@ -87,7 +87,8 @@ const fetchAnnouncements = async () => {
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+  const date = new Date(dateStr.replace(' ', 'T') + 'Z');
+  return date.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', year: 'numeric', month: 'short', day: 'numeric' });
 };
 
 onMounted(() => {

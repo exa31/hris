@@ -97,8 +97,8 @@
             </NuxtLink>
           </div>
 
-          <!-- Employee Menu -->
-          <div v-if="isEmployee" class="space-y-2">
+          <!-- Self Service Menu (for all roles) -->
+          <div class="space-y-2">
             <div
               v-if="!sidebarCollapsed || isMobile"
               class="px-4 mb-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]"

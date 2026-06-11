@@ -8,7 +8,7 @@
       <Button 
         label="Ajukan Cuti Baru" 
         icon="bi bi-plus-lg" 
-        @click="showRequestModal = true"
+        @click="showRequestModal = true; errors = {}"
         class="!rounded-xl !px-6 !py-3 !font-black !text-xs !tracking-widest !bg-indigo-600 hover:!bg-indigo-700 !border-none shadow-lg shadow-indigo-500/30 dark:shadow-none transition-transform hover:scale-105"
       />
     </div>
@@ -76,52 +76,96 @@
       class="p-dialog-dashboard"
     >
       <form @submit.prevent="submitRequest" class="space-y-6 pt-4">
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Tipe Cuti</label>
-          <Dropdown 
-            v-model="form.type" 
-            :options="leaveTypes" 
-            placeholder="Pilih Tipe Cuti" 
-            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200"
-            required
-          />
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tipe Cuti <span class="text-rose-500 ml-0.5">*</span></label>
+          <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors"
+            :class="{ 'border-rose-200 ring-4 ring-rose-500/5': errors.type }"
+          >
+            <i class="bi bi-calendar3 text-slate-300"></i>
+            <Dropdown 
+              v-model="form.type" 
+              :options="leaveTypes" 
+              placeholder="Pilih Tipe Cuti" 
+              class="!flex-1 !bg-transparent !border-none !p-0"
+              :class="{ 'p-invalid': errors.type }"
+            />
+          </div>
+          <small
+            v-if="errors.type"
+            class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+          >
+            <i class="bi bi-exclamation-circle"></i> {{ errors.type }}
+          </small>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Tanggal Mulai</label>
-            <Calendar 
-              v-model="form.start_date" 
-              dateFormat="dd/mm/yy"
-              placeholder="Pilih Tanggal Mulai"
-              class="w-full"
-              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200"
-              required
-            />
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tanggal Mulai <span class="text-rose-500 ml-0.5">*</span></label>
+            <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors"
+              :class="{ 'border-rose-200 ring-4 ring-rose-500/5': errors.start_date }"
+            >
+              <i class="bi bi-calendar-event text-slate-300"></i>
+              <Calendar 
+                v-model="form.start_date" 
+                dateFormat="dd/mm/yy"
+                placeholder="Pilih Tanggal Mulai"
+                class="!flex-1"
+                :class="{ 'p-invalid': errors.start_date }"
+                inputClass="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300"
+              />
+            </div>
+            <small
+              v-if="errors.start_date"
+              class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+            >
+              <i class="bi bi-exclamation-circle"></i> {{ errors.start_date }}
+            </small>
           </div>
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Tanggal Selesai</label>
-            <Calendar 
-              v-model="form.end_date" 
-              dateFormat="dd/mm/yy"
-              :minDate="form.start_date"
-              placeholder="Pilih Tanggal Selesai"
-              class="w-full"
-              inputClass="!rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200"
-              required
-            />
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tanggal Selesai <span class="text-rose-500 ml-0.5">*</span></label>
+            <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors"
+              :class="{ 'border-rose-200 ring-4 ring-rose-500/5': errors.end_date }"
+            >
+              <i class="bi bi-calendar-check text-slate-300"></i>
+              <Calendar 
+                v-model="form.end_date" 
+                dateFormat="dd/mm/yy"
+                :minDate="form.start_date"
+                placeholder="Pilih Tanggal Selesai"
+                class="!flex-1"
+                :class="{ 'p-invalid': errors.end_date }"
+                inputClass="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300"
+              />
+            </div>
+            <small
+              v-if="errors.end_date"
+              class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+            >
+              <i class="bi bi-exclamation-circle"></i> {{ errors.end_date }}
+            </small>
           </div>
         </div>
 
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Alasan</label>
-          <Textarea 
-            v-model="form.reason" 
-            rows="4" 
-            placeholder="Jelaskan alasan cuti Anda secara singkat..."
-            class="w-full !rounded-xl dark:!bg-slate-800 dark:!border-slate-700 dark:!text-slate-200 resize-none"
-            required
-          ></Textarea>
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Alasan <span class="text-rose-500 ml-0.5">*</span></label>
+          <div class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors"
+            :class="{ 'border-rose-200 ring-4 ring-rose-500/5': errors.reason }"
+          >
+            <i class="bi bi-chat-quote mt-2 text-slate-300"></i>
+            <Textarea 
+              v-model="form.reason" 
+              rows="4" 
+              placeholder="Jelaskan alasan cuti Anda secara singkat..."
+              class="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300 resize-none"
+              :class="{ 'p-invalid': errors.reason }"
+            ></Textarea>
+          </div>
+          <small
+            v-if="errors.reason"
+            class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest flex items-center gap-1"
+          >
+            <i class="bi bi-exclamation-circle"></i> {{ errors.reason }}
+          </small>
         </div>
 
         <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -157,12 +201,28 @@ const leaves = ref<any[]>([]);
 
 const leaveTypes = ['Tahunan', 'Sakit', 'Melahirkan', 'Penting', 'Lainnya'];
 
+const errors = ref<any>({});
+
 const form = ref({
   type: '',
   start_date: null,
   end_date: null,
   reason: ''
 });
+
+const validateForm = () => {
+  errors.value = {};
+  if (!form.value.type) errors.value.type = 'Tipe cuti harus dipilih';
+  if (!form.value.start_date) errors.value.start_date = 'Tanggal mulai harus diisi';
+  if (!form.value.end_date) errors.value.end_date = 'Tanggal selesai harus diisi';
+  if (form.value.start_date && form.value.end_date && form.value.end_date < form.value.start_date) {
+    errors.value.end_date = 'Tanggal selesai tidak boleh sebelum tanggal mulai';
+  }
+  if (!form.value.reason || form.value.reason.length < 5) {
+    errors.value.reason = 'Alasan harus diisi (min 5 karakter)';
+  }
+  return Object.keys(errors.value).length === 0;
+};
 
 const fetchLeaves = async () => {
   loading.value = true;
@@ -177,10 +237,7 @@ const fetchLeaves = async () => {
 };
 
 const submitRequest = async () => {
-  if (!form.value.start_date || !form.value.end_date) {
-    useNotificationStore().showError('Gagal', 'Tanggal mulai dan selesai harus diisi');
-    return;
-  }
+  if (!validateForm()) return;
 
   submitting.value = true;
   try {
