@@ -80,6 +80,42 @@ export const getTransportAllowanceById = async (client: PoolClient, id: number):
     return result.rows[0] || null
 }
 
+export const createTransportAllowance = async (
+    client: PoolClient,
+    data: any
+): Promise<any> => {
+    const baseFare = Number(data.base_fare || 2000)
+    const distanceKm = parseFloat(data.distance_km || 0)
+    const calculatedKm = data.calculated_km ?? Math.round(distanceKm)
+    const workingDays = parseInt(data.working_days || 0)
+    const amount = data.amount ?? (baseFare * calculatedKm * workingDays)
+    const totalAllowance = data.total_allowance ?? amount
+
+    const query = `
+        INSERT INTO transport_allowances 
+        (employee_id, month, year, base_fare, distance_km, calculated_km, working_days, amount, total_allowance, generated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+        RETURNING *
+    `
+    const result = await client.query(query, [
+        data.employee_id,
+        data.month,
+        data.year,
+        baseFare,
+        distanceKm,
+        calculatedKm,
+        workingDays,
+        amount,
+        totalAllowance
+    ])
+    return result.rows[0]
+}
+
+export const deleteTransportAllowance = async (client: PoolClient, id: number): Promise<boolean> => {
+    const result = await client.query('DELETE FROM transport_allowances WHERE id = $1', [id])
+    return (result.rowCount ?? 0) > 0
+}
+
 /**
  * Check if data already exists for a given period
  */

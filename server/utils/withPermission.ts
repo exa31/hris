@@ -1,15 +1,15 @@
 import { verifyAccessToken } from '~~/server/utils/jwt'
 import { HttpError } from '~~/server/errors/HttpError'
 import type { EventHandler, EventHandlerRequest, H3Event } from 'h3'
-import { sendError } from "~~/server/utils/response";
+import { sendErrorResponse } from "~~/server/utils/response"
 
-export const withPermission = <T extends EventHandlerRequest, D>(
+export function withPermission<T extends EventHandlerRequest = EventHandlerRequest, D = any>(
     handler?: EventHandler<T, D>,
     requiredPermissions: {
         module: string,
         action: string
     }[] = []
-): EventHandler<T, D> => {
+): EventHandler<T, D> {
     return defineEventHandler<T>(async (event: H3Event) => {
         try {
             // 1️⃣ Ambil token dari header / cookie
@@ -25,7 +25,7 @@ export const withPermission = <T extends EventHandlerRequest, D>(
             }
 
             if (!token) {
-                return sendError(event, 401, 'missing_token', 'Access token is missing')
+                return sendErrorResponse(event, 401, 'missing_token', 'Access token is missing')
             }
 
             // 2️⃣ Verify JWT
@@ -33,7 +33,7 @@ export const withPermission = <T extends EventHandlerRequest, D>(
             try {
                 payload = verifyAccessToken(token)
             } catch {
-                return sendError(event, 401, 'invalid_token', 'Access token is invalid')
+                return sendErrorResponse(event, 401, 'invalid_token', 'Access token is invalid')
             }
 
             // payload.sub = role_id, payload.email = user_id (see auth.service.ts: signAccessToken(username, userId, roleId))
@@ -44,7 +44,7 @@ export const withPermission = <T extends EventHandlerRequest, D>(
             const { query: dbQuery } = await import('~~/server/db/postgres')
             const dbUser = await dbQuery('SELECT is_active, employee_id FROM users WHERE id = $1', [userId])
             if (dbUser.rows.length === 0 || !dbUser.rows[0].is_active) {
-                return sendError(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus.')
+                return sendErrorResponse(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus.')
             }
 
             // 4️⃣ Attach user ke context
@@ -91,7 +91,7 @@ export const withPermission = <T extends EventHandlerRequest, D>(
                     }
 
                     if (!hasPermission) {
-                        return sendError(
+                        return sendErrorResponse(
                             event,
                             403,
                             'forbidden',
@@ -105,15 +105,15 @@ export const withPermission = <T extends EventHandlerRequest, D>(
             if (handler) {
                 return await handler(event)
             } else {
-                return sendError(event, 500, 'no_handler', 'No handler provided')
+                return sendErrorResponse(event, 500, 'no_handler', 'No handler provided')
             }
 
         } catch (err: any) {
             console.error("[withPermission error]:", err)
             if (err instanceof HttpError) {
-                return sendError(event, err.status, err.code, err.message, err.data)
+                return sendErrorResponse(event, err.status, err.code, err.message, err.data)
             }
-            return sendError(event, 500, 'internal_error', 'An internal server error occurred')
+            return sendErrorResponse(event, 500, 'internal_error', 'An internal server error occurred')
         }
     })
 }

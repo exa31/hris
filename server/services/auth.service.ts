@@ -7,14 +7,14 @@ import type { H3Event } from 'h3'
 import type { PoolClient } from 'pg'
 import { HttpError } from '~~/server/errors/HttpError'
 import { withTransaction } from '~~/server/db/postgres'
-import { useAppConfig } from '~~/server/utils/config'
+import { useServerConfig } from '~~/server/utils/config'
 import { signAccessToken, signRefreshToken, verifyRefreshToken, isRefreshTokenRotatingSoon } from '~~/server/utils/jwt'
 import { hashToSha256, verifyPassword } from '~~/server/utils/hash'
 import * as userRepository from '~~/server/repositories/user.repository'
 import * as tokenRepository from '~~/server/repositories/refresh_token.repository'
 import { logActivity } from '~~/server/services/activity-log.service'
 
-const Config = useAppConfig()
+const Config = useServerConfig()
 
 interface LoginRequest {
     username: string

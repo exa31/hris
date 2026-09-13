@@ -35,7 +35,7 @@ export function sendSuccess<T>(
     return createBaseResponse(message, true, code, data)
 }
 
-export function sendError(
+export function sendErrorResponse(
     event: H3Event,
     status = 500,
     code: string = 'INTERNAL_ERROR',

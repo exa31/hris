@@ -26,6 +26,21 @@ export const getTransportAllowanceById = async (client: PoolClient, id: number) 
     return allowance
 }
 
+export const createTransportAllowance = async (client: PoolClient, data: any) => {
+    if (!data.employee_id || !data.month || !data.year) {
+        throw new HttpError(400, 'INVALID_REQUEST', 'employee_id, month, dan year wajib diisi')
+    }
+    return repo.createTransportAllowance(client, data)
+}
+
+export const deleteTransportAllowance = async (client: PoolClient, id: number) => {
+    const deleted = await repo.deleteTransportAllowance(client, id)
+    if (!deleted) {
+        throw new HttpError(404, 'NOT_FOUND', 'Data tunjangan transport tidak ditemukan')
+    }
+    return { success: true }
+}
+
 // ========================
 // CORE: CALCULATION ENGINE
 // ========================

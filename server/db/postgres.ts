@@ -1,5 +1,5 @@
 import {Pool, types, type PoolClient, type QueryResult, type QueryResultRow} from 'pg';
-import {useAppConfig} from '~~/server/utils/config';
+import {useServerConfig} from '~~/server/utils/config';
 import {formatPgError} from "~~/server/utils/pgError";
 import {HttpError} from "~~/server/errors/HttpError";
 
@@ -8,7 +8,7 @@ types.setTypeParser(1082, (value: string) => value); // date
 types.setTypeParser(1114, (value: string) => value); // timestamp without time zone
 types.setTypeParser(1184, (value: string) => value); // timestamp with time zone
 
-const Config = useAppConfig();
+const Config = useServerConfig();
 
 export type PostgresConfig = {
     host?: string;

@@ -1,11 +1,11 @@
 import { verifyAccessToken } from '~~/server/utils/jwt'
 import { HttpError } from '~~/server/errors/HttpError'
 import type { EventHandler, EventHandlerRequest, H3Event } from 'h3'
-import { sendError } from "~~/server/utils/response";
+import { sendErrorResponse } from "~~/server/utils/response"
 
-export const withAuth = <T extends EventHandlerRequest, D>(
+export function withAuth<T extends EventHandlerRequest = EventHandlerRequest, D = any>(
     handler?: EventHandler<T, D>
-): EventHandler<T, D> => {
+): EventHandler<T, D> {
     return defineEventHandler<T>(async (event: H3Event) => {
         try {
             // 1️⃣ Ambil token dari header
@@ -27,7 +27,7 @@ export const withAuth = <T extends EventHandlerRequest, D>(
             }
 
             if (!token) {
-                return sendError(event, 401, 'missing_token', 'Access token is missing')
+                return sendErrorResponse(event, 401, 'missing_token', 'Access token is missing')
             }
 
             // 3️⃣ Verify JWT
@@ -35,7 +35,7 @@ export const withAuth = <T extends EventHandlerRequest, D>(
             try {
                 payload = verifyAccessToken(token)
             } catch {
-                return sendError(event, 401, 'invalid_token', 'Access token is invalid')
+                return sendErrorResponse(event, 401, 'invalid_token', 'Access token is invalid')
             }
 
             // 3.5 Check if user is still active in DB
@@ -43,7 +43,7 @@ export const withAuth = <T extends EventHandlerRequest, D>(
             
             const dbUser = await dbQuery('SELECT is_active FROM users WHERE id = $1', [payload.sub])
             if (dbUser.rows.length === 0 || !dbUser.rows[0].is_active) {
-                return sendError(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus. Silakan hubungi admin.')
+                return sendErrorResponse(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus. Silakan hubungi admin.')
             }
 
             // 4️⃣ Attach ke context (SOURCE OF TRUTH)
@@ -57,7 +57,7 @@ export const withAuth = <T extends EventHandlerRequest, D>(
             if (handler) {
                 return await handler(event)
             } else {
-                return sendError(
+                return sendErrorResponse(
                     event,
                     500, 'no_handler',
                     'No handler provided for authenticated route'
@@ -66,9 +66,9 @@ export const withAuth = <T extends EventHandlerRequest, D>(
         } catch (err: any) {
             console.error("[error]:", err)
             if (err instanceof HttpError) {
-                return sendError(event, err.status, err.code, err.message, err.data)
+                return sendErrorResponse(event, err.status, err.code, err.message, err.data)
             }
-            return sendError(
+            return sendErrorResponse(
                 event,
                 500, 'internal_error',
                 'An internal server error occurred',
