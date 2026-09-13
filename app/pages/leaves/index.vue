@@ -23,16 +23,16 @@
         <h1
           class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
         >
-          Manajemen Cuti
+          Leave Management
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
-          Kelola permohonan izin dan cuti tahunan pegawai.
+          Manage employee permit and annual leave applications.
         </p>
       </Motion>
       <Motion :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }">
         <Button
           v-if="hasPermission('leaves', 'create')"
-          label="Ajukan Cuti Baru"
+          label="Request Leave"
           icon="bi bi-plus-lg"
           class="!rounded-xl !px-6 !py-3 !bg-indigo-600 !border-none !text-white !font-black !uppercase !text-[10px] !tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors"
           @click="openCreateModal"
@@ -86,7 +86,7 @@
         <div class="md:col-span-4 space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Pencarian</label
+            >Search</label
           >
           <span class="relative block group">
             <i
@@ -94,7 +94,7 @@
             ></i>
             <InputText
               v-model="searchQuery"
-              placeholder="Nama pegawai..."
+              placeholder="Employee name..."
               class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
             />
           </span>
@@ -109,21 +109,21 @@
             :options="statusOptions"
             optionLabel="label"
             optionValue="value"
-            placeholder="Pilih Status"
+            placeholder="Select Status"
             class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
         <div class="md:col-span-3 space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Jenis Cuti</label
+            >Leave Type</label
           >
           <Select
             v-model="selectedLeaveType"
             :options="leaveTypeOptions"
             optionLabel="label"
             optionValue="value"
-            placeholder="Pilih Jenis Cuti"
+            placeholder="Select Leave Type"
             class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
           />
         </div>
@@ -134,7 +134,7 @@
             text
             class="!rounded-xl !h-[46px] !w-full !bg-slate-50 dark:!bg-slate-800 !text-slate-500 dark:!text-slate-400 hover:!bg-slate-100 dark:hover:!bg-slate-700 transition-colors"
             @click="resetFilters"
-            v-tooltip="'Reset Filter'"
+            v-tooltip="'Reset Filters'"
           />
         </div>
       </div>
@@ -160,7 +160,7 @@
             footerCell: { class: '!bg-transparent !p-0 !border-none' },
           }"
         >
-          <Column header="Pegawai">
+          <Column header="Employee">
             <template #body="slotProps">
               <div class="flex items-center gap-3">
                 <Avatar
@@ -189,7 +189,7 @@
             </template>
           </Column>
 
-          <Column header="Tipe & Durasi">
+          <Column header="Type & Duration">
             <template #body="slotProps">
               <div class="space-y-1">
                 <Tag
@@ -199,19 +199,19 @@
                 <div
                   class="text-sm font-black text-slate-700 dark:text-slate-300 ml-1"
                 >
-                  {{ slotProps.data.total_days }} HARI
+                  {{ slotProps.data.total_days }} DAYS
                 </div>
               </div>
             </template>
           </Column>
 
-          <Column header="Rentang Waktu">
+          <Column header="Date Range">
             <template #body="slotProps">
               <div class="flex items-center gap-2">
                 <div class="flex flex-col">
                   <span
                     class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase"
-                    >Mulai</span
+                    >Start</span
                   >
                   <span
                     class="text-xs font-bold text-slate-700 dark:text-slate-300"
@@ -224,7 +224,7 @@
                 <div class="flex flex-col">
                   <span
                     class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase"
-                    >Selesai</span
+                    >End</span
                   >
                   <span
                     class="text-xs font-bold text-slate-700 dark:text-slate-300"
@@ -235,7 +235,7 @@
             </template>
           </Column>
 
-          <Column header="Alasan">
+          <Column header="Reason">
             <template #body="slotProps">
               <div class="max-w-xs">
                 <p
@@ -269,7 +269,7 @@
             </template>
           </Column>
 
-          <Column header="Aksi" class="!text-center">
+          <Column header="Actions" class="!text-center">
             <template #body="slotProps">
               <div class="flex items-center justify-center gap-1">
                 <template v-if="slotProps.data.status === 'Pending'">
@@ -332,16 +332,16 @@
               <h3
                 class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight"
               >
-                Tidak Ada Permohonan Cuti
+                No Leave Requests Found
               </h3>
               <p
                 class="text-xs font-bold text-slate-400 dark:text-slate-500 max-w-[280px] leading-relaxed uppercase tracking-widest mb-8"
               >
-                Belum ada pengajuan cuti yang sesuai dengan kriteria Anda.
+                No leave requests match your search criteria.
               </p>
               <Button
                 v-if="searchQuery || selectedStatus || selectedLeaveType"
-                label="Reset Filter"
+                label="Reset Filters"
                 icon="bi bi-arrow-counterclockwise"
                 class="!rounded-xl !px-8 !py-3.5 !bg-indigo-600 !border-none !font-black !uppercase !text-[9px] !tracking-[0.2em] shadow-xl shadow-indigo-100 dark:shadow-none hover:scale-105 transition-transform"
                 @click="resetFilters"
@@ -355,7 +355,7 @@
             >
               <span
                 class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                >Total: {{ totalRequests }} Data</span
+                >Total: {{ totalRequests }} Records</span
               >
               <Paginator
                 v-model:first="first"
@@ -393,7 +393,7 @@
     <Dialog
       v-model:visible="createModalOpen"
       modal
-      header="Pengajuan Cuti / Izin"
+      header="Submit Leave / Permit Request"
       class="w-full max-w-xl"
       :pt="{
         root: {
@@ -415,14 +415,14 @@
         <div class="space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Pegawai Pemohon <span class="text-rose-500">*</span></label
+            >Applicant Employee <span class="text-rose-500">*</span></label
           >
           <Select
             v-model="createForm.employee_id"
             :options="employeeOptions"
             optionLabel="label"
             optionValue="value"
-            placeholder="Pilih Pegawai"
+            placeholder="Select Employee"
             filter
             :class="[
               'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200',
@@ -440,14 +440,14 @@
           <div class="space-y-1.5">
             <label
               class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Jenis Cuti <span class="text-rose-500">*</span></label
+              >Leave Type <span class="text-rose-500">*</span></label
             >
             <Select
               v-model="createForm.leave_type_id"
               :options="leaveTypeOptions.slice(1)"
               optionLabel="label"
               optionValue="value"
-              placeholder="Pilih Tipe"
+              placeholder="Select Type"
               :class="[
                 'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200',
                 formErrors.leave_type_id ? '!border !border-rose-500' : '',
@@ -462,12 +462,12 @@
           <div class="space-y-1.5">
             <label
               class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Total Hari</label
+              >Total Days</label
             >
             <div
               class="p-3.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-black text-center text-sm"
             >
-              {{ createForm.total_days }} HARI
+              {{ createForm.total_days }} DAYS
             </div>
           </div>
         </div>
@@ -476,14 +476,15 @@
           <div class="space-y-1.5">
             <label
               class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Tanggal Mulai <span class="text-rose-500">*</span></label
+              >Start Date <span class="text-rose-500">*</span></label
             >
-            <InputText
-              type="date"
+            <DatePicker
               v-model="createForm.start_date"
-              placeholder="Pilih Tanggal Mulai"
+              dateFormat="yy-mm-dd"
+              placeholder="Select Start Date"
+              class="w-full"
+              inputClass="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white"
               :class="[
-                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white',
                 formErrors.start_date ? '!border !border-rose-500' : '',
               ]"
             />
@@ -496,14 +497,15 @@
           <div class="space-y-1.5">
             <label
               class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Tanggal Selesai <span class="text-rose-500">*</span></label
+              >End Date <span class="text-rose-500">*</span></label
             >
-            <InputText
-              type="date"
+            <DatePicker
               v-model="createForm.end_date"
-              placeholder="Pilih Tanggal Selesai"
+              dateFormat="yy-mm-dd"
+              placeholder="Select End Date"
+              class="w-full"
+              inputClass="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white"
               :class="[
-                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white',
                 formErrors.end_date ? '!border !border-rose-500' : '',
               ]"
             />
@@ -518,12 +520,12 @@
         <div class="space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Alasan Pengajuan <span class="text-rose-500">*</span></label
+            >Reason for Request <span class="text-rose-500">*</span></label
           >
           <Textarea
             v-model="createForm.reason"
             rows="3"
-            placeholder="Jelaskan secara singkat keperluan Anda..."
+            placeholder="Briefly explain your leave reason..."
             :class="[
               'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
               formErrors.reason ? '!border !border-rose-500' : '',
@@ -540,14 +542,14 @@
       <template #footer>
         <div class="flex items-center justify-end gap-3">
           <Button
-            label="Batal"
+            label="Cancel"
             text
             severity="secondary"
             @click="createModalOpen = false"
             class="!rounded-xl !font-black !uppercase !text-[10px] !tracking-widest dark:!text-slate-400"
           />
           <Button
-            label="Kirim Pengajuan"
+            label="Submit Request"
             :loading="loading"
             @click="handleCreate"
             class="!rounded-xl !px-6 !py-3 !bg-indigo-600 !border-none !text-white !font-black !uppercase !text-[10px] !tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors"
@@ -560,7 +562,7 @@
     <Dialog
       v-model:visible="rejectModalOpen"
       modal
-      header="Tolak Pengajuan Cuti"
+      header="Reject Leave Request"
       class="w-full max-w-md"
       :pt="{
         root: {
@@ -577,18 +579,17 @@
     >
       <div class="space-y-4">
         <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-          Berikan alasan mengapa permohonan cuti ini ditolak agar pemohon
-          mengetahui kendalanya.
+          Provide a reason why this leave request is being rejected so the applicant is informed.
         </p>
         <div class="space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Alasan Penolakan <span class="text-rose-500">*</span></label
+            >Rejection Reason <span class="text-rose-500">*</span></label
           >
           <Textarea
             v-model="rejectionReason"
             rows="3"
-            placeholder="Tuliskan alasan penolakan..."
+            placeholder="Enter rejection reason..."
             :class="[
               'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
               formErrors.rejectionReason ? '!border !border-rose-500' : '',
@@ -604,14 +605,14 @@
       <template #footer>
         <div class="flex items-center justify-end gap-3">
           <Button
-            label="Batal"
+            label="Cancel"
             text
             severity="secondary"
             @click="rejectModalOpen = false"
             class="!rounded-xl !font-black !uppercase !text-[10px] !tracking-widest dark:!text-slate-400"
           />
           <Button
-            label="Konfirmasi Tolak"
+            label="Confirm Rejection"
             @click="handleReject"
             class="!rounded-xl !px-6 !py-3 !bg-rose-600 !border-none !text-white !font-black !uppercase !text-[10px] !tracking-widest hover:!bg-rose-500 transition-colors"
           />
@@ -686,23 +687,23 @@ const validateForm = () => {
   formErrors.reason = "";
 
   if (!createForm.employee_id) {
-    formErrors.employee_id = "Pegawai harus dipilih";
+    formErrors.employee_id = "Employee must be selected";
     valid = false;
   }
   if (!createForm.leave_type_id) {
-    formErrors.leave_type_id = "Tipe cuti harus dipilih";
+    formErrors.leave_type_id = "Leave type must be selected";
     valid = false;
   }
   if (!createForm.start_date) {
-    formErrors.start_date = "Tanggal mulai harus diisi";
+    formErrors.start_date = "Start date is required";
     valid = false;
   }
   if (!createForm.end_date) {
-    formErrors.end_date = "Tanggal selesai harus diisi";
+    formErrors.end_date = "End date is required";
     valid = false;
   }
   if (!createForm.reason) {
-    formErrors.reason = "Alasan tidak boleh kosong";
+    formErrors.reason = "Reason cannot be empty";
     valid = false;
   }
   return valid;
@@ -712,19 +713,19 @@ const summaryStats = ref({ pending: 0, approved: 0, rejected: 0 });
 
 const leaveStats = computed(() => [
   {
-    label: "Menunggu",
+    label: "Pending",
     value: summaryStats.value.pending,
     icon: "bi bi-hourglass-split",
     color: "bg-amber-50 text-amber-500",
   },
   {
-    label: "Disetujui",
+    label: "Approved",
     value: summaryStats.value.approved,
     icon: "bi bi-check2-circle",
     color: "bg-emerald-50 text-emerald-500",
   },
   {
-    label: "Ditolak",
+    label: "Rejected",
     value: summaryStats.value.rejected,
     icon: "bi bi-x-circle",
     color: "bg-rose-50 text-rose-500",
@@ -732,17 +733,17 @@ const leaveStats = computed(() => [
 ]);
 
 const statusOptions = [
-  { label: "Semua Status", value: "" },
+  { label: "All Statuses", value: "" },
   { label: "Pending", value: "Pending" },
-  { label: "Disetujui", value: "Approved" },
-  { label: "Ditolak", value: "Rejected" },
+  { label: "Approved", value: "Approved" },
+  { label: "Rejected", value: "Rejected" },
 ];
 
 const leaveTypeOptions = computed(() => {
-  const options = [{ label: "Semua Jenis", value: null }];
+  const options = [{ label: "All Types", value: null }];
   leaveTypes.value.forEach((lt) => {
     options.push({
-      label: `${lt.name} (maks. ${lt.max_days} hari)`,
+      label: `${lt.name} (max. ${lt.max_days} days)`,
       value: lt.id as any,
     });
   });
@@ -767,7 +768,7 @@ const loadSummary = async () => {
 
 const formatDate = (d: string) => {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("id-ID", {
+  return new Date(d).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -801,8 +802,8 @@ const leaveStatusIcon = (status: string) => {
 const leaveStatusLabel = (status: string) => {
   const map: Record<string, string> = {
     Pending: "Pending",
-    Approved: "Disetujui",
-    Rejected: "Ditolak",
+    Approved: "Approved",
+    Rejected: "Rejected",
   };
   return map[status] || status;
 };
@@ -824,14 +825,25 @@ const openCreateModal = () => {
   createModalOpen.value = true;
 };
 
+const formatToYMD = (val: any) => {
+  if (!val) return "";
+  if (val instanceof Date) {
+    const y = val.getFullYear();
+    const m = String(val.getMonth() + 1).padStart(2, "0");
+    const d = String(val.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return String(val);
+};
+
 const handleCreate = async () => {
   if (!validateForm()) return;
   try {
     await createLeaveRequest({
       employee_id: createForm.employee_id || undefined,
       leave_type_id: createForm.leave_type_id || undefined,
-      start_date: createForm.start_date,
-      end_date: createForm.end_date,
+      start_date: formatToYMD(createForm.start_date),
+      end_date: formatToYMD(createForm.end_date),
       total_days: createForm.total_days,
       reason: createForm.reason,
     });
@@ -845,16 +857,16 @@ const handleCreate = async () => {
 
 const handleApprove = async (id: number) => {
   confirm.require({
-    message: "Apakah Anda yakin ingin menyetujui permohonan cuti ini?",
-    header: "Setujui Pengajuan",
+    message: "Are you sure you want to approve this leave request?",
+    header: "Approve Leave Request",
     icon: "bi bi-check-circle-fill text-emerald-500",
     rejectProps: {
-      label: "Batal",
+      label: "Cancel",
       severity: "secondary",
       outlined: true,
     },
     acceptProps: {
-      label: "Setujui",
+      label: "Approve",
       severity: "success",
     },
     accept: async () => {
@@ -874,7 +886,7 @@ const openRejectModal = (id: number) => {
 
 const handleReject = async () => {
   if (!rejectionReason.value.trim()) {
-    formErrors.rejectionReason = "Alasan penolakan tidak boleh kosong";
+    formErrors.rejectionReason = "Rejection reason cannot be empty";
     return;
   }
 
@@ -895,16 +907,16 @@ const handleReject = async () => {
 const confirmDelete = (id: number) => {
   confirm.require({
     message:
-      "Apakah Anda yakin ingin menghapus catatan pengajuan cuti ini secara permanen?",
-    header: "Hapus Pengajuan",
+      "Are you sure you want to permanently delete this leave request record?",
+    header: "Delete Leave Request",
     icon: "bi bi-exclamation-triangle-fill text-rose-500",
     rejectProps: {
-      label: "Batal",
+      label: "Cancel",
       severity: "secondary",
       outlined: true,
     },
     acceptProps: {
-      label: "Hapus",
+      label: "Delete",
       severity: "danger",
     },
     accept: async () => {

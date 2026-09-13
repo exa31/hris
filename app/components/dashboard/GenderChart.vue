@@ -26,7 +26,7 @@ const props = defineProps<Props>();
 const totalValue = computed(() => props.male + props.female || 1);
 
 const chartData = computed(() => ({
-  labels: ['Pria', 'Wanita'],
+  labels: ['Male', 'Female'],
   datasets: [
     {
       data: [props.male, props.female],

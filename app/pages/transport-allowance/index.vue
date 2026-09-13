@@ -23,17 +23,17 @@
         <h1
           class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
         >
-          Tunjangan Transport
+          Transport Allowance
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
-          Kalkulasi otomatis tunjangan transport harian berdasarkan kehadiran riil & jarak tempuh.
+          Automated calculation of daily transport allowances based on verified attendance & commuting distance.
         </p>
       </Motion>
 
       <Motion :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }">
         <Button
           v-if="hasPermission('transport_setting', 'create')"
-          label="Generate Tunjangan"
+          label="Generate Allowances"
           icon="bi bi-lightning-charge"
           :loading="generating"
           class="!rounded-xl !px-6 !py-3 !bg-indigo-600 !border-none !text-white !font-black !uppercase !text-[10px] !tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors"
@@ -91,7 +91,7 @@
         <div class="md:col-span-6 space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Nama / NIP Pegawai</label
+            >Employee Name / NIP</label
           >
           <span class="relative block group">
             <i
@@ -99,7 +99,7 @@
             ></i>
             <InputText
               v-model="searchQuery"
-              placeholder="Cari pegawai..."
+              placeholder="Search employee..."
                class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
             />
           </span>
@@ -108,7 +108,7 @@
         <div class="md:col-span-4 space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Periode Pembayaran</label
+            >Payment Period</label
           >
           <div
             class="flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl border-none p-1"
@@ -121,11 +121,12 @@
               class="!flex-1 !bg-transparent !border-none !shadow-none !text-xs font-bold dark:!text-white"
             />
             <div class="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
-            <InputText
-              v-model.number="filterYear"
-              type="number"
-              placeholder="Tahun"
-              class="!w-20 !bg-transparent !border-none !shadow-none !text-xs font-bold !p-0 !text-center dark:!text-white"
+            <InputNumber
+              v-model="filterYear"
+              :useGrouping="false"
+              placeholder="Year"
+              class="!w-20"
+              inputClass="!w-20 !bg-transparent !border-none !shadow-none !text-xs font-bold !p-0 !text-center dark:!text-white"
             />
           </div>
         </div>
@@ -137,7 +138,7 @@
             text
             class="!rounded-xl !h-[46px] !w-full !bg-slate-50 dark:!bg-slate-800 !text-slate-500 dark:!text-slate-400 hover:!bg-slate-100 dark:hover:!bg-slate-700 transition-colors"
             @click="resetFilters"
-            v-tooltip="'Reset Filter'"
+            v-tooltip="'Reset Filters'"
           />
         </div>
       </div>
@@ -171,7 +172,7 @@
             </template>
           </Column>
 
-          <Column header="Pegawai">
+          <Column header="Employee">
             <template #body="slotProps">
               <div class="flex items-center gap-3">
                 <Avatar
@@ -200,10 +201,10 @@
             </template>
           </Column>
 
-          <Column header="Tipe Pegawai">
+          <Column header="Employee Type">
             <template #body="slotProps">
               <Tag
-                :value="slotProps.data.employee_type"
+                :value="slotProps.data.employee_type === 'Tetap' ? 'Permanent' : slotProps.data.employee_type === 'Kontrak' ? 'Contract' : (slotProps.data.employee_type || '-')"
                 :severity="
                   slotProps.data.employee_type === 'Tetap'
                     ? 'success'
@@ -214,12 +215,12 @@
             </template>
           </Column>
 
-          <Column header="Metrik Perhitungan" class="!text-center">
+          <Column header="Calculation Metrics" class="!text-center">
             <template #body="slotProps">
               <div class="flex items-center justify-center gap-4">
                 <div class="flex flex-col items-center">
                   <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                    >Hadir</span
+                    >Present</span
                   >
                   <span
                     :class="[
@@ -228,13 +229,13 @@
                         ? 'text-rose-500'
                         : 'text-slate-700 dark:text-slate-300',
                     ]"
-                    >{{ slotProps.data.working_days }} Hari</span
+                    >{{ slotProps.data.working_days }} Days</span
                   >
                 </div>
                 <div class="w-px h-6 bg-slate-100 dark:bg-slate-800"></div>
                 <div class="flex flex-col items-center">
                   <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                    >Jarak</span
+                    >Distance</span
                   >
                   <span
                     :class="[
@@ -250,7 +251,7 @@
             </template>
           </Column>
 
-          <Column header="Nominal Tunjangan" class="!text-right">
+          <Column header="Allowance Amount" class="!text-right">
             <template #body="slotProps">
               <div class="flex flex-col items-end px-4">
                 <span
@@ -282,20 +283,20 @@
                   <i class="bi bi-search text-xs"></i>
                 </div>
               </div>
-              <h3 class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">Data Tunjangan Belum Tersedia</h3>
+              <h3 class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">No Allowance Data Available</h3>
               <p class="text-xs font-bold text-slate-400 dark:text-slate-500 max-w-[280px] leading-relaxed uppercase tracking-widest mb-8">
-                Silakan generate data untuk periode ini atau periksa parameter pencarian Anda.
+                Please generate allowance data for this period or verify your search parameters.
               </p>
               <Button 
                 v-if="searchQuery"
-                label="Reset Filter" 
+                label="Reset Filters" 
                 icon="bi bi-arrow-counterclockwise" 
                 class="!rounded-xl !px-8 !py-3.5 !bg-indigo-600 !border-none !font-black !uppercase !text-[9px] !tracking-[0.2em] shadow-xl shadow-indigo-100 dark:shadow-none hover:scale-105 transition-transform"
                 @click="resetFilters"
               />
               <Button 
                 v-else-if="hasPermission('transport_setting', 'create')"
-                label="Generate Tunjangan" 
+                label="Generate Allowances" 
                 icon="bi bi-lightning-charge" 
                 class="!rounded-xl !px-8 !py-3.5 !bg-indigo-600 !border-none !font-black !uppercase !text-[9px] !tracking-[0.2em] shadow-xl shadow-indigo-100 dark:shadow-none hover:scale-105 transition-transform"
                 @click="openGenerateModal"
@@ -309,7 +310,7 @@
               >
                 <span
                   class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                  >Periode Aktif: {{ getMonthYear() }}</span
+                  >Active Period: {{ getMonthYear() }}</span
                 >
                 <Paginator
                   v-model:first="first"
@@ -341,7 +342,7 @@
     <Dialog
       v-model:visible="showGenerateModal"
       modal
-      header="Automatisasi Tunjangan"
+      header="Automate Transport Allowance"
       class="w-full max-w-lg !rounded-[32px] !border-none !shadow-2xl overflow-hidden"
       :pt="{
         root: { class: 'bg-white dark:bg-slate-900' },
@@ -352,15 +353,14 @@
     >
       <div class="space-y-6">
         <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-          Sistem akan memindai data absensi dan profil pegawai untuk
-          mengkalkulasi tunjangan transport secara presisi.
+          The system will evaluate attendance records and employee profiles to calculate transport allowances accurately.
         </p>
 
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
             <label
               class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Bulan Target</label
+              >Target Month</label
             >
             <Select
               v-model="genMonth"
@@ -373,13 +373,14 @@
           <div class="space-y-2">
             <label
               class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Tahun Target</label
+              >Target Year</label
             >
-            <InputText
-              v-model.number="genYear"
-              type="number"
-              placeholder="Cth: 2025"
-              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-none !font-bold !text-slate-800 dark:!text-white"
+            <InputNumber
+              v-model="genYear"
+              :useGrouping="false"
+              placeholder="e.g. 2026"
+              class="w-full"
+              inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-none !font-bold !text-slate-800 dark:!text-white !py-3.5"
             />
           </div>
         </div>
@@ -393,7 +394,7 @@
               >Force Regenerate</span
             >
             <span class="text-[10px] font-medium text-indigo-500 dark:text-indigo-300"
-              >Timpa data lama jika sudah ada di sistem.</span
+              >Overwrite existing records for this period.</span
             >
           </div>
         </div>
@@ -436,14 +437,14 @@
       <template #footer>
         <div class="flex items-center justify-end gap-3 mt-4">
           <Button
-            label="Batal"
+            label="Cancel"
             text
             severity="secondary"
             @click="showGenerateModal = false"
             class="!rounded-2xl !font-bold dark:!text-slate-400"
           />
           <Button
-            label="Mulai Kalkulasi"
+            label="Start Calculation"
             icon="bi bi-lightning-charge-fill"
             :loading="generating"
             @click="handleGenerate"
@@ -487,41 +488,41 @@ const genError = ref<string | null>(null);
 const genSuccess = ref<string | null>(null);
 
 const monthOptions = Array.from({ length: 12 }, (_, i) => ({
-  label: new Date(2026, i).toLocaleDateString("id-ID", { month: "long" }),
+  label: new Date(2026, i).toLocaleDateString("en-US", { month: "long" }),
   value: i + 1,
 }));
 
 const businessRules = [
-  'Tipe pegawai harus "Tetap"',
-  "Minimal hari kerja: 19 hari",
-  "Jarak rumah-kantor > 5 km",
-  "Maksimal perhitungan: 25 km",
+  'Employment status must be "Permanent"',
+  "Minimum working days: 19 days",
+  "Commute distance > 5 km",
+  "Maximum calculation cap: 25 km",
 ];
 
 const transportInsights = computed(() => [
   {
-    label: "Total Penyaluran",
+    label: "Total Distribution",
     value: formatCurrency(totalAmount.value),
     icon: "bi bi-wallet2",
     bg: "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
     textColor: "text-indigo-600 dark:text-indigo-400",
   },
   {
-    label: "Pegawai Eligible",
-    value: eligibleCount.value + " JIWA",
+    label: "Eligible Employees",
+    value: eligibleCount.value + " EMPLOYEES",
     icon: "bi bi-person-check",
     bg: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     textColor: "text-emerald-600 dark:text-emerald-400",
   },
   {
-    label: "Tidak Eligible",
-    value: skippedCount.value + " JIWA",
+    label: "Ineligible Employees",
+    value: skippedCount.value + " EMPLOYEES",
     icon: "bi bi-person-x",
     bg: "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400",
     textColor: "text-rose-600 dark:text-rose-400",
   },
   {
-    label: "Rata-rata / Pegawai",
+    label: "Average / Employee",
     value: formatCurrency(totalAmount.value / (eligibleCount.value || 1)),
     icon: "bi bi-graph-up",
     bg: "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
@@ -570,13 +571,13 @@ const handleGenerate = async () => {
       genYear.value,
       genForce.value,
     );
-    genSuccess.value = "Data tunjangan berhasil dikalkulasi!";
+    genSuccess.value = "Allowance distribution calculated successfully!";
     fetchAllowances();
     setTimeout(() => {
       showGenerateModal.value = false;
     }, 1500);
   } catch (err: any) {
-    genError.value = getErrorMessageAxios(err) || "Gagal generate data";
+    genError.value = getErrorMessageAxios(err) || "Failed to generate distribution data";
   }
 };
 

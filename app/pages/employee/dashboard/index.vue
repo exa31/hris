@@ -1,119 +1,166 @@
 <template>
-  <div class="space-y-12 transition-colors duration-500">
+  <div class="space-y-8">
     <!-- Loading State -->
-    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      <div
-        v-for="i in 4"
-        :key="i"
-        class="h-48 rounded-2xl bg-white dark:bg-slate-800 animate-pulse border border-slate-100 dark:border-slate-700 shadow-sm"
-      ></div>
+    <div v-if="loading" class="space-y-8">
+      <div class="h-44 rounded-3xl bg-slate-200/80 dark:bg-slate-800/80 animate-pulse"></div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div v-for="i in 3" :key="i" class="h-36 rounded-2xl bg-slate-200/80 dark:bg-slate-800/80 animate-pulse"></div>
+      </div>
     </div>
 
-    <div v-else class="space-y-12">
-      <!-- Welcome Hero Section (Glassmorphism Overhaul) -->
+    <div v-else class="space-y-8">
+      <!-- Welcome Hero Section -->
       <Motion
-        :initial="{ opacity: 0, scale: 0.95 }"
-        :animate="{ opacity: 1, scale: 1 }"
-        class="relative overflow-hidden rounded-3xl bg-indigo-950 dark:bg-slate-900 p-10 md:p-12 text-white shadow-xl shadow-indigo-200 dark:shadow-none border border-white/10"
+        :initial="{ opacity: 0, y: -10 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.4 }"
+        class="relative overflow-hidden rounded-3xl p-8 sm:p-10 text-white bg-gradient-to-r from-emerald-900 via-teal-900 to-indigo-950 dark:from-slate-900 dark:via-emerald-950 dark:to-slate-900 border border-emerald-500/30 dark:border-slate-800 shadow-xl dark:shadow-none"
       >
-        <!-- Abstract Animated Background -->
-        <div
-          class="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-emerald-500/20 via-teal-500/10 to-transparent skew-x-12 translate-x-1/4"
-        ></div>
-        <div
-          class="absolute -bottom-24 -left-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px]"
-        ></div>
-        <div
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"
-        ></div>
+        <!-- Background Ambient Accents -->
+        <div class="absolute -top-20 -right-20 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-20 -left-10 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
-          <div class="space-y-8 max-w-2xl text-center md:text-left">
-            <div
-              class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl"
-            >
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-              <span class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-100"
-                >Self Service Portal Active • {{ todayFormatted }}</span
-              >
+        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div class="space-y-4 max-w-2xl text-center md:text-left">
+            <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-200">
+                Employee Self-Service Portal • {{ todayFormatted }}
+              </span>
             </div>
 
-            <div class="space-y-4">
-              <h1 class="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1]">
-                Welcome to <br />
-                <span
-                  class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400"
-                  >Your Workspace.</span
-                >
+            <div class="space-y-2">
+              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+                Welcome,
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-teal-200 to-white">
+                  {{ currentUser?.employee?.name || currentUser?.username || 'Colleague' }}
+                </span>
               </h1>
-              <p class="text-indigo-100/60 font-medium text-lg md:text-xl leading-relaxed">
-                Halo,
-                <span class="text-white font-bold">{{
-                  currentUser?.employee?.name || 'Kawan'
-                }}</span
-                >. Lihat ringkasan kehadiran, cuti, dan informasi terbaru di sini.
+              <p class="text-emerald-100/70 font-medium text-sm sm:text-base leading-relaxed">
+                Manage daily presence logs, monitor leave quotas, and review company announcements in real time.
               </p>
             </div>
 
-            <div class="flex flex-wrap items-center justify-center md:justify-start gap-5 pt-4">
+            <!-- Action shortcuts -->
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
               <NuxtLink to="/employee/attendance">
                 <Button
-                  label="Catat Presensi"
+                  label="Log Presence"
                   icon="bi bi-fingerprint"
-                  class="!rounded-xl !px-8 !py-4 !bg-emerald-500 !text-white !border-none !font-black !text-xs !tracking-widest shadow-lg shadow-emerald-500/30 dark:shadow-none hover:!scale-105 transition-transform"
+                  class="!rounded-xl !px-6 !py-3 !bg-emerald-500 hover:!bg-emerald-400 !text-white !border-none !font-black !text-xs !tracking-wider !shadow-lg shadow-emerald-500/30 transition-all"
                 />
               </NuxtLink>
               <NuxtLink to="/employee/leaves">
                 <Button
-                  label="Pengajuan Cuti"
+                  label="Request Leave"
+                  icon="bi bi-calendar2-plus-fill"
                   severity="secondary"
                   text
-                  class="!rounded-xl !px-8 !py-4 !text-white !font-black !uppercase !text-[10px] !tracking-widest !bg-white/5 border border-white/10 backdrop-blur-md hover:!bg-white/10 transition-colors"
+                  class="!rounded-xl !px-6 !py-3 !text-white !font-black !text-xs !tracking-wider !bg-white/10 hover:!bg-white/20 border border-white/20 backdrop-blur-sm transition-all"
                 />
               </NuxtLink>
+              <NuxtLink to="/employee/announcements">
+                <Button
+                  label="Announcements"
+                  icon="bi bi-megaphone-fill"
+                  severity="secondary"
+                  text
+                  class="!rounded-xl !px-6 !py-3 !text-white !font-black !text-xs !tracking-wider !bg-white/10 hover:!bg-white/20 border border-white/20 backdrop-blur-sm transition-all"
+                />
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Profile Badge Card -->
+          <div class="hidden lg:flex items-center gap-4 p-5 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/15 backdrop-blur-md">
+            <Avatar
+              :image="(currentUser?.employee as any)?.photo_url || ''"
+              :label="(currentUser?.employee?.name || currentUser?.username || 'U').charAt(0).toUpperCase()"
+              shape="circle"
+              class="!w-14 !h-14 border-2 border-white/30 shadow-md !bg-emerald-500 !text-white font-black text-xl"
+            />
+            <div class="space-y-0.5">
+              <div class="text-sm font-black text-white">
+                {{ currentUser?.employee?.name || currentUser?.username }}
+              </div>
+              <div class="text-xs text-emerald-200">
+                {{ (currentUser?.employee as any)?.position || 'Employee' }}
+              </div>
+              <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/30 text-emerald-100 border border-emerald-400/40">
+                {{ currentUser?.role?.name || 'Employee' }}
+              </span>
             </div>
           </div>
         </div>
       </Motion>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Motion
           v-for="(stat, idx) in statCards"
           :key="stat.label"
-          :initial="{ opacity: 0, y: 20 }"
+          :initial="{ opacity: 0, y: 15 }"
           :animate="{ opacity: 1, y: 0 }"
-          :transition="{ delay: idx * 0.1 }"
+          :transition="{ delay: idx * 0.08 }"
           class="group"
         >
           <div
-            class="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-500 transition-all duration-500 relative overflow-hidden h-full"
+            class="bg-white dark:bg-slate-900 rounded-3xl p-7 shadow-xs border border-slate-200/70 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all duration-300 relative overflow-hidden h-full"
           >
-            <!-- Animated Background Glow on Hover -->
-            <div
-              :class="`absolute -right-10 -bottom-10 w-32 h-32 ${stat.glowColor} rounded-full blur-3xl transition-all duration-700`"
-            ></div>
-
-            <div
-              :class="[
-                stat.color,
-                'w-14 h-14 rounded-xl flex items-center justify-center text-xl shadow-lg dark:shadow-none mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500',
-              ]"
-            >
-              <i :class="stat.icon"></i>
+            <div class="flex items-center justify-between mb-4">
+              <div :class="[stat.color, 'w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform']">
+                <i :class="stat.icon"></i>
+              </div>
+              <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                {{ stat.pill }}
+              </span>
             </div>
-            <div class="space-y-2 relative z-10">
-              <h4
-                class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em]"
-              >
+
+            <div class="space-y-1 relative z-10">
+              <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em]">
                 {{ stat.label }}
               </h4>
-              <div class="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">
+              <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                 {{ stat.value }}
               </div>
             </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+              <span class="text-slate-400">{{ stat.desc }}</span>
+              <NuxtLink :to="stat.link" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                <span>Details</span>
+                <i class="bi bi-arrow-right text-[10px]"></i>
+              </NuxtLink>
+            </div>
           </div>
         </Motion>
+      </div>
+
+      <!-- Quick Guidance Card -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg flex-shrink-0 mt-1">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <div class="space-y-1">
+            <h4 class="text-sm font-black text-slate-800 dark:text-white">Work Hours & Schedule Policy</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Standard work hours start from 08:00 AM to 05:00 PM. Grace period for late arrivals is 15 minutes.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg flex-shrink-0 mt-1">
+            <i class="bi bi-info-circle"></i>
+          </div>
+          <div class="space-y-1">
+            <h4 class="text-sm font-black text-slate-800 dark:text-white">Annual Leave Policy</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Annual leave applications should ideally be submitted at least 3 business days in advance for management approval.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -121,6 +168,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useAuth } from '~/composables/useAuth';
 
 definePageMeta({ layout: 'default' });
 
@@ -134,7 +182,7 @@ const stats = ref<any>({
 });
 
 const todayFormatted = computed(() =>
-  new Date().toLocaleDateString('id-ID', {
+  new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -144,25 +192,31 @@ const todayFormatted = computed(() =>
 
 const statCards = computed(() => [
   {
-    label: 'Kehadiran Bulan Ini',
+    label: 'Monthly Presence',
     value: `${stats.value?.attendancePercentage ?? 0}%`,
     icon: 'bi bi-calendar-check-fill',
-    color: 'bg-emerald-500 text-white',
-    glowColor: 'bg-emerald-500/5 group-hover:bg-emerald-500/20',
+    color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    pill: 'Presence Rate',
+    desc: 'Based on active workdays',
+    link: '/employee/attendance',
   },
   {
-    label: 'Sisa Cuti',
-    value: `${stats.value?.leavesRemaining ?? 0} Hari`,
+    label: 'Remaining Leave Balance',
+    value: `${stats.value?.leavesRemaining ?? 0} Days`,
     icon: 'bi bi-calendar2-week-fill',
-    color: 'bg-amber-500 text-white',
-    glowColor: 'bg-amber-500/5 group-hover:bg-amber-500/20',
+    color: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400',
+    pill: 'Leave Quota',
+    desc: 'Active annual entitlement',
+    link: '/employee/leaves',
   },
   {
-    label: 'Cuti Menunggu Persetujuan',
+    label: 'Pending Leave Requests',
     value: stats.value?.pendingLeaves ?? 0,
     icon: 'bi bi-hourglass-split',
-    color: 'bg-indigo-500 text-white',
-    glowColor: 'bg-indigo-500/5 group-hover:bg-indigo-500/20',
+    color: 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+    pill: 'Approval Pipeline',
+    desc: 'Under manager / HR review',
+    link: '/employee/leaves',
   },
 ]);
 

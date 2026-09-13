@@ -36,7 +36,7 @@
             class="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600/30 hover:text-indigo-200 transition-all duration-200 tracking-widest uppercase"
           >
             <i class="bi bi-box-arrow-in-right"></i>
-            Akses Demo
+            Access Demo
           </NuxtLink>
         </nav>
       </Motion>
@@ -126,10 +126,10 @@
             <p
               class="text-slate-500 text-base md:text-lg leading-relaxed max-w-2xl mx-auto"
             >
-              Sistem manajemen SDM full-stack berbasis
-              <span class="text-slate-300 font-semibold">Nuxt 3</span>, dibangun
-              dengan arsitektur modular — mencakup absensi, tunjangan transport,
-              manajemen cuti, audit log, dan kontrol akses berbasis peran.
+              A full-stack HR management system powered by
+              <span class="text-slate-300 font-semibold">Nuxt 3</span>, architected
+              with modular enterprise standards — spanning attendance tracking, commute allowances,
+              leave governance, security audit logs, and granular role-based access control.
             </p>
           </Motion>
 
@@ -144,7 +144,7 @@
                 <button
                   class="group flex items-center gap-3 px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black tracking-wide transition-all duration-200 shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/40"
                 >
-                  Coba Langsung
+                  Try Live Demo
                   <i
                     class="bi bi-arrow-right text-indigo-300 group-hover:translate-x-1 transition-transform"
                   ></i>
@@ -210,7 +210,7 @@
             <div
               class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600"
             >
-              Tampilan Sistem
+              System Preview
             </div>
             <div class="text-2xl font-black text-slate-300 tracking-tight">
               Dashboard Intelligence Center
@@ -280,7 +280,7 @@
                         Intelligence Center
                       </div>
                       <div class="text-sm font-black text-slate-300">
-                        Selamat Pagi 👋
+                        Good Morning 👋
                       </div>
                     </div>
                     <div
@@ -323,7 +323,7 @@
                     <div
                       class="text-[9px] font-black uppercase tracking-[0.25em] text-slate-600 mb-3"
                     >
-                      Status Kepegawaian
+                      Employment Distribution
                     </div>
                     <div class="flex items-end gap-1.5 h-14">
                       <div
@@ -361,16 +361,16 @@
             <div
               class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600"
             >
-              Apa yang Dibangun
+              What We Built
             </div>
             <h2
               class="text-3xl md:text-4xl font-black tracking-tight text-slate-200"
             >
-              Modul yang<br />Terintegrasi.
+              Integrated<br />Modules.
             </h2>
             <p class="text-slate-600 text-sm max-w-md leading-relaxed">
-              Setiap modul dirancang dengan logika bisnis yang realistis,
-              validasi penuh, dan hak akses berbasis peran.
+              Each module is engineered with production-ready business logic,
+              full validation safeguards, and role-based access control.
             </p>
           </div>
 
@@ -426,7 +426,7 @@
             <div
               class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600"
             >
-              Teknologi
+              Technologies
             </div>
             <h2
               class="text-3xl md:text-4xl font-black tracking-tight text-slate-200"
@@ -434,8 +434,8 @@
               Tech Stack.
             </h2>
             <p class="text-slate-600 text-sm max-w-md leading-relaxed">
-              Dibangun sepenuhnya dengan tooling modern — frontend, backend, dan
-              database dalam satu monorepo Nuxt.
+              Built entirely with cutting-edge tools — unified frontend, backend server engine,
+              and database in a single Nuxt monorepo.
             </p>
           </div>
 
@@ -484,19 +484,18 @@
             <div
               class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600"
             >
-              Demo Akses
+              Interactive Demo
             </div>
             <h2 class="text-4xl md:text-5xl font-black tracking-tight">
-              <span class="text-slate-300">Coba Sistem</span><br />
+              <span class="text-slate-300">Experience It</span><br />
               <span
                 class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400"
-                >Langsung.</span
+                >Live.</span
               >
             </h2>
             <p class="text-slate-500 text-sm leading-relaxed max-w-lg mx-auto">
-              Sistem ini terhubung ke database live. Login dengan akun demo
-              untuk menjelajahi semua fitur secara langsung tanpa perlu setup
-              apapun.
+              This system is connected to a live database. Sign in with demo credentials
+              to explore all enterprise features instantly without any setup required.
             </p>
           </div>
 
@@ -507,7 +506,7 @@
             <div
               class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 mb-4"
             >
-              Kredensial Demo
+              Demo Credentials
             </div>
             <div class="space-y-2">
               <div
@@ -552,7 +551,7 @@
               class="group flex items-center gap-3 px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black tracking-wide transition-all duration-200 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/40 hover:-translate-y-0.5 mx-auto"
             >
               <NexusLogo :size="20" />
-              Masuk ke Sistem
+              Launch Application
               <i
                 class="bi bi-arrow-right group-hover:translate-x-1 transition-transform"
               ></i>
@@ -577,7 +576,7 @@
               <div
                 class="text-[9px] font-bold text-slate-700 uppercase tracking-widest"
               >
-                Portfolio Project
+                Enterprise System
               </div>
             </div>
           </div>
@@ -606,19 +605,19 @@
 definePageMeta({ layout: false });
 
 useHead({
-  title: "NexusHR — Full-Stack HRIS Project",
+  title: "NexusHR — Enterprise HR Intelligence",
   meta: [
     {
       name: "description",
       content:
-        "Sistem manajemen SDM full-stack berbasis Nuxt 3 — absensi, tunjangan, cuti, audit log, dan RBAC dalam satu platform.",
+        "Full-stack enterprise HR management system powered by Nuxt 3 — attendance tracking, commute allowances, leave governance, audit logs, and granular RBAC in one unified platform.",
     },
   ],
 });
 
 const navLinks = [
-  { label: "Beranda", href: "#home" },
-  { label: "Modul", href: "#modules" },
+  { label: "Home", href: "#home" },
+  { label: "Modules", href: "#modules" },
   { label: "Stack", href: "#stack" },
   { label: "Demo", href: "#demo" },
 ];
@@ -634,25 +633,25 @@ const techPills = [
 
 const previewCards = [
   {
-    label: "Total Squad",
+    label: "Total Workforce",
     val: "248",
     bg: "bg-indigo-500/8 border-indigo-500/15",
     tc: "text-indigo-500",
   },
   {
-    label: "Hadir Hari Ini",
+    label: "Present Today",
     val: "214",
     bg: "bg-emerald-500/8 border-emerald-500/15",
     tc: "text-emerald-500",
   },
   {
-    label: "Cuti Aktif",
+    label: "On Leave",
     val: "12",
     bg: "bg-amber-500/8 border-amber-500/15",
     tc: "text-amber-500",
   },
   {
-    label: "Magang",
+    label: "Interns",
     val: "31",
     bg: "bg-violet-500/8 border-violet-500/15",
     tc: "text-violet-500",
@@ -665,7 +664,7 @@ const modules = [
     iconBg: "bg-indigo-500/15 border border-indigo-500/20",
     title: "Talent Directory",
     sub: "Employee Management",
-    desc: "Database pegawai lengkap dengan upload foto, riwayat jabatan, filter multidimensi, dan export.",
+    desc: "Comprehensive talent database featuring photo uploads, designation history, multidimensional filtering, and export capabilities.",
     tags: ["CRUD", "Upload", "Filter", "Export"],
     tagCls: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20",
   },
@@ -674,7 +673,7 @@ const modules = [
     iconBg: "bg-emerald-500/15 border border-emerald-500/20",
     title: "Presence Flow",
     sub: "Attendance Tracking",
-    desc: "Rekap absensi bulanan dengan status hadir/izin/sakit/alpha, rangkuman harian, dan export Excel.",
+    desc: "Monthly attendance records with present/leave/sick/absent tracking, daily summaries, and automated Excel exports.",
     tags: ["Real-time", "Monthly", "Excel Export"],
     tagCls: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
   },
@@ -683,7 +682,7 @@ const modules = [
     iconBg: "bg-amber-500/15 border border-amber-500/20",
     title: "Leave Governance",
     sub: "Leave Management",
-    desc: "Pengajuan cuti dengan approval workflow, perhitungan saldo otomatis, dan kalender tim.",
+    desc: "Leave requests backed by approval workflows, automated entitlement calculations, and team availability calendars.",
     tags: ["Workflow", "Approval", "Balance"],
     tagCls: "bg-amber-500/10 text-amber-500 border border-amber-500/20",
   },
@@ -692,7 +691,7 @@ const modules = [
     iconBg: "bg-violet-500/15 border border-violet-500/20",
     title: "Financial Logistics",
     sub: "Transport Allowance",
-    desc: "Kalkulasi tunjangan transport berbasis jarak dengan threshold, generate massal, dan audit trail.",
+    desc: "Distance-based commute allowance calculations with threshold caps, bulk generation, and complete audit trails.",
     tags: ["Geo-calc", "Bulk Generate", "Audit"],
     tagCls: "bg-violet-500/10 text-violet-500 border border-violet-500/20",
   },
@@ -701,7 +700,7 @@ const modules = [
     iconBg: "bg-rose-500/15 border border-rose-500/20",
     title: "Access Control",
     sub: "RBAC System",
-    desc: "Manajemen role dan permission granular per modul dengan SSE push notification saat hak akses berubah.",
+    desc: "Granular role and permission management per module with SSE push notifications on live access changes.",
     tags: ["RBAC", "SSE", "Granular"],
     tagCls: "bg-rose-500/10 text-rose-500 border border-rose-500/20",
   },
@@ -710,7 +709,7 @@ const modules = [
     iconBg: "bg-sky-500/15 border border-sky-500/20",
     title: "Security Audit",
     sub: "Activity Logging",
-    desc: "Log seluruh aktivitas sistem dengan filter waktu, pengguna, dan modul. Mendukung export audit trail.",
+    desc: "Comprehensive system activity logs with timestamp, user, and module filtering. Supports compliant audit trail exports.",
     tags: ["Full Log", "Filter", "Compliance"],
     tagCls: "bg-sky-500/10 text-sky-500 border border-sky-500/20",
   },

@@ -246,7 +246,7 @@
                       >Employment Status</span
                     >
                     <span
-                      class="text-[10px] font-bold"
+                      class="text-xs font-black"
                       :class="
                         form.status ? 'text-emerald-500' : 'text-rose-500'
                       "
@@ -254,7 +254,7 @@
                       {{ form.status ? "Active Protocol" : "Suspended" }}
                     </span>
                   </div>
-                  <InputSwitch v-model="form.status" />
+                  <ToggleSwitch v-model="form.status" />
                 </div>
 
                 <div
@@ -428,8 +428,8 @@
                 <Select
                   v-model="form.gender"
                   :options="[
-                    { label: 'Laki-laki', value: 'Male' },
-                    { label: 'Perempuan', value: 'Female' },
+                    { label: 'Male', value: 'Male' },
+                    { label: 'Female', value: 'Female' },
                   ]"
                   optionLabel="label"
                   optionValue="value"
@@ -561,18 +561,18 @@
                   class="flex p-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
                 >
                   <button
-                    v-for="t in ['Tetap', 'Kontrak', 'Magang']"
-                    :key="t"
+                    v-for="t in employmentTypeOptions"
+                    :key="t.value"
                     type="button"
-                    @click="form.type = t"
+                    @click="form.type = t.value"
                     class="flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all"
                     :class="
-                      form.type === t
+                      form.type === t.value
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200'
                         : 'text-slate-400 hover:text-slate-600'
                     "
                   >
-                    {{ t }}
+                    {{ t.label }}
                   </button>
                 </div>
               </div>
@@ -655,7 +655,7 @@
               <div class="space-y-1.5">
                 <label
                   class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
-                  >Kabupaten</label
+                  >Regency / City</label
                 >
                 <InputText
                   :value="displayRegency"
@@ -666,7 +666,7 @@
               <div class="space-y-1.5">
                 <label
                   class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
-                  >Provinsi</label
+                  >Province</label
                 >
                 <InputText
                   :value="displayProvince"
@@ -677,7 +677,7 @@
               <div class="space-y-1.5">
                 <label
                   class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2"
-                  >Jarak Rumah ke Kantor (KM)
+                  >Commute Distance to Office (KM)
                   <span class="text-rose-500 ml-0.5">*</span></label
                 >
                 <InputNumber
@@ -920,6 +920,12 @@ const photoInput = ref<HTMLInputElement | null>(null);
 
 const deptOptions = ref<any[]>([]);
 const posOptions = ref<any[]>([]);
+
+const employmentTypeOptions = [
+  { label: "Permanent", value: "Tetap" },
+  { label: "Contract", value: "Kontrak" },
+  { label: "Internship", value: "Magang" },
+];
 
 const form = ref<any>({
   name: "",
@@ -1184,7 +1190,7 @@ const removeGlobalEdu = async () => {
 const formatDate = (date: any) => {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleDateString("id-ID", {
+  return d.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",

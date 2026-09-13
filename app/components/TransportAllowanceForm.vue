@@ -13,7 +13,7 @@
             <h3
               class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]"
             >
-              Parameter Tunjangan
+              Allowance Parameters
             </h3>
             <div class="h-px flex-1 bg-slate-50 dark:bg-slate-800"></div>
           </div>
@@ -21,14 +21,14 @@
           <div class="space-y-2">
             <label
               class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Pilih Pegawai <span class="text-rose-500">*</span></label
+              >Select Employee <span class="text-rose-500">*</span></label
             >
             <Select
               v-model="formData.employee_id"
               :options="employees"
               optionLabel="name"
               optionValue="id"
-              placeholder="Cari Pegawai..."
+              placeholder="Search employee..."
               filter
               class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !shadow-none !py-1"
             >
@@ -59,7 +59,7 @@
             <div class="space-y-2">
               <label
                 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-                >Bulan Pelaporan</label
+                >Reporting Month</label
               >
               <Select
                 v-model="formData.month"
@@ -72,7 +72,7 @@
             <div class="space-y-2">
               <label
                 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-                >Tahun</label
+                >Year</label
               >
               <InputNumber
                 v-model="formData.year"
@@ -88,7 +88,7 @@
             <div class="space-y-2">
               <label
                 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-                >Jarak Tempuh (KM) <span class="text-rose-500">*</span></label
+                >Commute Distance (KM) <span class="text-rose-500">*</span></label
               >
               <InputNumber
                 v-model="formData.distance_km"
@@ -102,16 +102,16 @@
             <div class="space-y-2">
               <label
                 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-                >Hari Kerja <span class="text-rose-500">*</span></label
+                >Working Days <span class="text-rose-500">*</span></label
               >
               <InputNumber
                 v-model="formData.working_days"
                 :min="0"
                 :max="31"
-                placeholder="0 HARI"
+                placeholder="0 DAYS"
                 class="w-full"
                 inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
-                suffix=" HARI"
+                suffix=" DAYS"
               />
             </div>
           </div>
@@ -119,12 +119,12 @@
           <div class="space-y-2">
             <label
               class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Keterangan Opsional</label
+              >Optional Notes</label
             >
             <Textarea
               v-model="formData.keterangan"
               rows="3"
-              placeholder="Tambahkan catatan khusus jika diperlukan..."
+              placeholder="Add special notes or exceptions if necessary..."
               class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !p-4 !font-medium"
             />
           </div>
@@ -144,13 +144,13 @@
             <h4
               class="text-xs font-black uppercase tracking-[0.2em] text-indigo-300"
             >
-              Simulasi Perhitungan
+              Calculation Simulation
             </h4>
 
             <div class="space-y-4">
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-indigo-400 uppercase tracking-widest"
-                  >Tarif Dasar</span
+                  >Base Fare</span
                 >
                 <span class="text-white">{{
                   formatCurrency(settings.baseFare)
@@ -158,7 +158,7 @@
               </div>
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-indigo-400 uppercase tracking-widest"
-                  >Tarif per KM</span
+                  >Rate per KM</span
                 >
                 <span class="text-white">{{
                   formatCurrency(settings.tariffPerKm)
@@ -166,14 +166,14 @@
               </div>
               <div class="flex justify-between items-center text-xs font-bold">
                 <span class="text-indigo-400 uppercase tracking-widest"
-                  >Jarak Efektif</span
+                  >Effective Distance</span
                 >
                 <span class="text-white">{{ effectiveKm }} KM</span>
               </div>
               <div class="h-px bg-white/10"></div>
               <div class="flex justify-between items-center text-xs font-black">
                 <span class="text-indigo-300 uppercase tracking-widest"
-                  >Subtotal / Hari</span
+                  >Subtotal / Day</span
                 >
                 <span class="text-emerald-400">{{
                   formatCurrency(
@@ -189,7 +189,7 @@
               <div
                 class="text-[10px] font-black uppercase tracking-widest text-indigo-300"
               >
-                Estimasi Total Tunjangan
+                Estimated Total Allowance
               </div>
               <div class="text-4xl font-black text-emerald-400 tracking-tight">
                 {{ formatCurrency(calculatedAmount) }}
@@ -197,7 +197,7 @@
               <div
                 class="text-[10px] font-bold text-indigo-200/50 uppercase mt-2"
               >
-                Dihitung untuk {{ formData.working_days }} hari kerja
+                Calculated for {{ formData.working_days }} working days
               </div>
             </div>
           </div>
@@ -217,7 +217,7 @@
           <div class="pt-4 relative z-10">
             <Button
               type="submit"
-              label="Simpan Data Tunjangan"
+              label="Save Allowance Record"
               icon="bi bi-shield-check"
               class="w-full !rounded-2xl !py-4 !bg-indigo-600 !border-none !font-black !shadow-xl"
               :loading="loading"
@@ -264,7 +264,7 @@ const formData = ref({
 });
 
 const monthOptions = Array.from({ length: 12 }, (_, i) => ({
-  label: new Date(2026, i).toLocaleDateString("id-ID", { month: "long" }),
+  label: new Date(2026, i).toLocaleDateString("en-US", { month: "long" }),
   value: i + 1,
 }));
 
@@ -318,14 +318,14 @@ watch(
       formData.value.distance_km > 0 &&
       formData.value.distance_km < settings.value.minDistance
     ) {
-      validationNote.value = `Jarak kurang dari ${settings.value.minDistance}km tidak mendapatkan tunjangan.`;
+      validationNote.value = `Distance less than ${settings.value.minDistance}km is not eligible for allowance.`;
     } else if (
       formData.value.working_days > 0 &&
       formData.value.working_days < settings.value.minWorkingDays
     ) {
-      validationNote.value = `Hari kerja minimal ${settings.value.minWorkingDays} hari dalam sebulan.`;
+      validationNote.value = `Minimum working days required: ${settings.value.minWorkingDays} days in a month.`;
     } else if (formData.value.distance_km > settings.value.maxDistance) {
-      validationNote.value = `Maksimal jarak yang dihitung adalah ${settings.value.maxDistance}km.`;
+      validationNote.value = `Maximum calculated distance is capped at ${settings.value.maxDistance}km.`;
     }
   },
 );

@@ -15,7 +15,7 @@
             <h1
               class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
             >
-              Management Talent
+              Talent Management
             </h1>
           </div>
           <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
@@ -93,11 +93,35 @@
         <Select
           v-model="selectedType"
           :options="selectedTypeOptions"
+          optionLabel="label"
+          optionValue="value"
           class="!bg-transparent !border-none !shadow-none !text-[10px] !font-black !uppercase !tracking-widest !h-10 flex items-center !text-slate-800 dark:!text-slate-200"
         />
       </div>
 
       <div class="flex items-center gap-2">
+        <!-- View Mode Switcher -->
+        <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <button
+            type="button"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all cursor-pointer"
+            :class="viewMode === 'table' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+            @click="viewMode = 'table'"
+            v-tooltip.top="'Table View'"
+          >
+            <i class="bi bi-table"></i>
+          </button>
+          <button
+            type="button"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all cursor-pointer"
+            :class="viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+            @click="viewMode = 'grid'"
+            v-tooltip.top="'Grid View'"
+          >
+            <i class="bi bi-grid-fill"></i>
+          </button>
+        </div>
+
         <Button
           icon="bi bi-funnel"
           :severity="isFilterActive ? 'primary' : 'secondary'"
@@ -311,6 +335,7 @@
         class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
       >
         <DataTable
+          v-if="viewMode === 'table'"
           :value="employees"
           class="p-datatable-overhaul-v2"
           :loading="loading"
@@ -414,10 +439,10 @@
             <template #body="slotProps">
               <div class="flex flex-col gap-1.5">
                 <Tag
-                  :value="slotProps.data.type"
+                  :value="formatEmployeeType(slotProps.data.type)"
                   class="!rounded-lg !px-3 !py-1 !text-[9px] !font-black !uppercase !tracking-widest !w-fit"
                   :class="
-                    slotProps.data.type === 'Kontrak'
+                    slotProps.data.type === 'Kontrak' || slotProps.data.type === 'Contract'
                       ? '!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:!text-amber-400 !border !border-amber-100/50'
                       : '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !border !border-indigo-100/50'
                   "
@@ -555,6 +580,167 @@
             </div>
           </template>
         </DataTable>
+
+        <!-- Card Grid View -->
+        <div v-else class="p-6">
+          <div
+            v-if="loading"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <div
+              v-for="i in 6"
+              :key="i"
+              class="h-64 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse"
+            ></div>
+          </div>
+
+          <div
+            v-else-if="employees.length === 0"
+            class="flex flex-col items-center justify-center py-20 px-6 text-center"
+          >
+            <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
+              <i class="bi bi-person-slash text-3xl text-slate-400"></i>
+            </div>
+            <h3 class="text-base font-black text-slate-800 dark:text-white mb-1">
+              No Talent Found
+            </h3>
+            <p class="text-xs text-slate-400 max-w-xs mb-4">
+              Your search or filter parameters did not match any records.
+            </p>
+            <Button
+              label="Reset Filters"
+              icon="bi bi-arrow-counterclockwise"
+              size="small"
+              class="!rounded-xl !text-xs !font-bold"
+              @click="resetFilters"
+            />
+          </div>
+
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div
+              v-for="emp in employees"
+              :key="emp.id"
+              class="p-6 rounded-3xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:shadow-md transition-all flex flex-col justify-between group"
+            >
+              <div class="space-y-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3.5">
+                    <div class="relative">
+                      <Avatar
+                        :image="
+                          emp.photo_url ||
+                          'https://ui-avatars.com/api/?name=' +
+                            emp.name +
+                            '&background=random&size=100'
+                        "
+                        shape="circle"
+                        class="!w-12 !h-12 border-2 border-white dark:border-slate-800 shadow-sm"
+                      />
+                      <span
+                        class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900"
+                        :class="emp.status ? 'bg-emerald-500' : 'bg-slate-300'"
+                      ></span>
+                    </div>
+                    <div class="overflow-hidden">
+                      <h4
+                        class="text-sm font-black text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate max-w-[160px]"
+                      >
+                        {{ emp.name }}
+                      </h4>
+                      <span
+                        class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block"
+                      >
+                        {{ emp.nip }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Tag
+                    :value="formatEmployeeType(emp.type)"
+                    class="!rounded-lg !px-2.5 !py-0.5 !text-[9px] !font-black !uppercase !tracking-wider flex-shrink-0"
+                    :class="
+                      emp.type === 'Kontrak' || emp.type === 'Contract'
+                        ? '!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:!text-amber-400 !border !border-amber-200/60'
+                        : '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !border !border-indigo-200/60'
+                    "
+                  />
+                </div>
+
+                <div
+                  class="p-3.5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 space-y-2 text-xs"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Position</span>
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400 truncate max-w-[140px] text-right">{{ emp.position_name }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Department</span>
+                    <span class="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px] text-right">{{ emp.department_name }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
+                    <span class="font-medium text-slate-500 truncate max-w-[150px] text-right">{{ emp.email }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-4">
+                <NuxtLink :to="`/employees/${emp.id}`">
+                  <Button
+                    label="View Profile"
+                    icon="bi bi-arrow-right"
+                    iconPos="right"
+                    size="small"
+                    text
+                    class="!text-xs !font-bold !text-indigo-600 dark:!text-indigo-400 hover:!bg-indigo-50 dark:hover:!bg-indigo-500/10 !p-1.5"
+                  />
+                </NuxtLink>
+
+                <div class="flex items-center gap-1">
+                  <NuxtLink
+                    v-if="hasPermission('employees', 'update')"
+                    :to="`/employees/${emp.id}/edit`"
+                  >
+                    <Button
+                      icon="bi bi-pencil"
+                      severity="secondary"
+                      text
+                      rounded
+                      class="!w-8 !h-8 !text-slate-400 hover:!text-amber-500"
+                      v-tooltip.top="'Edit Talent'"
+                    />
+                  </NuxtLink>
+                  <Button
+                    v-if="hasPermission('employees', 'delete')"
+                    icon="bi bi-trash"
+                    severity="danger"
+                    text
+                    rounded
+                    class="!w-8 !h-8 !text-slate-400 hover:!text-rose-500"
+                    @click="confirmDelete(emp)"
+                    v-tooltip.top="'Remove'"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid Paginator -->
+          <div
+            class="flex flex-col md:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-100 dark:border-slate-800 mt-6"
+          >
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              Showing {{ employees.length }} of {{ totalEmployees }} talents
+            </span>
+            <Paginator
+              :rows="itemsPerPage"
+              :totalRecords="totalEmployees"
+              template="PrevPageLink PageLinks NextPageLink"
+              class="!bg-transparent !p-0"
+              @page="onPageChange"
+            />
+          </div>
+        </div>
       </div>
     </Motion>
   </div>
@@ -569,6 +755,7 @@ import { useAuth } from "~/composables/useAuth";
 definePageMeta({ layout: "default" });
 
 const confirm = useConfirm();
+const viewMode = ref<"table" | "grid">("table");
 
 const { hasPermission } = useAuth();
 const {
@@ -668,7 +855,21 @@ const isFilterActive = computed(() => {
   );
 });
 
-const selectedTypeOptions = ["All Types", "Tetap", "Kontrak", "Magang"];
+const selectedTypeOptions = [
+  { label: "All Types", value: "All Types" },
+  { label: "Permanent", value: "Tetap" },
+  { label: "Contract", value: "Kontrak" },
+  { label: "Internship", value: "Magang" },
+];
+
+const formatEmployeeType = (type: string) => {
+  if (!type) return "-";
+  if (type === "Tetap" || type === "Permanent") return "Permanent";
+  if (type === "Kontrak" || type === "Contract") return "Contract";
+  if (type === "Magang" || type === "Internship") return "Intern";
+  return type;
+};
+
 onMounted(() => {
   selectedType.value = "All Types";
   fetchEmployees();
@@ -691,7 +892,7 @@ const onPageChange = (event: any) => {
 
 const formatDate = (date: string) => {
   if (!date) return "-";
-  return new Date(date).toLocaleDateString("id-ID", {
+  return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -727,16 +928,16 @@ const quickStats = computed(() => [
 
 const confirmDelete = (employee: any) => {
   confirm.require({
-    message: `Apakah Anda yakin ingin menghapus data pegawai "${employee.name}" secara permanen?`,
-    header: "Hapus Data Pegawai",
+    message: `Are you sure you want to permanently delete talent record for "${employee.name}"?`,
+    header: "Delete Employee Record",
     icon: "bi bi-exclamation-triangle-fill text-rose-500",
     rejectProps: {
-      label: "Batal",
+      label: "Cancel",
       severity: "secondary",
       outlined: true,
     },
     acceptProps: {
-      label: "Hapus",
+      label: "Delete",
       severity: "danger",
     },
     accept: async () => {

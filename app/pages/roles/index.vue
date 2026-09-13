@@ -23,10 +23,10 @@
         <h1
           class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
         >
-          Konfigurasi Role
+          Role Configuration
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
-          Atur kewenangan dan hak akses untuk setiap tingkatan pengguna.
+          Configure authority and access rights for each user tier.
         </p>
       </Motion>
     </div>
@@ -80,7 +80,7 @@
                   ></span>
                   <span
                     class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                    >{{ role.permissions?.length || 0 }} Hak Akses</span
+                    >{{ role.permissions?.length || 0 }} Permissions</span
                   >
                 </div>
               </div>
@@ -97,13 +97,13 @@
           <div class="flex-grow">
             <label
               class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 block"
-              >Ringkasan Izin:</label
+              >Permissions Summary:</label
             >
             <div
               v-if="role.permissions?.length === 0"
               class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-[10px] font-medium italic"
             >
-              Belum ada hak akses yang diatur untuk role ini.
+              No permissions configured for this role.
             </div>
             <div v-else class="flex flex-wrap gap-2">
               <span
@@ -129,7 +129,7 @@
               >CREATED BY SYSTEM</span
             >
             <Button
-              label="Konfigurasi Lengkap"
+              label="Manage Permissions"
               size="small"
               text
               class="!rounded-lg !text-indigo-600 dark:!text-indigo-400 !font-bold !text-[10px]"
@@ -155,9 +155,9 @@
           <i class="bi bi-shield-slash text-4xl text-indigo-500"></i>
         </div>
       </div>
-      <h3 class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">Tidak Ada Role</h3>
+      <h3 class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">No Roles Found</h3>
       <p class="text-xs font-bold text-slate-400 dark:text-slate-500 max-w-[280px] leading-relaxed uppercase tracking-widest">
-        Hubungi administrator sistem untuk inisialisasi data.
+        Contact system administrator to initialize role data.
       </p>
     </div>
     <!-- Edit Role Modal -->

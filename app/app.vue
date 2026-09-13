@@ -1,13 +1,21 @@
-<script setup lang="ts"></script>
-
 <template>
-  <div class="transition-all duration-300">
+  <div class="transition-colors duration-300 min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300">
     <!-- Inline script to prevent dark mode flash before hydration -->
     <!-- eslint-disable-next-line vue/no-v-html -->
     <component :is="'script'" v-html="themeInitScript" />
+
+    <!-- Top Loading Indicator for Page Navigation Transitions -->
+    <NuxtLoadingIndicator
+      color="linear-gradient(to right, #6366f1, #8b5cf6, #ec4899)"
+      :height="3"
+      :duration="2000"
+    />
+
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+
+    <!-- Global Dialogs and Feedback Toasts -->
     <ConfirmDialog />
     <Toast />
   </div>

@@ -23,17 +23,17 @@
         <h1
           class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
         >
-          Pengumuman
+          Announcements
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
-          Sampaikan informasi dan berita terbaru ke seluruh tim.
+          Publish updates, company news, and critical alerts across teams.
         </p>
       </Motion>
 
       <Motion :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }">
         <Button
           v-if="hasPermission('announcements', 'create')"
-          label="Buat Pengumuman"
+          label="New Announcement"
           icon="bi bi-plus-lg"
           class="!rounded-xl !px-6 !py-3 !bg-indigo-600 !border-none !text-white !font-black !uppercase !text-[10px] !tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors"
           @click="openCreateModal"
@@ -53,7 +53,7 @@
         <div class="md:col-span-8 space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Cari Informasi</label
+            >Search Broadcasts</label
           >
           <span class="relative block group">
             <i
@@ -61,7 +61,7 @@
             ></i>
             <InputText
               v-model="searchQuery"
-              placeholder="Judul atau kata kunci isi pengumuman..."
+              placeholder="Search by title or announcement keywords..."
                class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
             />
           </span>
@@ -70,7 +70,7 @@
         <div class="md:col-span-4 space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Prioritas</label
+            >Priority</label
           >
           <Select
             v-model="selectedPriority"
@@ -128,12 +128,12 @@
       <h3
         class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight"
       >
-        Belum Ada Pengumuman
+        No Announcements Found
       </h3>
       <p
         class="text-xs font-bold text-slate-400 dark:text-slate-500 max-w-[280px] leading-relaxed uppercase tracking-widest"
       >
-        Jadilah yang pertama menyampaikan berita hari ini!
+        Be the first to publish company news or team updates!
       </p>
     </div>
 
@@ -247,7 +247,7 @@
     <Dialog
       v-model:visible="modalOpen"
       modal
-      :header="isEditing ? 'Perbarui Pengumuman' : 'Tulis Pengumuman Baru'"
+      :header="isEditing ? 'Edit Announcement' : 'Compose New Announcement'"
       class="w-full max-w-xl"
       :pt="{
         root: {
@@ -266,11 +266,11 @@
         <div class="space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Judul Utama <span class="text-rose-500">*</span></label
+            >Broadcast Title <span class="text-rose-500">*</span></label
           >
           <InputText
             v-model="formData.title"
-            placeholder="Gunakan judul yang menarik perhatian..."
+            placeholder="Enter an attention-grabbing title..."
             :class="[
               'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white',
               formErrors.title ? '!border !border-rose-500' : '',
@@ -287,7 +287,7 @@
           <div class="space-y-1.5">
             <label
               class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Prioritas Pesan</label
+              >Priority Level</label
             >
             <Select
               v-model="formData.priority"
@@ -300,14 +300,14 @@
           <div class="space-y-1.5">
             <label
               class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Target Departemen</label
+              >Target Department</label
             >
             <Select
               v-model="formData.target_department"
               :options="departmentOptions"
               optionLabel="label"
               optionValue="value"
-              placeholder="Seluruh Perusahaan"
+              placeholder="All Departments"
               class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
             />
           </div>
@@ -316,12 +316,12 @@
         <div class="space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >Konten Pengumuman <span class="text-rose-500">*</span></label
+            >Announcement Content <span class="text-rose-500">*</span></label
           >
           <Textarea
             v-model="formData.content"
             rows="6"
-            placeholder="Tuliskan detail pengumuman secara lengkap di sini..."
+            placeholder="Write full announcement details and context here..."
             :class="[
               'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
               formErrors.content ? '!border !border-rose-500' : '',
@@ -341,11 +341,11 @@
           <div class="flex flex-col">
             <span
               class="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest"
-              >Publikasikan Sekarang</span
+              >Publish Immediately</span
             >
             <span
               class="text-[9px] font-medium text-slate-400 dark:text-slate-500"
-              >Pengumuman akan langsung terlihat oleh target.</span
+              >Announcement will be instantly visible to targeted recipients.</span
             >
           </div>
         </div>
@@ -354,14 +354,14 @@
       <template #footer>
         <div class="flex items-center justify-end gap-3">
           <Button
-            label="Simpan Draft"
+            label="Cancel"
             text
             severity="secondary"
             @click="modalOpen = false"
             class="!rounded-xl !font-black !uppercase !text-[10px] !tracking-widest dark:!text-slate-400"
           />
           <Button
-            :label="isEditing ? 'Simpan Perubahan' : 'Terbitkan Sekarang'"
+            :label="isEditing ? 'Save Changes' : 'Publish Now'"
             :loading="loading"
             @click="handleSubmit"
             class="!rounded-xl !px-6 !py-3 !bg-indigo-600 !border-none !text-white !font-black !uppercase !text-[10px] !tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors"
@@ -421,25 +421,25 @@ const validateForm = () => {
   formErrors.content = "";
 
   if (!formData.title.trim()) {
-    formErrors.title = "Judul pengumuman harus diisi";
+    formErrors.title = "Announcement title is required";
     valid = false;
   }
   if (!formData.content.trim()) {
-    formErrors.content = "Konten pengumuman harus diisi";
+    formErrors.content = "Announcement content is required";
     valid = false;
   }
   return valid;
 };
 
 const priorityOptions = [
-  { label: "Semua Prioritas", value: "" },
+  { label: "All Priorities", value: "" },
   { label: "Normal", value: "Normal" },
-  { label: "Penting", value: "Important" },
+  { label: "Important", value: "Important" },
   { label: "Urgent", value: "Urgent" },
 ];
 
 const departmentOptions = [
-  { label: "Semua Departemen", value: null },
+  { label: "All Departments", value: null },
   { label: "Marketing", value: "Marketing" },
   { label: "HRD", value: "HRD" },
   { label: "Production", value: "Production" },
@@ -449,19 +449,19 @@ const departmentOptions = [
 const priorityLabel = (p: string) => {
   const map: Record<string, string> = {
     Normal: "Normal",
-    Important: "Penting",
-    Urgent: "Sangat Penting",
+    Important: "Important",
+    Urgent: "Urgent",
   };
   return map[p] || p;
 };
 
 const priorityBadgeClass = (p: string) => {
   const map: Record<string, string> = {
-    Normal: "!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !border-indigo-100 dark:!border-indigo-500/20",
-    Important: "!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:!text-amber-400 !border-amber-100 dark:!border-amber-500/20",
-    Urgent: "!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:!text-rose-400 !border-rose-100 dark:!border-rose-500/20",
+    Normal: "!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:text-indigo-400 !border-indigo-100 dark:!border-indigo-500/20",
+    Important: "!bg-amber-50 dark:!bg-amber-500/10 !text-amber-600 dark:text-amber-400 !border-amber-100 dark:!border-amber-500/20",
+    Urgent: "!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:text-rose-400 !border-rose-100 dark:!border-rose-500/20",
   };
-  return map[p] || "!bg-slate-50 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500";
+  return map[p] || "!bg-slate-50 dark:!bg-slate-800 !text-slate-400 dark:text-slate-500";
 };
 
 const prioritySideColor = (p: string) => {
@@ -475,7 +475,7 @@ const prioritySideColor = (p: string) => {
 
 const formatDateTime = (d: string) => {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("id-ID", {
+  return new Date(d).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -525,16 +525,16 @@ const handleSubmit = async () => {
 const confirmDelete = (id: number) => {
   confirm.require({
     message:
-      "Apakah Anda yakin ingin menghapus pengumuman ini secara permanen?",
-    header: "Hapus Pengumuman",
+      "Are you sure you want to permanently delete this announcement?",
+    header: "Delete Announcement",
     icon: "bi bi-exclamation-triangle-fill text-rose-500",
     rejectProps: {
-      label: "Batal",
+      label: "Cancel",
       severity: "secondary",
       outlined: true,
     },
     acceptProps: {
-      label: "Hapus",
+      label: "Delete",
       severity: "danger",
     },
     accept: async () => {

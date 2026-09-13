@@ -270,7 +270,7 @@
 
             <div class="pt-8 border-t border-white/10 space-y-4">
               <div
-                v-for="val in ['DIVISI', 'LEVEL']"
+                v-for="val in ['DIVISION', 'ROLE']"
                 :key="val"
                 class="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10"
               >
@@ -279,7 +279,7 @@
                   >{{ val }}</span
                 >
                 <span class="text-xs font-black">{{
-                  val === "DIVISI"
+                  val === "DIVISION"
                     ? employee.department_name
                     : employee.position_name
                 }}</span>
@@ -369,7 +369,7 @@ const loading = ref(true);
 
 const formatDate = (date: string) => {
   if (!date) return "-";
-  return new Date(date).toLocaleDateString("id-ID", {
+  return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -390,6 +390,13 @@ const calculateAge = (birthDate: string, joinDate: string) => {
   return age > 0 ? age : 0;
 };
 
+const formatEmployeeType = (type: string) => {
+  if (type === "Tetap") return "Permanent";
+  if (type === "Kontrak") return "Contract";
+  if (type === "Magang") return "Internship";
+  return type || "-";
+};
+
 const personalInfo = computed(() => ({
   "Place of Birth": {
     text: employee.value.birthCityName || "-",
@@ -404,7 +411,7 @@ const personalInfo = computed(() => ({
     text: `${employee.value.marital_status} (${employee.value.children_count} Dependents)`,
     icon: "bi bi-people-fill",
   },
-  "Jarak Rumah ke Kantor": {
+  "Commute Distance": {
     text:
       employee.value.distance_km !== null &&
       employee.value.distance_km !== undefined
@@ -422,7 +429,7 @@ const contractStats = computed(() => [
   },
   {
     label: "Contract Type",
-    value: employee.value.type,
+    value: formatEmployeeType(employee.value.type),
     icon: "bi bi-file-earmark-lock",
   },
 ]);

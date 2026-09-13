@@ -18,13 +18,13 @@
             <h1
               class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
             >
-              Edit Hak Akses
+              Modify User Access
             </h1>
             <p
               v-if="user"
               class="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm"
             >
-              Mengelola akun untuk:
+              Managing account credentials for:
               <span class="text-indigo-600 dark:text-indigo-400 font-bold">{{
                 user.employee_name || user.username
               }}</span>
@@ -55,7 +55,7 @@
           <ProgressSpinner strokeWidth="4" />
           <span
             class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest"
-            >Memuat Kredensial...</span
+            >Loading Credentials...</span
           >
         </div>
       </div>
@@ -95,8 +95,8 @@ const handleSubmit = async (formData: any) => {
     });
 
     showSuccess(
-      "Perubahan Disimpan",
-      "Kredensial user telah berhasil diperbarui dan disinkronkan.",
+      "Changes Saved",
+      "User credentials have been successfully updated and synchronized.",
       async () => {
         navigateTo("/user-management");
       }
@@ -110,9 +110,9 @@ const handleSubmit = async (formData: any) => {
     }, 2000);
   } catch (error: any) {
     showError(
-      "Gagal Memperbarui",
+      "Update Failed",
       error.response?.data?.message ||
-        "Terjadi kesalahan saat mencoba menyimpan perubahan."
+        "An unexpected error occurred while saving credential updates."
     );
   }
 };

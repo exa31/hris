@@ -2,7 +2,7 @@
   <Dialog 
     v-model:visible="notificationModal.isOpen" 
     modal 
-    :header="notificationModal.title || 'Informasi'" 
+    :header="notificationModal.title || 'Information'" 
     :style="{ width: '450px' }"
     :breakpoints="{ '1199px': '75vw', '575px': '95vw' }"
     class="confirm-dialog-premium"
@@ -34,8 +34,8 @@
     </div>
     <template #footer>
       <div class="flex items-center justify-end gap-3 w-full">
-        <Button label="Batal" severity="secondary" text @click="notificationModal.isOpen = false" class="!rounded-xl !font-bold" />
-        <Button label="Mengerti" :severity="notificationModal.type === 'danger' ? 'danger' : 'primary'" @click="handleNotificationConfirm" class="!rounded-xl !px-8 !font-black !uppercase !text-[10px] !tracking-widest" />
+        <Button label="Cancel" severity="secondary" text @click="notificationModal.isOpen = false" class="!rounded-xl !font-bold" />
+        <Button label="Got It" :severity="notificationModal.type === 'danger' ? 'danger' : 'primary'" @click="handleNotificationConfirm" class="!rounded-xl !px-8 !font-black !uppercase !text-[10px] !tracking-widest" />
       </div>
     </template>
   </Dialog>

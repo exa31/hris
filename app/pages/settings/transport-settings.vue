@@ -23,10 +23,10 @@
         <h1
           class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
         >
-          Konfigurasi Tunjangan
+          Allowance Configuration
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
-          Atur parameter dasar perhitungan tunjangan transport sistem.
+          Configure core parameters for transport allowance calculation.
         </p>
       </Motion>
     </div>
@@ -51,7 +51,7 @@
             <h3
               class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight"
             >
-              Parameter Tarif
+              Rate Parameters
             </h3>
           </div>
 
@@ -59,7 +59,7 @@
           <div class="space-y-3">
             <label
               class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Tarif Dasar (Base Fare)</label
+              >Base Fare (Rate per km)</label
             >
             <div class="relative group">
               <span
@@ -68,7 +68,7 @@
               >
               <InputNumber
                 v-model="localSettings.base_fare"
-                placeholder="Masukkan nominal..."
+                placeholder="Enter rate amount..."
                 class="w-full"
                 :inputClass="'!pl-16 !py-5 !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !rounded-2xl !text-2xl !font-black !text-slate-700 dark:!text-white focus:!bg-white dark:focus:!bg-slate-900 focus:!ring-4 focus:!ring-indigo-500/10 transition-all'"
                 :disabled="
@@ -79,7 +79,7 @@
             <p
               class="text-[10px] font-bold text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-tighter italic"
             >
-              Base fare dihitung per kilometer per hari kerja pegawai.
+              Base fare is calculated per kilometer per employee working day.
             </p>
           </div>
 
@@ -89,10 +89,10 @@
           >
             <div class="flex flex-col gap-1">
               <span class="text-xs font-black text-slate-700 dark:text-slate-200 uppercase"
-                >Status Pengaturan</span
+                >Configuration Status</span
               >
               <span class="text-[10px] font-medium text-slate-400 dark:text-slate-500"
-                >Aktifkan untuk mengizinkan kalkulasi otomatis.</span
+                >Enable to allow automated allowance calculation.</span
               >
             </div>
             <div class="flex items-center gap-3">
@@ -120,7 +120,7 @@
             class="pt-4 flex gap-3"
           >
             <Button
-              label="Simpan Konfigurasi"
+              label="Save Configuration"
               icon="bi bi-check-lg"
               :loading="saving"
               class="!rounded-xl !px-10 !py-4 !bg-indigo-600 !border-none !font-black !shadow-lg !shadow-indigo-200 dark:!shadow-none text-white hover:!bg-indigo-500 transition-colors"
@@ -142,7 +142,7 @@
           >
             <i class="bi bi-lock-fill"></i>
             <span class="text-xs font-bold uppercase tracking-tight"
-              >Mode Read-Only: Akses Terbatas</span
+              >Read-Only Mode: Restricted Access</span
             >
           </div>
         </div>
@@ -166,7 +166,7 @@
             class="text-lg font-black uppercase tracking-widest mb-8 flex items-center gap-3 text-indigo-200"
           >
             <span class="w-2 h-6 bg-indigo-400 rounded-full"></span>
-            Simulasi & Aturan
+            Simulation & Rules
           </h3>
 
           <!-- Simulation Card -->
@@ -176,12 +176,12 @@
             <div
               class="text-[10px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest"
             >
-              Contoh Kalkulasi
+              Calculation Example
             </div>
             <div class="flex flex-col gap-3">
               <div class="flex justify-between items-end">
                 <span class="text-xs font-medium text-indigo-100 dark:text-slate-300"
-                  >Jarak Tempuh</span
+                  >Commute Distance</span
                 >
                 <span class="text-lg font-black"
                   >12.3 km
@@ -190,14 +190,14 @@
               </div>
               <div class="flex justify-between items-end">
                 <span class="text-xs font-medium text-indigo-100 dark:text-slate-300"
-                  >Hari Kerja</span
+                  >Working Days</span
                 >
-                <span class="text-lg font-black">22 HARI</span>
+                <span class="text-lg font-black">22 DAYS</span>
               </div>
               <div class="w-full h-px bg-white/10 dark:bg-slate-700/50 my-1"></div>
               <div class="flex justify-between items-center pt-2">
                 <span class="text-xs font-black text-indigo-300 dark:text-indigo-400 uppercase"
-                  >Estimasi</span
+                  >Estimated Total</span
                 >
                 <span class="text-2xl font-black text-emerald-400">{{
                   formatCurrency(localSettings.base_fare * 12 * 22)
@@ -210,7 +210,7 @@
             <div
               class="text-[10px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest"
             >
-              Parameter Validasi
+              Validation Parameters
             </div>
             <ul class="space-y-4">
               <li
@@ -252,11 +252,11 @@ const saveError = ref<string | null>(null);
 const saveSuccess = ref(false);
 
 const rules = [
-  "Hanya berlaku untuk Pegawai Tetap.",
-  "Minimal kehadiran 19 hari kerja.",
-  "Jarak minimum rumah-kantor > 5 km.",
-  "Jarak maksimum perhitungan 25 km.",
-  "Pembulatan desimal terdekat (0.5 threshold).",
+  "Applies exclusively to Permanent employees.",
+  "Minimum attendance requirement: 19 working days.",
+  "Minimum commute distance threshold > 5 km.",
+  "Maximum calculation cap: 25 km.",
+  "Nearest integer decimal rounding (0.5 threshold).",
 ];
 
 onMounted(async () => {
@@ -286,7 +286,7 @@ const saveSettings = async () => {
     }, 3000);
   } catch (err: any) {
     saveError.value =
-      getErrorMessageAxios(err) || error.value || "Gagal menyimpan pengaturan";
+      getErrorMessageAxios(err) || error.value || "Failed to save configuration";
   } finally {
     saving.value = false;
   }

@@ -1,8 +1,8 @@
 <template>
-  <div class="space-y-12">
+  <div class="space-y-8">
     <!-- Header Section -->
     <div
-      class="flex flex-col lg:flex-row gap-8 items-start lg:items-end justify-between"
+      class="flex flex-col lg:flex-row gap-8 items-start lg:items-end justify-between pb-6 border-b border-slate-100 dark:border-slate-800"
     >
       <Motion
         :initial="{ opacity: 0, x: -20 }"
@@ -17,95 +17,95 @@
           ></span>
           <span
             class="text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400"
-            >Attendance Monitoring</span
+            >Attendance Monitoring Hub</span
           >
         </div>
         <h1
           class="text-3xl font-black text-slate-800 dark:text-white tracking-tight"
         >
-          Presensi Tim Nexus
+          Nexus Team Attendance
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
-          Pantau kedisiplinan dan riwayat kehadiran harian pegawai.
+          Monitor employee punctuality, real check-in times, and daily attendance logs centrally.
         </p>
       </Motion>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 w-full lg:w-auto">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full lg:w-auto">
         <div
-          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm text-center space-y-1"
+          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs text-center space-y-1"
         >
           <div
             class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
           >
-            Hadir Hari Ini
+            Attendance Rate
           </div>
-          <div class="text-xl font-black text-emerald-500">
-            {{ summaryLoading ? "..." : todayStats.hadir_percent + "%" }}
+          <div class="text-2xl font-black text-emerald-500">
+            {{ summaryLoading ? "..." : (todayStats.hadir_percent || 0) + "%" }}
           </div>
         </div>
         <div
-          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm text-center space-y-1"
+          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs text-center space-y-1"
         >
           <div
             class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
           >
-            Total Hadir
+            Present Today
           </div>
-          <div class="text-xl font-black text-amber-500">
-            {{ summaryLoading ? "..." : todayStats.hadir + "/" + todayStats.total_active }}
+          <div class="text-2xl font-black text-amber-500">
+            {{ summaryLoading ? "..." : (todayStats.hadir || 0) + "/" + (todayStats.total_active || 0) }}
           </div>
         </div>
         <div
-          class="p-5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none text-center space-y-1 text-white hidden md:block"
+          class="p-5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none text-center space-y-1 text-white col-span-2 sm:col-span-1"
         >
           <div
             class="text-[9px] font-black text-indigo-200 uppercase tracking-widest"
           >
-            Total Data
+            Total Activity Logs
           </div>
-          <div class="text-xl font-black">{{ totalAttendances }}</div>
+          <div class="text-2xl font-black">{{ totalAttendances }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Filters & Actions -->
+    <!-- Filters & Actions Bar -->
     <Motion
       :initial="{ opacity: 0, y: 10 }"
       :animate="{ opacity: 1, y: 0 }"
       :transition="{ delay: 0.2 }"
     >
-      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
         <div class="md:col-span-4 space-y-1.5">
-          <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Pencarian</label>
+          <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Search Members</label>
           <div class="relative group">
             <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors"></i>
             <InputText
               v-model="searchQuery"
-              placeholder="Cari Nama / NIP..."
-               class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white"
+              placeholder="Search Name / NIP..."
+              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800/60 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white focus:!ring-2 focus:!ring-indigo-500/20"
             />
           </div>
         </div>
 
         <div class="md:col-span-2 space-y-1.5">
-          <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Bulan</label>
+          <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Month</label>
           <Select
             v-model="selectedMonth"
             :options="monthOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
+            class="w-full !bg-slate-50 dark:!bg-slate-800/60 !border-none !rounded-xl !shadow-none !text-xs !font-bold !text-slate-800 dark:!text-slate-200"
           />
         </div>
 
         <div class="md:col-span-2 space-y-1.5">
-          <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Tahun</label>
+          <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Year</label>
           <Select
             v-model="selectedYear"
             :options="yearOptions"
             optionLabel="label"
             optionValue="value"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
+            class="w-full !bg-slate-50 dark:!bg-slate-800/60 !border-none !rounded-xl !shadow-none !text-xs !font-bold !text-slate-800 dark:!text-slate-200"
           />
         </div>
 
@@ -116,16 +116,16 @@
             :options="statusOptions"
             optionLabel="label"
             optionValue="value"
-            placeholder="Pilih Status"
-            class="w-full !bg-slate-50 dark:!bg-slate-800 !border-none !rounded-xl !shadow-none !text-slate-800 dark:!text-slate-200"
+            placeholder="Select Status"
+            class="w-full !bg-slate-50 dark:!bg-slate-800/60 !border-none !rounded-xl !shadow-none !text-xs !font-bold !text-slate-800 dark:!text-slate-200"
           />
         </div>
 
         <div class="md:col-span-2">
           <Button
-            icon="bi bi-download"
-            label="Export"
-            class="!rounded-xl !h-[46px] !w-full !bg-white dark:!bg-slate-800 !text-indigo-600 dark:!text-indigo-400 border border-indigo-100 dark:border-slate-700 !font-black !uppercase !text-[10px] !tracking-widest shadow-sm hover:!bg-indigo-50 dark:hover:!bg-slate-700"
+            icon="bi bi-file-earmark-spreadsheet-fill"
+            label="Export Report"
+            class="!rounded-xl !h-[46px] !w-full !bg-white dark:!bg-slate-800 !text-indigo-600 dark:!text-indigo-400 border border-indigo-100 dark:border-slate-700 !font-black !uppercase !text-[10px] !tracking-widest shadow-xs hover:!bg-indigo-50 dark:hover:!bg-slate-700 transition-all"
             @click="exportExcel"
             :loading="loading"
           />
@@ -138,7 +138,7 @@
       :initial="{ opacity: 0, y: 20 }"
       :animate="{ opacity: 1, y: 0 }"
       :transition="{ delay: 0.3 }"
-      class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
+      class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-100 dark:border-slate-800 overflow-hidden"
     >
       <DataTable
         :value="attendances"
@@ -152,7 +152,7 @@
           footerCell: { class: '!bg-transparent !p-0 !border-none' },
         }"
       >
-        <Column header="Anggota Tim">
+        <Column header="Team Member">
           <template #body="slotProps">
             <div class="flex items-center gap-4">
               <Avatar
@@ -163,7 +163,7 @@
                     '&background=random&size=100'
                 "
                 shape="circle"
-                class="!w-10 !h-10 border-2 border-white dark:border-slate-800 shadow-sm ring-2 ring-slate-100 dark:ring-slate-700"
+                class="!w-10 !h-10 border-2 border-white dark:border-slate-800 shadow-xs ring-2 ring-slate-100 dark:ring-slate-700"
               />
               <div class="flex flex-col">
                 <span
@@ -179,14 +179,14 @@
           </template>
         </Column>
 
-        <Column header="Jadwal & Kedatangan">
+        <Column header="Schedule & Arrival">
           <template #body="slotProps">
             <div class="flex flex-col gap-1">
               <div class="flex items-center gap-2">
                 <i class="bi bi-clock-fill text-indigo-500 text-[10px]"></i>
                 <span
                   class="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tighter"
-                  >{{ slotProps.data.time_in }}</span
+                  >{{ slotProps.data.time_in || slotProps.data.clock_in || '-' }}</span
                 >
               </div>
               <span
@@ -197,32 +197,31 @@
           </template>
         </Column>
 
-        <Column header="Status Check-in">
+        <Column header="Check-in Status">
           <template #body="slotProps">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5">
               <div
                 :class="[
                   'w-2 h-2 rounded-full',
-                  slotProps.data.status === 'Hadir'
-                    ? 'bg-emerald-500 shadow-lg shadow-emerald-200 dark:shadow-none'
-                    : 'bg-rose-500 shadow-lg shadow-rose-200 dark:shadow-none',
+                  slotProps.data.status === 'Hadir' || slotProps.data.status === 'Present'
+                    ? 'bg-emerald-500 shadow-sm shadow-emerald-200'
+                    : 'bg-rose-500 shadow-sm shadow-rose-200',
                 ]"
               ></div>
-              <span
-                class="text-[10px] font-black uppercase tracking-widest"
+              <Tag
+                :value="formatStatus(slotProps.data.status)"
                 :class="
-                  slotProps.data.status === 'Hadir'
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-rose-600 dark:text-rose-400'
+                  slotProps.data.status === 'Hadir' || slotProps.data.status === 'Present'
+                    ? '!bg-emerald-50 dark:!bg-emerald-500/10 !text-emerald-600 dark:!text-emerald-400 !border !border-emerald-100 dark:!border-emerald-500/20'
+                    : '!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:!text-rose-400 !border !border-rose-100 dark:!border-rose-500/20'
                 "
-              >
-                {{ slotProps.data.status }}
-              </span>
+                class="!text-[9px] !font-black !px-2.5 !py-1 !rounded-lg !uppercase !tracking-wider"
+              />
             </div>
           </template>
         </Column>
 
-        <Column header="Lokasi Presensi">
+        <Column header="Clock-in Location">
           <template #body="slotProps">
             <div
               class="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded-xl w-fit"
@@ -230,19 +229,21 @@
               <i class="bi bi-geo-alt-fill text-indigo-400 text-[10px]"></i>
               <span
                 class="text-[10px] font-bold text-slate-500 dark:text-slate-400"
-                >{{ slotProps.data.location || "Kantor Pusat" }}</span
+                >{{ slotProps.data.location === 'Kantor Pusat' ? 'HQ Office' : (slotProps.data.location || 'HQ Office') }}</span
               >
             </div>
           </template>
         </Column>
 
-        <Column header="Action" class="!text-right">
+        <Column header="Actions" class="!text-right">
           <template #body="slotProps">
             <Button
-              icon="bi bi-info-circle"
+              icon="bi bi-info-circle-fill"
               text
               severity="secondary"
-              class="!rounded-xl !text-slate-400 dark:!text-slate-500 hover:!text-indigo-600"
+              class="!w-9 !h-9 !rounded-xl !text-slate-400 dark:!text-slate-500 hover:!text-indigo-600 dark:hover:!text-indigo-400 hover:!bg-indigo-50 dark:hover:!bg-indigo-500/10 transition-colors"
+              v-tooltip.top="'Inspect Details'"
+              @click="openDetailModal(slotProps.data)"
             />
           </template>
         </Column>
@@ -253,7 +254,7 @@
           >
             <span
               class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-              >Database Syncing Real-time</span
+              >Realtime Attendance Database Sync</span
             >
             <Paginator
               :rows="itemsPerPage"
@@ -299,13 +300,12 @@
             <h3
               class="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight"
             >
-              Belum Ada Data Presensi
+              No Attendance Records Found
             </h3>
             <p
               class="text-xs font-bold text-slate-400 dark:text-slate-500 max-w-[280px] leading-relaxed uppercase tracking-widest mb-8"
             >
-              Sistem belum merekam aktivitas presensi yang sesuai dengan filter
-              Anda.
+              The system has not recorded any attendance activity matching your criteria.
             </p>
             <Button
               v-if="searchQuery"
@@ -318,6 +318,102 @@
         </template>
       </DataTable>
     </Motion>
+
+    <!-- Detail Inspection Dialog -->
+    <Dialog
+      v-model:visible="detailModalOpen"
+      modal
+      class="w-full max-w-md"
+      :pt="{
+        root: { class: '!rounded-3xl !border !border-slate-100 dark:!border-slate-800 !bg-white dark:!bg-slate-900 !shadow-2xl overflow-hidden' },
+        header: { class: 'px-7 pt-7 pb-4 !bg-transparent !border-b !border-slate-100 dark:!border-slate-800 !text-slate-800 dark:text-white' },
+        content: { class: 'px-7 py-6 !bg-transparent' },
+        footer: { class: 'px-7 pb-7 pt-2 !bg-transparent !border-none' },
+      }"
+    >
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+            <i class="bi bi-person-badge-fill"></i>
+          </div>
+          <div>
+            <span class="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+              Attendance Inspection
+            </span>
+            <h3 class="text-base font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+              Attendance Log Details
+            </h3>
+          </div>
+        </div>
+      </template>
+
+      <div v-if="selectedRecord" class="space-y-5">
+        <!-- User Profile Card -->
+        <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+          <Avatar
+            :image="selectedRecord.photo_url || `https://ui-avatars.com/api/?name=${selectedRecord.name}&background=random`"
+            shape="circle"
+            class="!w-12 !h-12 border-2 border-white dark:border-slate-700 shadow-xs"
+          />
+          <div>
+            <div class="text-sm font-black text-slate-800 dark:text-white">
+              {{ selectedRecord.name }}
+            </div>
+            <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              NIP: {{ selectedRecord.nip }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule & Check-in Details -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1">
+            <span class="text-[9px] font-bold text-slate-400 uppercase">Clock In</span>
+            <div class="text-sm font-black text-slate-800 dark:text-white">
+              {{ selectedRecord.time_in || selectedRecord.clock_in || '-' }}
+            </div>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1">
+            <span class="text-[9px] font-bold text-slate-400 uppercase">Clock Out</span>
+            <div class="text-sm font-black text-slate-800 dark:text-white">
+              {{ selectedRecord.time_out || selectedRecord.clock_out || '-' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Location & Status Details -->
+        <div class="space-y-3 pt-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-400">Attendance Date:</span>
+            <span class="font-black text-slate-700 dark:text-slate-300">{{ formatDate(selectedRecord.date) }}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-400">Logged Location:</span>
+            <span class="font-black text-slate-700 dark:text-slate-300">{{ selectedRecord.location === 'Kantor Pusat' ? 'HQ Office' : (selectedRecord.location || 'HQ Office') }}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-400">Attendance Status:</span>
+            <Tag
+              :value="formatStatus(selectedRecord.status)"
+              class="!text-[9px] !font-black !px-2.5 !py-0.5 !rounded-md !uppercase"
+              :class="selectedRecord.status === 'Hadir' || selectedRecord.status === 'Present' ? '!bg-emerald-50 !text-emerald-600' : '!bg-rose-50 !text-rose-600'"
+            />
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex items-center justify-end pt-2">
+          <Button
+            label="Close"
+            severity="secondary"
+            text
+            @click="detailModalOpen = false"
+            class="!rounded-xl !px-6 !py-2.5 !font-bold !text-xs"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -341,16 +437,34 @@ const {
   exportExcel,
 } = useAttendance();
 
-const activeTab = ref("all");
 const itemsPerPage = ref(10);
 const summaryLoading = ref(false);
 const todayStats = ref({ hadir: 0, total_active: 0, hadir_percent: 0 });
 
+const detailModalOpen = ref(false);
+const selectedRecord = ref<any>(null);
+
+const openDetailModal = (record: any) => {
+  selectedRecord.value = record;
+  detailModalOpen.value = true;
+};
+
+const formatStatus = (status: string) => {
+  if (!status) return "Present";
+  if (status === "Hadir" || status === "Present") return "Present";
+  if (status === "Izin" || status === "Permit") return "Permit";
+  if (status === "Sakit" || status === "Sick") return "Sick";
+  if (status === "Alpha" || status === "Absent") return "Absent";
+  return status;
+};
+
 const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString("id-ID", {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("en-US", {
     weekday: "short",
     day: "numeric",
     month: "short",
+    year: "numeric",
   });
 };
 
@@ -369,18 +483,18 @@ const loadSummary = async () => {
 };
 
 const monthOptions = [
-  { label: 'Januari', value: 1 },
-  { label: 'Februari', value: 2 },
-  { label: 'Maret', value: 3 },
+  { label: 'January', value: 1 },
+  { label: 'February', value: 2 },
+  { label: 'March', value: 3 },
   { label: 'April', value: 4 },
-  { label: 'Mei', value: 5 },
-  { label: 'Juni', value: 6 },
-  { label: 'Juli', value: 7 },
-  { label: 'Agustus', value: 8 },
+  { label: 'May', value: 5 },
+  { label: 'June', value: 6 },
+  { label: 'July', value: 7 },
+  { label: 'August', value: 8 },
   { label: 'September', value: 9 },
-  { label: 'Oktober', value: 10 },
+  { label: 'October', value: 10 },
   { label: 'November', value: 11 },
-  { label: 'Desember', value: 12 },
+  { label: 'December', value: 12 },
 ];
 
 const currentYear = new Date().getFullYear();
@@ -391,17 +505,18 @@ const yearOptions = [
 ];
 
 const statusOptions = [
-  { label: 'Semua Status', value: '' },
-  { label: 'Hadir', value: 'Hadir' },
-  { label: 'Izin', value: 'Izin' },
-  { label: 'Sakit', value: 'Sakit' },
-  { label: 'Alpha', value: 'Alpha' },
+  { label: 'All Statuses', value: '' },
+  { label: 'Present', value: 'Hadir' },
+  { label: 'Permit', value: 'Izin' },
+  { label: 'Sick', value: 'Sakit' },
+  { label: 'Absent', value: 'Alpha' },
 ];
 
 onMounted(() => {
   fetchAttendances();
   loadSummary();
 });
+
 watch([searchQuery, page, selectedStatus, selectedMonth, selectedYear], () => fetchAttendances());
 </script>
 

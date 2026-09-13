@@ -1,208 +1,285 @@
 <template>
-  <div
-    class="relative min-h-screen flex items-center justify-center bg-slate-950 overflow-hidden font-sans"
-  >
-    <!-- Animated Background -->
-    <div class="absolute inset-0 z-0">
-      <div
-        class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse"
-      ></div>
-      <div
-        class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-violet-600/20 blur-[120px] animate-pulse"
-        style="animation-delay: 2s"
-      ></div>
-      <div
-        class="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-blue-600/10 blur-[100px] animate-pulse"
-        style="animation-delay: 4s"
-      ></div>
+  <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-950 text-white font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <!-- Left Column: Branding Showcase & Test Credentials (Visible on Large Screens) -->
+    <div class="hidden lg:flex lg:col-span-6 xl:col-span-7 relative flex-col justify-between p-12 lg:p-16 overflow-hidden bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 border-r border-white/5">
+      <!-- Ambient Glow Orbs -->
+      <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] bg-[size:32px_32px] pointer-events-none"></div>
+
+      <!-- Top Branding -->
+      <div class="relative z-10 flex items-center gap-3">
+        <NexusLogo :size="40" />
+        <span class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-indigo-200 to-violet-400 tracking-tight">
+          NexusHR
+        </span>
+        <span class="ml-2 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+          Enterprise
+        </span>
+      </div>
+
+      <!-- Center Showcase Content -->
+      <div class="relative z-10 space-y-8 max-w-xl my-auto py-12">
+        <Motion
+          :initial="{ opacity: 0, y: 20 }"
+          :animate="{ opacity: 1, y: 0 }"
+          :transition="{ duration: 0.6 }"
+          class="space-y-4"
+        >
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold">
+            <i class="bi bi-shield-check text-sm"></i>
+            <span>Human Resource Intelligence Platform</span>
+          </div>
+
+          <h1 class="text-4xl xl:text-5xl font-black tracking-tight leading-[1.15]">
+            Empower Your Modern <br />
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-300 to-purple-400">
+              Workforce Intelligence.
+            </span>
+          </h1>
+
+          <p class="text-slate-400 text-sm xl:text-base leading-relaxed">
+            Streamline employee records, real-time presence, automated leave approvals, and financial logistics in one unified platform.
+          </p>
+        </Motion>
+
+        <!-- Quick Features List -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div class="p-4 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-sm space-y-1">
+            <i class="bi bi-lightning-charge-fill text-indigo-400 text-lg"></i>
+            <div class="text-xs font-bold text-slate-200">Fast Presence</div>
+            <div class="text-[11px] text-slate-500 leading-tight">Instant logs & verified check-ins</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-sm space-y-1">
+            <i class="bi bi-calendar2-check-fill text-violet-400 text-lg"></i>
+            <div class="text-xs font-bold text-slate-200">Leave Flow</div>
+            <div class="text-[11px] text-slate-500 leading-tight">Automated multi-tier approvals</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-sm space-y-1">
+            <i class="bi bi-shield-lock-fill text-emerald-400 text-lg"></i>
+            <div class="text-xs font-bold text-slate-200">RBAC Security</div>
+            <div class="text-[11px] text-slate-500 leading-tight">Granular permission matrix</div>
+          </div>
+        </div>
+
+        <!-- Quick Demo Fill Pills -->
+        <div class="pt-4 space-y-3">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <i class="bi bi-key-fill text-indigo-400"></i>
+            <span>Quick Demo Access (Click to auto-fill):</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/30 border border-white/10 hover:border-indigo-500/50 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 group"
+              @click="fillDemo('superadmin', 'P@ssword123')"
+            >
+              <span class="w-2 h-2 rounded-full bg-rose-400 group-hover:scale-125 transition-transform"></span>
+              <span>Super Admin</span>
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/30 border border-white/10 hover:border-indigo-500/50 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 group"
+              @click="fillDemo('siti.nurhaliza', 'P@ssword123')"
+            >
+              <span class="w-2 h-2 rounded-full bg-amber-400 group-hover:scale-125 transition-transform"></span>
+              <span>HR Manager</span>
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/30 border border-white/10 hover:border-indigo-500/50 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 group"
+              @click="fillDemo('ahmad.rahman', 'P@ssword123')"
+            >
+              <span class="w-2 h-2 rounded-full bg-emerald-400 group-hover:scale-125 transition-transform"></span>
+              <span>HR Officer</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="relative z-10 flex items-center justify-between text-xs text-slate-500">
+        <span>© 2026 NexusHR Enterprise Portal</span>
+        <NuxtLink to="/" class="hover:text-indigo-400 transition-colors flex items-center gap-1 font-semibold">
+          <i class="bi bi-arrow-left"></i>
+          <span>Back to Demo Home</span>
+        </NuxtLink>
+      </div>
     </div>
 
-    <Motion
-      :initial="{ opacity: 0, scale: 0.95, y: 20 }"
-      :animate="{ opacity: 1, scale: 1, y: 0 }"
-      :transition="{ duration: 0.6, ease: 'easeOut' }"
-      class="relative z-10 w-full max-w-[480px] px-6"
-    >
-      <div
-        class="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] shadow-2xl p-8 md:p-12"
+    <!-- Right Column: Login Card -->
+    <div class="lg:col-span-6 xl:col-span-5 flex flex-col justify-center items-center p-6 sm:p-10 lg:p-14 relative z-10">
+      <Motion
+        :initial="{ opacity: 0, y: 20 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.5 }"
+        class="w-full max-w-md space-y-8"
       >
-        <!-- Logo & Header -->
-        <div class="text-center mb-10">
-          <Motion
-            :initial="{ scale: 0.5, rotate: -20 }"
-            :animate="{ scale: 1, rotate: 0 }"
-            :transition="{
-              type: 'spring',
-              damping: 12,
-              stiffness: 200,
-              delay: 0.2,
-            }"
-            class="inline-flex items-center justify-center mb-6"
-          >
-            <NexusLogo :size="84" />
-          </Motion>
-          <h2 class="text-3xl font-extrabold text-white tracking-tight mb-2">
-            Selamat Datang
+        <!-- Top Mobile Header / Logo -->
+        <div class="text-center lg:text-left space-y-2">
+          <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
+            <NexusLogo :size="44" />
+            <span class="text-2xl font-black tracking-tight text-white">NexusHR</span>
+          </div>
+          <h2 class="text-3xl font-black text-white tracking-tight">
+            Welcome Back
           </h2>
-          <p class="text-slate-400 font-medium">
-            NexusHR - Human Resource Portal
+          <p class="text-slate-400 text-sm">
+            Enter your account credentials to access the workspace.
           </p>
         </div>
 
         <!-- Login Form -->
-        <form @submit.prevent="handleLogin" class="space-y-6">
-          <div class="space-y-2">
-            <label
-              for="credential"
-              class="text-sm font-semibold text-slate-300 ml-1"
-              >Username / Email</label
-            >
-            <div class="relative group">
-              <span
-                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"
-              >
-                <i class="bi bi-person text-xl"></i>
+        <form @submit.prevent="handleLogin" class="space-y-5">
+          <!-- Credential Field -->
+          <div class="space-y-1.5">
+            <label for="credential" class="text-xs font-bold text-slate-300 ml-0.5">
+              Username or Email <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 z-10">
+                <i class="bi bi-person text-lg"></i>
               </span>
               <InputText
                 id="credential"
                 v-model="credential"
-                placeholder="Masukkan username atau email"
-                class="w-full !pl-12 !py-4 !bg-white/5 !border-white/10 !text-white !rounded-2xl focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 transition-all placeholder:text-slate-600"
-                :class="{ 'p-invalid': !!credentialError }"
+                placeholder="e.g. superadmin or user@company.com"
+                class="w-full !pl-11 !py-3.5 !bg-white/5 !border-white/10 !text-white !rounded-xl focus:!border-indigo-500 focus:!ring-2 focus:!ring-indigo-500/20 text-sm transition-all"
+                :class="{ 'p-invalid !border-rose-500': !!credentialError }"
               />
             </div>
-            <Transition name="fade-slide">
-              <small
-                v-if="credentialError"
-                class="text-rose-400 text-xs font-medium ml-1 flex items-center gap-1"
-              >
-                <i class="bi bi-exclamation-circle"></i> {{ credentialError }}
-              </small>
-            </Transition>
+            <small v-if="credentialError" class="text-rose-400 text-xs font-medium ml-1 flex items-center gap-1">
+              <i class="bi bi-exclamation-circle"></i> {{ credentialError }}
+            </small>
           </div>
 
-          <div class="space-y-2">
-            <label
-              for="password"
-              class="text-sm font-semibold text-slate-300 ml-1"
-              >Password</label
-            >
-            <div class="relative group">
-              <span
-                class="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-slate-500 group-focus-within:text-indigo-400 transition-colors"
-              >
-                <i class="bi bi-lock text-xl"></i>
-              </span>
+          <!-- Password Field -->
+          <div class="space-y-1.5">
+            <label for="password" class="text-xs font-bold text-slate-300 ml-0.5">
+              Password <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
               <Password
                 id="password"
                 v-model="password"
                 placeholder="••••••••"
                 :toggleMask="true"
                 :feedback="false"
+                fluid
                 class="w-full"
-                inputClass="w-full !pl-12 !py-4 !bg-white/5 !border-white/10 !text-white !rounded-2xl focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 transition-all placeholder:text-slate-600"
-                :class="{ 'p-invalid': !!passwordError }"
+                inputClass="w-full !pl-11 !py-3.5 !bg-white/5 !border-white/10 !text-white !rounded-xl focus:!border-indigo-500 focus:!ring-2 focus:!ring-indigo-500/20 text-sm transition-all"
+                :class="{ 'p-invalid !border-rose-500': !!passwordError }"
               />
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10">
+                <i class="bi bi-lock text-lg"></i>
+              </span>
             </div>
-            <Transition name="fade-slide">
-              <small
-                v-if="passwordError"
-                class="text-rose-400 text-xs font-medium ml-1 flex items-center gap-1"
-              >
-                <i class="bi bi-exclamation-circle"></i> {{ passwordError }}
-              </small>
-            </Transition>
+            <small v-if="passwordError" class="text-rose-400 text-xs font-medium ml-1 flex items-center gap-1">
+              <i class="bi bi-exclamation-circle"></i> {{ passwordError }}
+            </small>
           </div>
 
-          <!-- Captcha Section -->
-          <div
-            class="p-5 bg-white/5 rounded-2xl border border-white/5 space-y-4"
-          >
+          <!-- Captcha Box -->
+          <div class="p-4 bg-white/[0.03] rounded-2xl border border-white/10 space-y-3">
             <div class="flex items-center justify-between">
-              <span
-                class="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                >Verifikasi Keamanan</span
-              >
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Security Verification
+              </span>
               <button
                 type="button"
+                class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 cursor-pointer"
                 @click="generateCaptcha"
-                class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
               >
-                <i class="bi bi-arrow-clockwise"></i> Refresh
+                <i class="bi bi-arrow-clockwise"></i> Refresh Code
               </button>
             </div>
 
-            <div
-              class="h-16 flex items-center justify-center bg-slate-900/50 rounded-xl border border-white/5 relative overflow-hidden"
-            >
-              <div class="absolute inset-0 opacity-10 pointer-events-none">
+            <div class="h-14 flex items-center justify-center bg-slate-900/80 rounded-xl border border-white/5 relative overflow-hidden select-none">
+              <!-- Noise Lines -->
+              <div class="absolute inset-0 opacity-20 pointer-events-none">
                 <div
-                  v-for="i in 5"
+                  v-for="i in 4"
                   :key="i"
-                  class="absolute bg-white h-px w-full"
-                  :style="{
-                    top: i * 20 + '%',
-                    transform: 'rotate(' + (Math.random() * 10 - 5) + 'deg)',
-                  }"
+                  class="absolute bg-white/40 h-px w-full"
+                  :style="{ top: i * 25 + '%', transform: 'rotate(' + (i * 3 - 6) + 'deg)' }"
                 ></div>
               </div>
-              <span
-                class="text-3xl font-black text-white tracking-[0.6em] select-none italic opacity-80"
-                >{{ captchaCode }}</span
-              >
+              <span class="text-2xl font-black text-indigo-300 tracking-[0.5em] italic">
+                {{ captchaCode }}
+              </span>
             </div>
 
             <InputText
               v-model="userCaptcha"
-              placeholder="Masukkan kode di atas"
+              placeholder="Enter code above"
               maxlength="6"
-              class="w-full !py-3 !bg-white/5 !border-white/10 !text-white !rounded-xl text-center font-bold tracking-widest focus:!border-indigo-500/50"
+              class="w-full !py-2.5 !bg-white/5 !border-white/10 !text-white !rounded-xl text-center font-bold tracking-widest text-sm focus:!border-indigo-500"
               @keyup="userCaptcha = userCaptcha.toUpperCase()"
             />
           </div>
 
+          <!-- Remember Me & Forgot Password -->
           <div class="flex items-center justify-between px-1">
-            <div
-              class="flex items-center gap-2 group cursor-pointer"
-              @click="rememberMe = !rememberMe"
-            >
-              <div
-                class="w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center"
-                :class="
-                  rememberMe
-                    ? 'bg-indigo-500 border-indigo-500'
-                    : 'border-white/10 bg-white/5 group-hover:border-white/20'
-                "
-              >
-                <i
-                  v-if="rememberMe"
-                  class="bi bi-check-lg text-white text-xs"
-                ></i>
-              </div>
-              <span class="text-sm font-medium text-slate-400 select-none"
-                >Ingat saya</span
-              >
+            <div class="flex items-center gap-2.5">
+              <Checkbox
+                v-model="rememberMe"
+                :binary="true"
+                inputId="rememberMe"
+              />
+              <label for="rememberMe" class="text-xs font-medium text-slate-400 select-none cursor-pointer hover:text-slate-200">
+                Remember my session
+              </label>
             </div>
-            <NuxtLink
-              to="/forgot-password"
-              class="text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
-              >Lupa Password?</NuxtLink
-            >
+
+            <span class="text-xs text-slate-500">
+              Active for 30 days
+            </span>
           </div>
 
+          <!-- Submit Button -->
           <Button
             type="submit"
             :loading="loading"
-            class="w-full !py-4 !rounded-2xl !bg-gradient-to-r !from-indigo-600 !to-violet-600 !border-none !text-white !font-bold !text-lg !shadow-xl !shadow-indigo-600/20 hover:!shadow-indigo-600/40 hover:!-translate-y-0.5 active:!translate-y-0 transition-all"
-            label="Masuk Ke Sistem"
+            label="Sign In to Portal"
+            icon="bi bi-box-arrow-in-right"
+            class="w-full !py-4 !rounded-xl !bg-indigo-600 hover:!bg-indigo-500 !border-none !text-white !font-black !text-sm !uppercase !tracking-wider !shadow-xl !shadow-indigo-600/30 transition-all cursor-pointer"
           />
         </form>
-      </div>
-    </Motion>
+
+        <!-- Mobile Demo Credentials Help -->
+        <div class="lg:hidden p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick Demo Access:</div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded-lg bg-white/5 text-xs text-slate-300 hover:text-white border border-white/10"
+              @click="fillDemo('superadmin', 'P@ssword123')"
+            >
+              Super Admin
+            </button>
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded-lg bg-white/5 text-xs text-slate-300 hover:text-white border border-white/10"
+              @click="fillDemo('siti.nurhaliza', 'P@ssword123')"
+            >
+              HR Manager
+            </button>
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded-lg bg-white/5 text-xs text-slate-300 hover:text-white border border-white/10"
+              @click="fillDemo('ahmad.rahman', 'P@ssword123')"
+            >
+              HR Officer
+            </button>
+          </div>
+        </div>
+      </Motion>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { validateCredential, validatePassword } from "~/utils/validation";
 import { useAuth } from "~/composables/useAuth";
@@ -224,7 +301,7 @@ onMounted(() => {
 });
 
 const generateCaptcha = () => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed confusing chars
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let result = "";
   for (let i = 0; i < 6; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -233,19 +310,27 @@ const generateCaptcha = () => {
   userCaptcha.value = "";
 };
 
+const fillDemo = (user: string, pass: string) => {
+  credential.value = user;
+  password.value = pass;
+  userCaptcha.value = captchaCode.value;
+  credentialError.value = "";
+  passwordError.value = "";
+};
+
 const handleLogin = async () => {
   credentialError.value = "";
   passwordError.value = "";
 
   if (!credential.value) {
-    credentialError.value = "Username/Email tidak boleh kosong";
+    credentialError.value = "Username or email is required";
   } else if (!validateCredential(credential.value)) {
-    credentialError.value = "Format username/email tidak valid";
+    credentialError.value = "Invalid username or email format";
   }
 
   const pVal = validatePassword(password.value);
   if (!password.value) {
-    passwordError.value = "Password tidak boleh kosong";
+    passwordError.value = "Password is required";
   } else if (pVal) {
     passwordError.value = pVal;
   }
@@ -255,8 +340,8 @@ const handleLogin = async () => {
   if (userCaptcha.value.toUpperCase() !== captchaCode.value) {
     toast.add({
       severity: "error",
-      summary: "Gagal",
-      detail: "Kode captcha tidak sesuai",
+      summary: "Verification Failed",
+      detail: "Captcha security code does not match",
       life: 3000,
     });
     generateCaptcha();
@@ -267,21 +352,21 @@ const handleLogin = async () => {
     await login(credential.value, password.value, rememberMe.value);
     toast.add({
       severity: "success",
-      summary: "Berhasil",
-      detail: "Login berhasil, mengalihkan...",
+      summary: "Success",
+      detail: "Sign in successful, redirecting to dashboard...",
       life: 2000,
     });
 
     setTimeout(() => {
       navigateTo("/dashboard");
-    }, 1200);
+    }, 800);
   } catch (error: any) {
     const serverData = error.response?.data;
     const message =
-      serverData?.message || "Gagal masuk. Silakan periksa kembali akun Anda.";
+      serverData?.message || "Sign in failed. Please verify your credentials.";
     toast.add({
       severity: "error",
-      summary: "Login Gagal",
+      summary: "Sign In Failed",
       detail: message,
       life: 4000,
     });
@@ -289,23 +374,3 @@ const handleLogin = async () => {
   }
 };
 </script>
-
-<style scoped>
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.3s ease;
-}
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-5px);
-}
-
-:deep(.p-inputtext) {
-  font-family: inherit;
-}
-
-:deep(.p-password-input) {
-  width: 100%;
-}
-</style>

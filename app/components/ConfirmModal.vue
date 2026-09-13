@@ -41,7 +41,7 @@
           v-if="type === 'danger'"
           class="text-[10px] font-black text-rose-400 dark:text-rose-300 uppercase tracking-widest"
         >
-          Tindakan ini tidak dapat dibatalkan
+          This action cannot be undone
         </p>
       </div>
     </div>
@@ -90,10 +90,10 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   isOpen: false,
-  title: "Konfirmasi Sistem",
+  title: "System Confirmation",
   type: "primary",
-  confirmText: "Ya, Lanjutkan",
-  cancelText: "Batalkan",
+  confirmText: "Yes, Proceed",
+  cancelText: "Cancel",
   isConfirm: true,
 });
 

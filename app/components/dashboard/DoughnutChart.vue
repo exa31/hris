@@ -27,7 +27,7 @@ const props = defineProps<Props>();
 const totalValue = computed(() => props.kontrak + props.tetap + props.magang);
 
 const chartData = computed(() => ({
-  labels: ['Kontrak', 'Tetap', 'Magang'],
+  labels: ['Contract', 'Permanent', 'Internship'],
   datasets: [
     {
       data: [props.kontrak, props.tetap, props.magang],

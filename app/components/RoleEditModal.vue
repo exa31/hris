@@ -3,7 +3,7 @@
     :visible="isOpen"
     @update:visible="closeModal"
     modal
-    :header="'Konfigurasi Hak Akses: ' + (role?.name || '')"
+    :header="'Access Control Matrix: ' + (role?.name || '')"
     class="w-full max-w-4xl !rounded-[32px] !border !border-slate-100 dark:!border-slate-800 !shadow-2xl overflow-hidden"
     :pt="{
       root: { class: 'bg-white dark:bg-slate-900' },
@@ -22,9 +22,9 @@
           <i class="bi bi-shield-lock-fill text-amber-600 dark:text-amber-400"></i>
         </div>
         <div>
-          <div class="text-sm font-black text-amber-800 dark:text-amber-300 leading-tight">Role Terlindungi</div>
+          <div class="text-sm font-black text-amber-800 dark:text-amber-300 leading-tight">Protected System Role</div>
           <div class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-            Role <span class="font-black">Super Admin</span> tidak dapat diubah karena memiliki akses penuh ke seluruh sistem.
+            The <span class="font-black">Super Admin</span> role is system-protected and retains irrevocable full permissions.
           </div>
         </div>
       </div>
@@ -33,11 +33,11 @@
       <div class="space-y-2">
         <label
           class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-          >Nama Role</label
+          >Role Name</label
         >
         <InputText
           v-model="formData.name"
-          placeholder="Masukkan nama role"
+          placeholder="Enter role title..."
           :disabled="isSuperAdmin"
           class="w-full !py-3.5 !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !rounded-2xl focus:!bg-white dark:focus:!bg-slate-900 focus:!ring-4 focus:!ring-indigo-500/10 transition-all font-bold text-slate-700 dark:text-white"
           :class="{ 'p-invalid': errors.name, 'opacity-60 cursor-not-allowed': isSuperAdmin }"
@@ -54,11 +54,11 @@
         <div class="flex items-center justify-between px-1">
           <label
             class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-            >Daftar Hak Akses</label
+            >Permissions Matrix</label
           >
           <Tag
             :value="
-              formData.selectedPermissions.length + ' Permission Terpilih'
+              formData.selectedPermissions.length + ' Permissions Selected'
             "
             severity="info"
             class="!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !font-bold !rounded-lg"
@@ -87,12 +87,11 @@
               </div>
               <div class="flex items-center gap-2" v-if="!isSuperAdmin">
                 <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
-                  >Pilih Semua</span
+                  >Select All</span
                 >
-                <input
-                  type="checkbox"
-                  class="w-5 h-5 rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-900 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                  :checked="isModuleAllChecked(String(module))"
+                <Checkbox
+                  :modelValue="isModuleAllChecked(String(module))"
+                  :binary="true"
                   @change="toggleModulePermissions(String(module))"
                 />
               </div>
@@ -119,19 +118,12 @@
                 ]"
               >
                 <div class="flex items-start gap-3">
-                  <div
-                    class="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all mt-0.5"
-                    :class="
-                      formData.selectedPermissions.includes(perm.id)
-                        ? 'bg-indigo-600 border-indigo-600'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 group-hover:border-indigo-400'
-                    "
-                  >
-                    <i
-                      v-if="formData.selectedPermissions.includes(perm.id)"
-                      class="bi bi-check-lg text-white text-[10px]"
-                    ></i>
-                  </div>
+                  <Checkbox
+                    :modelValue="formData.selectedPermissions.includes(perm.id)"
+                    :binary="true"
+                    :disabled="isSuperAdmin"
+                    class="mt-0.5"
+                  />
                   <div class="flex-1">
                     <div class="text-xs font-bold leading-tight"
                       :class="formData.selectedPermissions.includes(perm.id) ? 'text-indigo-900 dark:text-indigo-100' : 'text-slate-700 dark:text-slate-200'">
@@ -154,7 +146,7 @@
     <template #footer>
       <div class="flex items-center justify-end gap-3 mt-4">
         <Button
-          label="Tutup"
+          label="Close"
           severity="secondary"
           text
           class="!rounded-2xl !font-bold dark:!text-slate-400"
@@ -162,7 +154,7 @@
         />
         <Button
           v-if="!isSuperAdmin"
-          label="Simpan Konfigurasi"
+          label="Save Permissions"
           icon="bi bi-check-lg"
           :loading="isSubmitting"
           class="!rounded-2xl !px-8 !py-3.5 !bg-indigo-600 !border-none !font-bold shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors text-white"
@@ -173,7 +165,7 @@
           class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold"
         >
           <i class="bi bi-lock-fill text-[11px]"></i>
-          Role Terlindungi
+          Protected System Role
         </div>
       </div>
     </template>
@@ -260,7 +252,7 @@ const toggleModulePermissions = (module: string) => {
 const validateForm = () => {
   errors.value = {};
   if (!formData.value.name.trim()) {
-    errors.value.name = "Nama role wajib diisi";
+    errors.value.name = "Role name is required";
   }
   return Object.keys(errors.value).length === 0;
 };
@@ -292,13 +284,16 @@ const closeModal = () => {
 
 const formatModuleName = (module: string) => {
   const map: Record<string, string> = {
-    dashboard: "Dashboard",
-    users: "Manajemen User",
-    employees: "Data Pegawai",
-    transport: "Tunjangan Transport",
-    logs: "Log Aktivitas",
-    transport_setting: "Pengaturan Transport",
-    roles: "Kelola Role",
+    dashboard: "Dashboard & Analytics",
+    users: "IAM & Users",
+    employees: "Talent Directory",
+    transport: "Transport Allowance",
+    logs: "Audit Logs",
+    transport_setting: "Allowance Settings",
+    roles: "Roles & Permissions",
+    leaves: "Leave Management",
+    attendance: "Attendance Tracking",
+    announcements: "Announcements & Broadcasts",
   };
   return map[module] || module.charAt(0).toUpperCase() + module.slice(1);
 };

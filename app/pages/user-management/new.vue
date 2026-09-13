@@ -18,12 +18,12 @@
             <h1
               class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
             >
-              Tambah Akses User
+              New User Account
             </h1>
             <p
               class="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm"
             >
-              Buat kredensial login baru untuk anggota tim Anda.
+              Create secure login credentials linked to an employee profile.
             </p>
           </div>
         </div>
@@ -55,8 +55,8 @@ const handleSubmit = async (formData: any) => {
     await createUser(formData);
 
     showSuccess(
-      "Akses Dibuat",
-      "Akun user baru telah berhasil didaftarkan dan siap digunakan untuk login.",
+      "User Account Created",
+      "New user account has been successfully registered and is ready for login.",
       async () => {
         router.push("/user-management");
       }
@@ -70,9 +70,9 @@ const handleSubmit = async (formData: any) => {
     }, 2000);
   } catch (error: any) {
     showError(
-      "Gagal Membuat User",
+      "Failed to Create User",
       error.response?.data?.message ||
-        "Pastikan username belum digunakan dan data pegawai sudah benar."
+        "Ensure username is unique and valid employee credentials are selected."
     );
   }
 };

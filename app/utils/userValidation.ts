@@ -16,7 +16,7 @@ export interface PasswordValidation {
  * - Min 1 lowercase
  * - Min 1 special character
  */
-export const validatePassword = (password: string): PasswordValidation => {
+export const validatePasswordStrength = (password: string): PasswordValidation => {
     const errors: string[] = []
     let strengthScore = 0
 
@@ -132,7 +132,7 @@ export interface UsernameValidation {
  * - Only letters and numbers
  * - All lowercase
  */
-export const validateUsername = (username: string): UsernameValidation => {
+export const validateUsernameRules = (username: string): UsernameValidation => {
     const errors: string[] = []
 
     if (!username) {

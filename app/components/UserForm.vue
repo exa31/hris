@@ -105,16 +105,15 @@
 
               <div class="space-y-2 md:col-span-2">
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Password <span v-if="!isEdit" class="text-rose-500">*</span></label>
-                <div class="relative">
-                  <InputText 
-                    v-model="form.password" 
-                    type="password" 
-                    :class="{ 'p-invalid border border-rose-500': errors.password }"
-                    class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 focus:!ring-indigo-500 !pl-10" 
-                    :placeholder="isEdit ? 'Leave blank to keep current password' : 'Enter strong password'" 
-                  />
-                  <i class="bi bi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                </div>
+                <Password 
+                  v-model="form.password" 
+                  :feedback="false"
+                  :toggleMask="true"
+                  fluid
+                  :class="{ 'p-invalid': errors.password }"
+                  inputClass="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 focus:!ring-indigo-500 !py-3 !text-sm" 
+                  :placeholder="isEdit ? 'Leave blank to retain current password' : 'Enter new secure password'" 
+                />
                 <Transition name="p-message-content">
                   <small v-if="errors.password" class="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
                     <i class="bi bi-exclamation-circle"></i> {{ errors.password }}
@@ -309,7 +308,7 @@ const validateForm = () => {
   };
 
   if (!form.value.username || form.value.username.trim().length < 6) {
-    errors.value.username = 'Username minimal 6 karakter';
+    errors.value.username = 'Username must be at least 6 characters';
     isValid = false;
   }
 
@@ -327,12 +326,12 @@ const validateForm = () => {
 
   if (!props.isEdit) {
     if (!form.value.password || !passwordRegex.test(form.value.password)) {
-      errors.value.password = 'Password minimal 8 karakter, 1 huruf besar, 1 angka, dan 1 karakter khusus';
+      errors.value.password = 'Password must be at least 8 characters with 1 uppercase, 1 number, and 1 special character';
       isValid = false;
     }
   } else {
     if (form.value.password && !passwordRegex.test(form.value.password)) {
-      errors.value.password = 'Password minimal 8 karakter, 1 huruf besar, 1 angka, dan 1 karakter khusus';
+      errors.value.password = 'Password must be at least 8 characters with 1 uppercase, 1 number, and 1 special character';
       isValid = false;
     }
   }

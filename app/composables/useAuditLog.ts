@@ -157,7 +157,7 @@ export const useAuditLog = () => {
     })
 
     const formatDateTime = (timestamp: string) => {
-        return new Date(timestamp).toLocaleDateString('id-ID', {
+        return new Date(timestamp).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
