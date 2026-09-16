@@ -559,22 +559,25 @@
                 />
               </div>
               <Paginator
+                :first="(page - 1) * itemsPerPage"
                 :rows="itemsPerPage"
                 :totalRecords="totalEmployees"
                 template="PrevPageLink PageLinks NextPageLink"
                 class="!bg-transparent !p-0"
                 @page="onPageChange"
                 :pt="{
+                  root: { class: '!bg-transparent !p-0 !border-none flex items-center gap-1.5' },
+                  pages: { class: 'flex items-center gap-1.5' },
                   page: ({ context }: any) => ({
                     class: [
-                      '!w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !transition-colors',
+                      '!w-8 !h-8 !rounded-xl !text-xs !font-black !min-w-0 !transition-all !flex !items-center !justify-center',
                       context.active
-                        ? '!text-indigo-600 dark:!text-indigo-400'
-                        : '!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800',
+                        ? '!bg-indigo-600 dark:!bg-indigo-500 !text-white dark:!text-white !shadow-md !shadow-indigo-500/30'
+                        : '!bg-slate-100 dark:!bg-slate-800/90 !text-slate-500 dark:!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-700 hover:!text-indigo-600 dark:hover:!text-white',
                     ],
                   }),
-                  prev: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
-                  next: { class: '!w-8 !h-8 !rounded-lg !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 !transition-colors' },
+                  prev: { class: '!w-8 !h-8 !rounded-xl !bg-slate-100 dark:!bg-slate-800/90 !text-slate-500 dark:!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-700 hover:!text-indigo-600 dark:hover:!text-white !transition-colors !flex !items-center !justify-center disabled:!opacity-30 disabled:!pointer-events-none' },
+                  next: { class: '!w-8 !h-8 !rounded-xl !bg-slate-100 dark:!bg-slate-800/90 !text-slate-500 dark:!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-700 hover:!text-indigo-600 dark:hover:!text-white !transition-colors !flex !items-center !justify-center disabled:!opacity-30 disabled:!pointer-events-none' },
                 }"
               />
             </div>
@@ -733,6 +736,7 @@
               Showing {{ employees.length }} of {{ totalEmployees }} talents
             </span>
             <Paginator
+              :first="(page - 1) * itemsPerPage"
               :rows="itemsPerPage"
               :totalRecords="totalEmployees"
               template="PrevPageLink PageLinks NextPageLink"
@@ -878,8 +882,18 @@ onMounted(() => {
 });
 
 // Watch for filter changes outside modal
+let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+watch(searchQuery, (newVal) => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  const delay = newVal ? 400 : 0;
+  searchDebounce = setTimeout(() => {
+    currentPage.value = 1;
+    fetchEmployees();
+  }, delay);
+});
+
 watch(
-  [searchQuery, currentPage, selectedType],
+  [currentPage, selectedType],
   () => {
     fetchEmployees();
   },
@@ -965,10 +979,11 @@ const confirmDelete = (employee: any) => {
 .p-paginator .p-paginator-page,
 .p-paginator .p-paginator-next,
 .p-paginator .p-paginator-prev {
-  @apply !w-8 !h-8 !rounded-lg !text-[11px] !font-black !min-w-0 !bg-transparent !text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-800 transition-colors;
+  @apply !w-8 !h-8 !rounded-xl !text-xs !font-black !min-w-0 !bg-slate-100 dark:!bg-slate-800/90 !text-slate-500 dark:!text-slate-400 hover:!bg-indigo-50 dark:hover:!bg-slate-700 hover:!text-indigo-600 dark:hover:!text-white transition-all !flex !items-center !justify-center;
 }
-.p-paginator .p-paginator-page.p-highlight {
-  @apply !bg-transparent !text-indigo-600 dark:!text-indigo-400 !shadow-none;
+.p-paginator .p-paginator-page.p-highlight,
+.p-paginator .p-paginator-page.p-paginator-page-selected {
+  @apply !bg-indigo-600 dark:!bg-indigo-500 !text-white dark:!text-white !shadow-md !shadow-indigo-500/30 !border-none;
 }
 
 </style>

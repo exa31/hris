@@ -364,6 +364,7 @@
                 <AutoComplete
                   v-model="birthCitySearch"
                   :suggestions="filteredRegencies"
+                  :delay="400"
                   @complete="searchBirthCity"
                   @item-select="onRegencySelect"
                   optionLabel="name"
@@ -626,6 +627,7 @@
                 <AutoComplete
                   v-model="districtSearch"
                   :suggestions="filteredDistricts"
+                  :delay="400"
                   @complete="searchDistrict"
                   @item-select="onDistrictSelect"
                   optionLabel="name"

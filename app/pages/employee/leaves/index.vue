@@ -554,12 +554,14 @@ const leaveStats = computed(() => {
 });
 
 // Filtered Leaves List
+const debouncedSearchQuery = useDebouncedRef(searchQuery, 300);
+
 const filteredLeaves = computed(() => {
   return leaves.value.filter((leave) => {
     const matchStatus =
       selectedFilterStatus.value === "All" ||
       leave.status?.toLowerCase() === selectedFilterStatus.value.toLowerCase();
-    const query = searchQuery.value.toLowerCase().trim();
+    const query = debouncedSearchQuery.value.toLowerCase().trim();
     const matchQuery =
       !query ||
       leave.reason?.toLowerCase().includes(query) ||

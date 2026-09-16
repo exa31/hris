@@ -548,12 +548,13 @@ let searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
 onMounted(() => fetchAnnouncements());
 
-watch(searchQuery, () => {
+watch(searchQuery, (newVal) => {
   if (searchDebounce) clearTimeout(searchDebounce);
+  const delay = newVal ? 400 : 0;
   searchDebounce = setTimeout(() => {
     currentPage.value = 1;
     fetchAnnouncements();
-  }, 400);
+  }, delay);
 });
 
 watch([currentPage, selectedPriority], () => fetchAnnouncements());

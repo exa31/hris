@@ -140,6 +140,7 @@
               <AutoComplete 
                 v-model="employeeSearch" 
                 :suggestions="filteredEmployees"
+                :delay="400"
                 @complete="searchEmployee"
                 @item-select="onEmployeeSelect"
                 optionLabel="name" 

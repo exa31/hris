@@ -317,9 +317,11 @@ const attendanceStats = computed(() => {
   ];
 });
 
+const debouncedSearchQuery = useDebouncedRef(searchQuery, 300);
+
 const filteredAttendances = computed(() => {
-  if (!searchQuery.value.trim()) return attendances.value;
-  const query = searchQuery.value.toLowerCase().trim();
+  if (!debouncedSearchQuery.value.trim()) return attendances.value;
+  const query = debouncedSearchQuery.value.toLowerCase().trim();
   return attendances.value.filter((a) => {
     return (
       (a.status && a.status.toLowerCase().includes(query)) ||

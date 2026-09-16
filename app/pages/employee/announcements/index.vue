@@ -271,9 +271,11 @@ const openDetail = (announcement: any) => {
   detailVisible.value = true;
 };
 
+const debouncedSearchQuery = useDebouncedRef(searchQuery, 300);
+
 const filteredAnnouncements = computed(() => {
   return announcements.value.filter((ann) => {
-    const query = searchQuery.value.toLowerCase().trim();
+    const query = debouncedSearchQuery.value.toLowerCase().trim();
     const matchQuery =
       !query ||
       ann.title?.toLowerCase().includes(query) ||

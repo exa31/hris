@@ -251,8 +251,10 @@ const availableItems = computed(() => {
   });
 });
 
+const debouncedQuery = useDebouncedRef(query, 150);
+
 const filteredItems = computed(() => {
-  const q = query.value.trim().toLowerCase();
+  const q = debouncedQuery.value.trim().toLowerCase();
   if (!q) return availableItems.value;
   return availableItems.value.filter(
     (item) =>
