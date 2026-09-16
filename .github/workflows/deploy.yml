@@ -37,7 +37,7 @@ jobs:
           export KUBECONFIG=/home/deploy/.kube/config
 
           # Patch the deployment to use the new SHA tag
-          kubectl set image deployment/hris -n dev-coffe \
+          kubectl set image deployment/hris -n hris \
             hris=ghcr.io/${{ github.repository_owner }}/hris:${{ steps.vars.outputs.sha }}
 
           EOF
