@@ -125,4 +125,9 @@ body {
 .dark .p-paginator {
   @apply bg-slate-900 border-slate-800;
 }
+
+.p-paginator .p-paginator-page.p-highlight,
+.p-paginator .p-paginator-page.p-paginator-page-selected {
+  @apply !bg-indigo-600 dark:!bg-indigo-500 !text-white dark:!text-white !shadow-md !shadow-indigo-500/30 !border-none !font-black;
+}
 </style>

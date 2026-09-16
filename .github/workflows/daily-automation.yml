@@ -1,0 +1,108 @@
+name: Daily HRIS Automation & Sync
+
+on:
+  # Schedule: Every Monday - Friday at 11:00 UTC (18:00 WIB / after office hours)
+  schedule:
+    - cron: '0 11 * * 1-5'
+
+  # Manual trigger via GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Target date (YYYY-MM-DD, leave empty for today)'
+        required: false
+        default: ''
+      run_seed:
+        description: 'Run full database seed first (for initial setup)'
+        required: false
+        type: boolean
+        default: false
+      sync_transport:
+        description: 'Synchronize monthly transport allowances'
+        required: false
+        type: boolean
+        default: true
+      include_weekends:
+        description: 'Force process even if target date is a weekend'
+        required: false
+        type: boolean
+        default: false
+      force:
+        description: 'Force overwrite existing attendance records for the date'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  daily-automation:
+    name: Run Daily Attendance & Sync
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NUXT_DATABASE_URL: ${{ secrets.NUXT_DATABASE_URL || secrets.DATABASE_URL }}
+      NUXT_PG_HOST: ${{ secrets.NUXT_PG_HOST }}
+      NUXT_PG_PORT: ${{ secrets.NUXT_PG_PORT || 5432 }}
+      NUXT_PG_USER: ${{ secrets.NUXT_PG_USER }}
+      NUXT_PG_PASSWORD: ${{ secrets.NUXT_PG_PASSWORD }}
+      NUXT_PG_DATABASE: ${{ secrets.NUXT_PG_DATABASE }}
+      NUXT_PG_SSL: ${{ secrets.NUXT_PG_SSL || 'false' }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install --prefer-offline
+
+      - name: Run Database Seed (Optional)
+        if: ${{ inputs.run_seed == true }}
+        run: |
+          echo "🌱 Running Master Database Seed..."
+          node scripts/seed.js
+
+      - name: Execute Daily Automation
+        id: run_automation
+        run: |
+          echo "⚡ Executing Daily Automation Routine..."
+          
+          # Build command flags dynamically from inputs
+          CMD="node scripts/daily-automation.js"
+          
+          if [ -n "${{ inputs.date }}" ]; then
+            CMD="$CMD --date=${{ inputs.date }}"
+          fi
+          
+          if [ "${{ inputs.include_weekends }}" = "true" ]; then
+            CMD="$CMD --include-weekends"
+          fi
+          
+          if [ "${{ inputs.force }}" = "true" ]; then
+            CMD="$CMD --force"
+          fi
+          
+          if [ "${{ inputs.sync_transport }}" = "false" ]; then
+            CMD="$CMD --no-transport"
+          else
+            CMD="$CMD --sync-transport"
+          fi
+          
+          echo "Executing: $CMD"
+          $CMD
+
+      - name: Post Job Summary to GitHub Actions
+        if: always()
+        run: |
+          echo "### ⚡ Nexus HRIS Automation Job Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Execution Time (UTC)**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Date**: ${{ inputs.date || 'Today (Asia/Jakarta / UTC+7)' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Seed Executed**: ${{ inputs.run_seed || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Transport Sync**: ${{ inputs.sync_transport != 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status == 'success' && '✅ SUCCESS' || '❌ FAILED' }}" >> $GITHUB_STEP_SUMMARY

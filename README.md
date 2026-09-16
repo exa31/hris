@@ -55,6 +55,22 @@ Rollback migration (opsional):
 npm run migrate:down
 ```
 
+Jalankan Seed Data (Historis 2 Tahun & User Demo):
+
+```bash
+npm run seed
+```
+
+Jalankan Otomasi Presensi Harian:
+
+```bash
+npm run daily:run       # Presensi hari ini
+npm run daily:sync      # Presensi hari ini + sinkronisasi tunjangan transport
+```
+
+Panduan lengkap seed & CI/CD: [DAILY_AUTOMATION_AND_SEED.md](docs/DAILY_AUTOMATION_AND_SEED.md)
+
+
 ## 5. Menjalankan Aplikasi
 
 Development mode:

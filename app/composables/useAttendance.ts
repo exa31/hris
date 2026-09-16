@@ -9,7 +9,9 @@ export interface AttendanceRecord {
   clock_out: string | null;
   status: string;
   notes: string | null;
+  name?: string;
   employee_name?: string;
+  photo_url?: string | null;
   nip?: number;
   department?: string;
   position?: string;

@@ -10,7 +10,11 @@
     "postinstall": "nuxt prepare",
     "migrate:up": "dotenv -e .env npx node-pg-migrate up",
     "migrate:down": "dotenv -e .env npx node-pg-migrate down",
-    "migrate:make": "npx node-pg-migrate create -m migrations"
+    "migrate:make": "npx node-pg-migrate create -m migrations",
+    "seed": "node scripts/seed.js",
+    "daily:run": "node scripts/daily-automation.js",
+    "daily:sync": "node scripts/daily-automation.js --sync-transport",
+    "daily:backfill": "node scripts/daily-automation.js --days=14"
   },
   "dependencies": {
     "@nuxtjs/color-mode": "^4.0.0",

@@ -72,7 +72,7 @@ export async function getAttendances(
   }
 
   const dataResult = await client.query(
-    `SELECT a.*, e.name as employee_name, e.nip, d.name as department, p.name as position
+    `SELECT a.*, e.name as employee_name, e.name as name, e.nip, e.photo_url, d.name as department, p.name as position
          FROM attendances a
          JOIN employees e ON a.employee_id = e.id
          LEFT JOIN departments d ON e.department_id = d.id
@@ -88,7 +88,7 @@ export async function getAttendances(
 
 export async function getAttendanceById(client: PoolClient, id: number) {
   const result = await client.query(
-    `SELECT a.*, e.name as employee_name, e.nip, d.name as department, p.name as position
+    `SELECT a.*, e.name as employee_name, e.name as name, e.nip, e.photo_url, d.name as department, p.name as position
          FROM attendances a
          JOIN employees e ON a.employee_id = e.id
          LEFT JOIN departments d ON e.department_id = d.id
