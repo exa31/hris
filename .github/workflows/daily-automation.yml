@@ -39,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      API_URL: ${{ vars.API_URL || 'https://hris.eka-dev.cloud' }}
+      AUTOMATION_SECRET: ${{ secrets.AUTOMATION_SECRET || secrets.NUXT_JWT_SECRET || 'nexus-hris-automation-secret-2026' }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       NUXT_DATABASE_URL: ${{ secrets.NUXT_DATABASE_URL || secrets.DATABASE_URL }}
       NUXT_PG_HOST: ${{ secrets.NUXT_PG_HOST }}
@@ -70,7 +72,7 @@ jobs:
       - name: Execute Daily Automation
         id: run_automation
         run: |
-          echo "⚡ Executing Daily Automation Routine..."
+          echo "⚡ Executing Daily Automation Routine via API ($API_URL)..."
           
           # Build command flags dynamically from inputs
           CMD="node scripts/daily-automation.js"

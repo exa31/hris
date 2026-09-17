@@ -92,17 +92,15 @@ Bisa dijalankan kapan saja melalui antarmuka GitHub Actions:
    - `sync_transport`: Sinkronkan tunjangan transport (default: `true`).
    - `force`: Timpa absensi jika sudah ada (default: `false`).
 
-### C. Konfigurasi Repository Secrets di GitHub
-Agar GitHub Actions dapat terhubung ke database PostgreSQL produksi/VPS Anda, tambahkan secret berikut di **Settings** -> **Secrets and variables** -> **Actions**:
+### C. Arsitektur API untuk Database dengan Strict IP
+Jika PostgreSQL Anda berada di balik firewall dengan **Strict IP whitelisting** (sehingga GitHub Actions runner tidak dapat terhubung langsung ke port 5432), sistem secara otomatis menggunakan jalur **API Endpoint (`/api/automation/daily`)**.
 
-- `DATABASE_URL`: URL PostgreSQL (contoh: `postgresql://user:pass@host:5432/dbname`)
-- *Atau gunakan variabel terpisah:*
-  - `NUXT_PG_HOST`
-  - `NUXT_PG_PORT`
-  - `NUXT_PG_USER`
-  - `NUXT_PG_PASSWORD`
-  - `NUXT_PG_DATABASE`
-  - `NUXT_PG_SSL` (`true` / `false`)
+Jalur API ini memanggil server HRIS (`https://hris.eka-dev.cloud`) yang berada di jaringan internal cluster yang sama dengan database.
+
+Variabel di GitHub Actions:
+- `API_URL`: URL live aplikasi (default: `https://hris.eka-dev.cloud`)
+- `AUTOMATION_SECRET`: Secret token untuk otentikasi API (disinkronkan dengan `NUXT_JWT_SECRET` / `AUTOMATION_SECRET`)
+- `DATABASE_URL` *(opsional)*: Jika disediakan, CLI juga dapat mengeksekusi langsung via PostgreSQL.
 
 ---
 

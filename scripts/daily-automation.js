@@ -33,6 +33,8 @@ function parseArgs() {
     force: false,
     syncTransport: true,
     dryRun: false,
+    useApi: false,
+    directDb: false,
   }
 
   for (const arg of args) {
@@ -54,6 +56,10 @@ function parseArgs() {
       options.syncTransport = true
     } else if (arg === '--dry-run') {
       options.dryRun = true
+    } else if (arg === '--api') {
+      options.useApi = true
+    } else if (arg === '--direct-db') {
+      options.directDb = true
     }
   }
 
@@ -366,11 +372,60 @@ async function processDate(targetDateStr, options) {
   }
 }
 
+async function runViaApi(apiUrl, options) {
+  const endpoint = `${apiUrl.replace(/\/+$/, '')}/api/automation/daily`
+  const secretKey =
+    process.env.AUTOMATION_SECRET ||
+    process.env.NUXT_AUTOMATION_SECRET ||
+    process.env.NUXT_JWT_SECRET ||
+    'nexus-hris-automation-secret-2026'
+
+  console.log(`🌐 Calling HRIS Automation API: ${endpoint}`)
+  console.log(`  Options: ${JSON.stringify(options)}`)
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-automation-key': secretKey,
+    },
+    body: JSON.stringify(options),
+  })
+
+  const json = await res.json().catch(() => null)
+
+  if (!res.ok) {
+    throw new Error(`API error [${res.status}]: ${json?.message || res.statusText || 'Unknown error'}`)
+  }
+
+  console.log(`\n✅ HRIS Daily Automation API completed successfully!`)
+  console.log(`  Message: ${json.message}`)
+  if (json.data) {
+    console.log(`  Dates Processed (${json.data.datesProcessed?.length || 0}): ${json.data.datesProcessed?.join(', ') || '-'}`)
+    console.log(`  Total Attendances Inserted: ${json.data.summary?.totalInserted ?? 0}`)
+    console.log(`  Total Dates Skipped: ${json.data.summary?.totalSkipped ?? 0}`)
+    if (json.data.transportResults?.length > 0) {
+      console.log(`  Transport Synchronized: ${json.data.transportResults.length} month(s)`)
+    }
+    console.log(`  Execution Time: ${(json.data.durationMs / 1000).toFixed(2)}s\n`)
+  }
+  return json
+}
+
 export async function runDailyAutomation(customOptions = {}) {
   const options = { ...parseArgs(), ...customOptions }
+
+  const apiUrl =
+    process.env.API_URL ||
+    (options.useApi ? (process.env.NUXT_PUBLIC_API_BASE_URL || 'https://hris.eka-dev.cloud') : null)
+
+  if (apiUrl && !options.directDb) {
+    return await runViaApi(apiUrl, options)
+  }
+
   const startTime = Date.now()
 
-  console.log('⚡ Starting Nexus HRIS Daily Automation...')
+  console.log('⚡ Starting Nexus HRIS Daily Automation (Direct DB)...')
   console.log(`  Options: ${JSON.stringify(options)}`)
 
   // Determine dates to process
@@ -451,12 +506,12 @@ export async function runDailyAutomation(customOptions = {}) {
 if (process.argv[1]?.endsWith('daily-automation.js')) {
   runDailyAutomation()
     .then(async () => {
-      await closePool()
+      await closePool().catch(() => {})
       process.exit(0)
     })
     .catch(async (err) => {
-      console.error('❌ Daily automation failed:', err)
-      await closePool()
+      console.error('❌ Daily automation failed:', err.message || err)
+      await closePool().catch(() => {})
       process.exit(1)
     })
 }

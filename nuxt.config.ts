@@ -49,6 +49,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     mode: process.env.NUXT_MODE || "production",
     jwtSecret: process.env.NUXT_JWT_SECRET,
+    automationSecret:
+      process.env.NUXT_AUTOMATION_SECRET ||
+      process.env.AUTOMATION_SECRET ||
+      process.env.NUXT_JWT_SECRET ||
+      "nexus-hris-automation-secret-2026",
     clientUrl: process.env.NUXT_CLIENT_URL || "https://eka-dev.cloud",
 
     pgHost: process.env.NUXT_PG_HOST || "localhost",
