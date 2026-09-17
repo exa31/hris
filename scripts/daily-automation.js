@@ -377,8 +377,8 @@ async function runViaApi(apiUrl, options) {
   const secretKey =
     process.env.AUTOMATION_SECRET ||
     process.env.NUXT_AUTOMATION_SECRET ||
-    process.env.NUXT_JWT_SECRET ||
-    'nexus-hris-automation-secret-2026'
+    'nexus-hris-automation-secret-2026' ||
+    process.env.NUXT_JWT_SECRET
 
   console.log(`🌐 Calling HRIS Automation API: ${endpoint}`)
   console.log(`  Options: ${JSON.stringify(options)}`)
