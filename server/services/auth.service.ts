@@ -57,7 +57,15 @@ export const login = async (event: H3Event, loginData: LoginRequest): Promise<Lo
         }
 
         // Generate tokens
-        const accessToken = signAccessToken(user.username, String(user.id), String(user.role_id))
+        const accessToken = signAccessToken({
+            userId: user.id,
+            username: user.username,
+            roleId: user.role_id,
+            roleName: user.role_name || '',
+            employeeId: user.employee_id,
+            employeeName: user.employee_name,
+            email: (user as any).employee_email || (user as any).email || null,
+        })
         const { token: refreshToken, expiresAt } = signRefreshToken(String(user.id), user.username, user.employee_name || '')
 
         // Save refresh token to database
@@ -154,12 +162,20 @@ export const refreshAccessToken = async (event: H3Event, refreshToken: string): 
             })
         }
 
-        const newAccessToken = signAccessToken(user.username, String(user.id), String(user.role_id))
+        const newAccessToken = signAccessToken({
+            userId: user.id,
+            username: user.username,
+            roleId: user.role_id,
+            roleName: user.role_name || '',
+            employeeId: user.employee_id,
+            employeeName: user.employee_name,
+            email: (user as any).employee_email || (user as any).email || null,
+        })
         setCookie(event, 'access_token', newAccessToken, {
-            httpOnly: true,
+            httpOnly: false,
             secure: Config.mode === 'production',
             sameSite: 'lax',
-            path: '/api',
+            path: '/',
             maxAge: 15 * 60,
         })
 

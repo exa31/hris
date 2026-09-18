@@ -3,26 +3,27 @@ import { withTransaction } from "~~/server/db/postgres";
 import * as employeeService from "~~/server/services/employee.service";
 import ExcelJS from "exceljs";
 import { logActivity } from "~~/server/services/activity-log.service";
+import { exportEmployeesSchema } from "~~/server/model/employee.model";
+import { HttpError } from "~~/server/errors/HttpError";
+import z from "zod";
 
 export default withPermission(
   async (event) => {
-    const query = getQuery(event);
-    const params: any = {
-      search: (query.search as string) || undefined,
-      department_id: query.department_id ? Number(query.department_id) : undefined,
-      status: query.status !== undefined ? query.status === 'true' : undefined,
-      type: query.type !== undefined ? String(query.type) : undefined,
-      position_ids: query.positions
-        ? (query.positions as string).split(",").map(Number)
-        : undefined,
-      tenureOperator: (query.tenureOperator as ">" | "<" | "=") || undefined,
-      tenureValue: query.tenureValue ? Number(query.tenureValue) : undefined,
-      sortColumn: (query.sortColumn as string) || "name",
-      sortDirection: (query.sortDirection as "asc" | "desc") || "asc",
-    };
+    const parsed = await getValidatedQuery(event, (query) =>
+      exportEmployeesSchema.safeParse(query)
+    );
+
+    if (!parsed.success) {
+      throw new HttpError(
+        400,
+        "INVALID_QUERY",
+        "Parameter query ekspor tidak valid",
+        z.treeifyError(parsed.error).properties
+      );
+    }
 
     return withTransaction(async (client) => {
-      const { employees } = await employeeService.getEmployees(client, params);
+      const { employees } = await employeeService.getEmployees(client, parsed.data);
 
       // Log Activity
       await logActivity(client, {
@@ -33,19 +34,19 @@ export default withPermission(
       });
 
       const workbook = new ExcelJS.Workbook();
-      // ... (rest of Excel generation)
-      const worksheet = workbook.addWorksheet("Data Pegawai");
+      const worksheet = workbook.addWorksheet("Employee Directory");
 
       // Define columns
       worksheet.columns = [
-        { header: "NIP", key: "nip", width: 15 },
-        { header: "Nama", key: "name", width: 30 },
+        { header: "NIP", key: "nip", width: 18 },
+        { header: "Full Name", key: "name", width: 30 },
         { header: "Email", key: "email", width: 30 },
-        { header: "Phone", key: "phone", width: 15 },
-        { header: "Jabatan", key: "position", width: 15 },
-        { header: "Departemen", key: "department", width: 15 },
-        { header: "Tanggal Masuk", key: "join_date", width: 15 },
-        { header: "Status", key: "status", width: 10 },
+        { header: "Phone Number", key: "phone", width: 18 },
+        { header: "Position", key: "position", width: 20 },
+        { header: "Department", key: "department", width: 20 },
+        { header: "Role", key: "role", width: 18 },
+        { header: "Join Date", key: "join_date", width: 16 },
+        { header: "Status", key: "status", width: 12 },
       ];
 
       // Add rows
@@ -55,10 +56,11 @@ export default withPermission(
           name: emp.name,
           email: emp.email,
           phone: emp.phone,
-          position: emp.position_name || emp.position,
-          department: emp.department_name || emp.department,
-          join_date: new Date(emp.join_date).toLocaleDateString("id-ID"),
-          status: emp.status ? "Aktif" : "Nonaktif",
+          position: emp.position_name || emp.position || "-",
+          department: emp.department_name || emp.department || "-",
+          role: emp.role_name || "Pegawai",
+          join_date: emp.join_date ? new Date(emp.join_date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "-",
+          status: emp.status ? "Active" : "Inactive",
         });
       });
 
@@ -80,7 +82,7 @@ export default withPermission(
       appendHeader(
         event,
         "Content-Disposition",
-        'attachment; filename="data-pegawai.xlsx"',
+        'attachment; filename="employee-directory.xlsx"',
       );
 
       return buffer;

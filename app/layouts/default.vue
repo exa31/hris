@@ -22,16 +22,9 @@
         @open-command-palette="commandPaletteOpen = true"
       />
 
-      <!-- Page Content with Smooth Motion -->
+      <!-- Page Content Shell -->
       <main class="flex-1 p-4 sm:p-6 lg:p-10 max-w-[1600px] w-full mx-auto">
-        <Motion
-          :key="$route.fullPath"
-          :initial="{ opacity: 0, y: 15 }"
-          :animate="{ opacity: 1, y: 0 }"
-          :transition="{ duration: 0.35, ease: 'easeOut' }"
-        >
-          <slot />
-        </Motion>
+        <slot />
       </main>
     </div>
 

@@ -208,15 +208,6 @@ const allItems: CommandItem[] = [
     permission: { module: "transport", action: "read" },
   },
   {
-    id: "nav-users",
-    title: "Identity Hub",
-    subtitle: "Manage login accounts and security credentials",
-    category: "Navigation",
-    icon: "bi bi-person-badge-fill",
-    to: "/user-management",
-    permission: { module: "users", action: "read" },
-  },
-  {
     id: "nav-roles",
     title: "Access Permissions",
     subtitle: "Configure RBAC permission matrix and roles",

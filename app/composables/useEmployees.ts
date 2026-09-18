@@ -31,6 +31,10 @@ export interface Employee {
   created_at: string;
   updated_at: string;
   photo_url?: string | null;
+  user_id?: number | null;
+  username?: string | null;
+  role_id?: number | null;
+  user_is_active?: boolean | null;
 }
 
 export const useEmployees = () => {
@@ -43,7 +47,8 @@ export const useEmployees = () => {
   const searchQuery = ref("");
   const selectedDepartment = ref<number | null>(null);
   const selectedStatus = ref<boolean | null>(null);
-  const selectedType = ref<string>("");
+  const selectedType = ref<string>("All Types");
+  const selectedRole = ref<number | null>(null);
   const selectedPositions = ref<number[]>([]);
   const selectedEmployees = ref<number[]>([]);
 
@@ -65,9 +70,14 @@ export const useEmployees = () => {
       id: number;
       name: string;
     }[];
+    roles: {
+      id: number;
+      name: string;
+    }[];
   }>({
     departments: [],
     positions: [],
+    roles: [],
   });
 
   const sortColumn = ref<string>("join_date");
@@ -85,16 +95,18 @@ export const useEmployees = () => {
     }
   };
 
-  // Fetch metadata (departments and positions)
+  // Fetch metadata (departments, positions, and roles)
   const fetchMetadata = async () => {
     try {
-      const [deptRes, posRes] = await Promise.all([
+      const [deptRes, posRes, roleRes] = await Promise.all([
         $axios.get("/api/departments"),
         $axios.get("/api/positions"),
+        $axios.get("/api/roles"),
       ]);
       metadata.value = {
         departments: deptRes.data,
         positions: posRes.data,
+        roles: roleRes.data,
       };
     } catch (err: any) {
       console.error("Error fetching metadata:", err);
@@ -129,6 +141,7 @@ export const useEmployees = () => {
             tenureValue.value !== null ? tenureValue.value : undefined,
           type:
             selectedType.value !== "All Types" ? selectedType.value : undefined,
+          role_id: selectedRole.value || undefined,
         },
       });
 
@@ -304,6 +317,7 @@ export const useEmployees = () => {
     selectedDepartment.value = null;
     selectedStatus.value = null;
     selectedPositions.value = [];
+    selectedRole.value = null;
     tenureOperator.value = ">";
     tenureValue.value = null;
     currentPage.value = 1;
@@ -325,6 +339,7 @@ export const useEmployees = () => {
           tenureOperator: tenureOperator.value || undefined,
           tenureValue: tenureValue.value !== null ? tenureValue.value : undefined,
           type: selectedType.value !== "All Types" ? selectedType.value : undefined,
+          role_id: selectedRole.value || undefined,
         },
         responseType: "blob",
       });
@@ -332,7 +347,7 @@ export const useEmployees = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "Data_Pegawai.xlsx");
+      link.setAttribute("download", "employee-directory.xlsx");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -362,6 +377,7 @@ export const useEmployees = () => {
     selectedDepartment,
     selectedStatus,
     selectedType,
+    selectedRole,
     selectedEmployees,
 
     sortColumn,

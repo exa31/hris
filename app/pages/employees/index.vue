@@ -41,28 +41,28 @@
       </div>
 
       <!-- Quick Stats Bar -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
         <div
           v-for="stat in quickStats"
           :key="stat.label"
-          class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 group hover:border-indigo-100 dark:hover:border-indigo-900 transition-all"
+          class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 group hover:border-indigo-100 dark:hover:border-indigo-900 transition-all h-full"
         >
           <div
             :class="[
               stat.color,
-              'w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm',
+              'w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0',
             ]"
           >
             <i :class="stat.icon"></i>
           </div>
-          <div>
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
             <div
-              class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+              class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center line-clamp-2 leading-tight"
             >
               {{ stat.label }}
             </div>
             <div
-              class="text-lg font-black text-slate-800 dark:text-white leading-none"
+              class="text-lg font-black text-slate-800 dark:text-white mt-0.5 truncate"
             >
               {{ stat.value }}
             </div>
@@ -93,6 +93,14 @@
         <Select
           v-model="selectedType"
           :options="selectedTypeOptions"
+          optionLabel="label"
+          optionValue="value"
+          class="!bg-transparent !border-none !shadow-none !text-[10px] !font-black !uppercase !tracking-widest !h-10 flex items-center !text-slate-800 dark:!text-slate-200"
+        />
+        <div class="h-8 w-px bg-slate-100 dark:bg-slate-800"></div>
+        <Select
+          v-model="selectedRole"
+          :options="selectedRoleOptions"
           optionLabel="label"
           optionValue="value"
           class="!bg-transparent !border-none !shadow-none !text-[10px] !font-black !uppercase !tracking-widest !h-10 flex items-center !text-slate-800 dark:!text-slate-200"
@@ -246,6 +254,20 @@
 
           <div class="flex flex-col gap-2">
             <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
+              >System Role</label
+            >
+            <Select
+              v-model="localFilters.selectedRole"
+              :options="selectedRoleOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="All Roles"
+              class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[9px] font-bold text-slate-500 uppercase px-1"
               >Status</label
             >
             <div
@@ -390,12 +412,7 @@
               <div class="flex items-center gap-4 py-2">
                 <div class="relative">
                   <Avatar
-                    :image="
-                      slotProps.data.photo_url ||
-                      'https://ui-avatars.com/api/?name=' +
-                        slotProps.data.name +
-                        '&background=random&size=100'
-                    "
+                    :image="slotProps.data.photo_url || getAvatarUrl(slotProps.data.name, 'random')"
                     shape="circle"
                     class="!w-12 !h-12 border-2 border-white dark:border-slate-800 shadow-sm ring-2 ring-slate-100 dark:ring-slate-700"
                   />
@@ -431,6 +448,30 @@
                   class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
                   >{{ slotProps.data.department_name }}</span
                 >
+              </div>
+            </template>
+          </Column>
+
+          <Column header="System Role">
+            <template #body="slotProps">
+              <div class="flex flex-col gap-1">
+                <Tag
+                  :value="slotProps.data.role_name || 'Pegawai'"
+                  class="!rounded-lg !px-2.5 !py-0.5 !text-[9px] !font-black !uppercase !tracking-widest !w-fit"
+                  :class="
+                    slotProps.data.role_name?.toLowerCase().includes('admin')
+                      ? '!bg-purple-50 dark:!bg-purple-500/10 !text-purple-600 dark:!text-purple-400 !border !border-purple-200/50'
+                      : slotProps.data.role_name?.toLowerCase().includes('manager')
+                      ? '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !border !border-indigo-200/50'
+                      : '!bg-slate-100 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-400'
+                  "
+                />
+                <span
+                  v-if="slotProps.data.username"
+                  class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                >
+                  @{{ slotProps.data.username }}
+                </span>
               </div>
             </template>
           </Column>
@@ -559,7 +600,7 @@
                 />
               </div>
               <Paginator
-                :first="(page - 1) * itemsPerPage"
+                :first="(currentPage - 1) * itemsPerPage"
                 :rows="itemsPerPage"
                 :totalRecords="totalEmployees"
                 template="PrevPageLink PageLinks NextPageLink"
@@ -623,19 +664,14 @@
             <div
               v-for="emp in employees"
               :key="emp.id"
-              class="p-6 rounded-3xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:shadow-md transition-all flex flex-col justify-between group"
+              class="p-6 rounded-3xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:shadow-md transition-all flex flex-col justify-between group h-full"
             >
-              <div class="space-y-4">
+              <div class="space-y-4 flex-grow flex flex-col justify-between">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex items-center gap-3.5">
                     <div class="relative">
                       <Avatar
-                        :image="
-                          emp.photo_url ||
-                          'https://ui-avatars.com/api/?name=' +
-                            emp.name +
-                            '&background=random&size=100'
-                        "
+                        :image="emp.photo_url || getAvatarUrl(emp.name, 'random')"
                         shape="circle"
                         class="!w-12 !h-12 border-2 border-white dark:border-slate-800 shadow-sm"
                       />
@@ -670,7 +706,7 @@
                 </div>
 
                 <div
-                  class="p-3.5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 space-y-2 text-xs"
+                  class="p-3.5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 space-y-2 text-xs mt-auto"
                 >
                   <div class="flex items-center justify-between">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Position</span>
@@ -681,13 +717,20 @@
                     <span class="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px] text-right">{{ emp.department_name }}</span>
                   </div>
                   <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">System Role</span>
+                    <span class="font-bold text-purple-600 dark:text-purple-400 truncate max-w-[150px] text-right">
+                      {{ emp.role_name || 'Pegawai' }}
+                      <span v-if="emp.username" class="text-slate-400 font-normal">(@{{ emp.username }})</span>
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
                     <span class="font-medium text-slate-500 truncate max-w-[150px] text-right">{{ emp.email }}</span>
                   </div>
                 </div>
               </div>
 
-              <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-4">
+              <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-auto">
                 <NuxtLink :to="`/employees/${emp.id}`">
                   <Button
                     label="View Profile"
@@ -736,7 +779,7 @@
               Showing {{ employees.length }} of {{ totalEmployees }} talents
             </span>
             <Paginator
-              :first="(page - 1) * itemsPerPage"
+              :first="(currentPage - 1) * itemsPerPage"
               :rows="itemsPerPage"
               :totalRecords="totalEmployees"
               template="PrevPageLink PageLinks NextPageLink"
@@ -751,7 +794,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from "vue";
+import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useEmployees } from "~/composables/useEmployees";
 import { useAuth } from "~/composables/useAuth";
@@ -785,6 +828,7 @@ const {
   resetFilters,
   exportExcel,
   selectedType,
+  selectedRole,
 } = useEmployees();
 
 const isFilterOpen = ref(false);
@@ -801,6 +845,7 @@ const localFilters = reactive<{
   sortDirection: "asc" | "desc";
   selectedDepartment: number | null;
   selectedPositions: number[];
+  selectedRole: number | null;
   selectedStatus: boolean | null;
   tenureOperator: string;
   tenureValue: number | null;
@@ -809,6 +854,7 @@ const localFilters = reactive<{
   sortDirection: "desc",
   selectedDepartment: null as number | null,
   selectedPositions: [] as number[],
+  selectedRole: null as number | null,
   selectedStatus: null as boolean | null,
   tenureOperator: ">",
   tenureValue: null as number | null,
@@ -820,6 +866,7 @@ watch(isFilterOpen, (val) => {
     localFilters.sortDirection = sortDirection.value;
     localFilters.selectedDepartment = selectedDepartment.value;
     localFilters.selectedPositions = [...selectedPositions.value];
+    localFilters.selectedRole = selectedRole.value;
     localFilters.selectedStatus = selectedStatus.value;
     localFilters.tenureOperator = tenureOperator.value;
     localFilters.tenureValue = tenureValue.value;
@@ -831,6 +878,7 @@ const applyFilters = () => {
   sortDirection.value = localFilters.sortDirection;
   selectedDepartment.value = localFilters.selectedDepartment;
   selectedPositions.value = [...localFilters.selectedPositions];
+  selectedRole.value = localFilters.selectedRole;
   selectedStatus.value = localFilters.selectedStatus;
   tenureOperator.value = localFilters.tenureOperator;
   tenureValue.value = localFilters.tenureValue;
@@ -844,6 +892,7 @@ const resetLocalFilters = () => {
   localFilters.sortDirection = "desc";
   localFilters.selectedDepartment = null;
   localFilters.selectedPositions = [];
+  localFilters.selectedRole = null;
   localFilters.selectedStatus = null;
   localFilters.tenureOperator = ">";
   localFilters.tenureValue = null;
@@ -855,6 +904,7 @@ const isFilterActive = computed(() => {
     selectedDepartment.value ||
     selectedStatus.value !== null ||
     selectedPositions.value.length > 0 ||
+    selectedRole.value !== null ||
     tenureValue.value !== null
   );
 });
@@ -866,6 +916,14 @@ const selectedTypeOptions = [
   { label: "Internship", value: "Magang" },
 ];
 
+const selectedRoleOptions = computed(() => [
+  { label: "All Roles", value: null },
+  ...(metadata.value?.roles || []).map((r: any) => ({
+    label: r.name,
+    value: r.id,
+  })),
+]);
+
 const formatEmployeeType = (type: string) => {
   if (!type) return "-";
   if (type === "Tetap" || type === "Permanent") return "Permanent";
@@ -874,16 +932,23 @@ const formatEmployeeType = (type: string) => {
   return type;
 };
 
-onMounted(() => {
-  selectedType.value = "All Types";
-  fetchEmployees();
-  fetchSummary();
-  fetchMetadata();
+let isMounted = false;
+
+onMounted(async () => {
+  await Promise.all([
+    fetchEmployees(),
+    fetchSummary(),
+    fetchMetadata(),
+  ]);
+  nextTick(() => {
+    isMounted = true;
+  });
 });
 
 // Watch for filter changes outside modal
 let searchDebounce: ReturnType<typeof setTimeout> | null = null;
 watch(searchQuery, (newVal) => {
+  if (!isMounted) return;
   if (searchDebounce) clearTimeout(searchDebounce);
   const delay = newVal ? 400 : 0;
   searchDebounce = setTimeout(() => {
@@ -893,8 +958,9 @@ watch(searchQuery, (newVal) => {
 });
 
 watch(
-  [currentPage, selectedType],
+  [currentPage, selectedType, selectedRole],
   () => {
+    if (!isMounted) return;
     fetchEmployees();
   },
   { deep: true },

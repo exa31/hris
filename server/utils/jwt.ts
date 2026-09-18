@@ -15,9 +15,53 @@ function getJwtSecret() {
     return secret;
 }
 
-export function signAccessToken(name: string, email: string, userId: string): string {
+export interface AccessTokenInput {
+    userId: number | string;
+    username: string;
+    roleId: number | string;
+    roleName?: string;
+    employeeId?: number | null;
+    employeeName?: string | null;
+    email?: string | null;
+}
+
+export function signAccessToken(
+    inputOrName: AccessTokenInput | string,
+    legacyEmail?: string,
+    legacyUserId?: string,
+): string {
     const secret = getJwtSecret();
-    return jwt.sign({ name, email, sub: userId }, secret, { algorithm: 'HS256', expiresIn: ACCESS_TOKEN_EXPIRES_IN });
+
+    if (typeof inputOrName === 'object') {
+        const payload: TokenPayload = {
+            sub: String(inputOrName.userId),
+            user_id: Number(inputOrName.userId),
+            username: inputOrName.username,
+            name: inputOrName.employeeName || inputOrName.username,
+            email: inputOrName.email || undefined,
+            role_id: Number(inputOrName.roleId),
+            role: inputOrName.roleName || '',
+            roles: inputOrName.roleName ? [inputOrName.roleName] : [],
+            employee_id: inputOrName.employeeId ? Number(inputOrName.employeeId) : undefined,
+            typ: 'access',
+        };
+        return jwt.sign(payload, secret, { algorithm: 'HS256', expiresIn: ACCESS_TOKEN_EXPIRES_IN });
+    }
+
+    // Legacy fallback: signAccessToken(name, email, userId)
+    const username = inputOrName;
+    const userId = legacyEmail ? Number(legacyEmail) : undefined;
+    const roleId = legacyUserId ? Number(legacyUserId) : undefined;
+
+    const payload: TokenPayload = {
+        sub: String(userId ?? username),
+        user_id: userId,
+        username,
+        name: username,
+        role_id: roleId,
+        typ: 'access',
+    };
+    return jwt.sign(payload, secret, { algorithm: 'HS256', expiresIn: ACCESS_TOKEN_EXPIRES_IN });
 }
 
 export function verifyAccessToken(token: string) {

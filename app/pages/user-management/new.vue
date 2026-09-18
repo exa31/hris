@@ -46,6 +46,13 @@
 <script setup lang="ts">
 import { useUsers } from "~/composables/useUsers";
 
+definePageMeta({
+  layout: "default",
+  middleware: [
+    () => navigateTo("/employees/new", { redirectCode: 301 }),
+  ],
+});
+
 const { createUser } = useUsers();
 const { showSuccess, showError, notificationModal } = useNotification();
 const router = useRouter();
@@ -76,6 +83,4 @@ const handleSubmit = async (formData: any) => {
     );
   }
 };
-
-definePageMeta({ layout: "default" });
 </script>

@@ -25,12 +25,18 @@
             >
             <Select
               v-model="formData.employee_id"
+              @change="delete errors.employee_id"
               :options="employees"
               optionLabel="name"
               optionValue="id"
               placeholder="Search employee..."
               filter
-              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !shadow-none !py-1"
+              class="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !shadow-none !py-1 transition-all"
+              :class="[
+                errors.employee_id
+                  ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                  : '!border !border-slate-100 dark:!border-slate-700',
+              ]"
             >
               <template #option="slotProps">
                 <div class="flex items-center gap-3 py-1">
@@ -53,6 +59,12 @@
                 </div>
               </template>
             </Select>
+            <small
+              v-if="errors.employee_id"
+              class="text-rose-500 text-xs font-bold ml-1 flex items-center gap-1"
+            >
+              <i class="bi bi-exclamation-circle"></i> {{ errors.employee_id }}
+            </small>
           </div>
 
           <div class="grid grid-cols-2 gap-8">
@@ -92,12 +104,24 @@
               >
               <InputNumber
                 v-model="formData.distance_km"
+                @update:model-value="delete errors.distance_km"
                 :minFractionDigits="1"
                 placeholder="0 KM"
                 class="w-full"
-                inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
+                :inputClass="[
+                  'w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !py-3.5 !font-bold transition-all',
+                  errors.distance_km
+                    ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                    : '!border !border-slate-100 dark:!border-slate-700',
+                ]"
                 suffix=" KM"
               />
+              <small
+                v-if="errors.distance_km"
+                class="text-rose-500 text-xs font-bold ml-1 flex items-center gap-1"
+              >
+                <i class="bi bi-exclamation-circle"></i> {{ errors.distance_km }}
+              </small>
             </div>
             <div class="space-y-2">
               <label
@@ -106,13 +130,25 @@
               >
               <InputNumber
                 v-model="formData.working_days"
+                @update:model-value="delete errors.working_days"
                 :min="0"
                 :max="31"
                 placeholder="0 DAYS"
                 class="w-full"
-                inputClass="w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !py-3.5 !font-bold"
+                :inputClass="[
+                  'w-full !rounded-2xl !bg-slate-50 dark:!bg-slate-800 !py-3.5 !font-bold transition-all',
+                  errors.working_days
+                    ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                    : '!border !border-slate-100 dark:!border-slate-700',
+                ]"
                 suffix=" DAYS"
               />
+              <small
+                v-if="errors.working_days"
+                class="text-rose-500 text-xs font-bold ml-1 flex items-center gap-1"
+              >
+                <i class="bi bi-exclamation-circle"></i> {{ errors.working_days }}
+              </small>
             </div>
           </div>
 
@@ -338,8 +374,24 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+const errors = ref<Record<string, string>>({});
+
+const validateForm = () => {
+  errors.value = {};
+  if (!formData.value.employee_id) {
+    errors.value.employee_id = "Please select an employee";
+  }
+  if (formData.value.distance_km === null || formData.value.distance_km === undefined || formData.value.distance_km <= 0) {
+    errors.value.distance_km = "Commute distance must be greater than 0 KM";
+  }
+  if (formData.value.working_days === null || formData.value.working_days === undefined || formData.value.working_days <= 0) {
+    errors.value.working_days = "Working days must be greater than 0 DAYS";
+  }
+  return Object.keys(errors.value).length === 0;
+};
+
 const submitForm = () => {
-  if (!formData.value.employee_id) return;
+  if (!validateForm()) return;
   emit("submit", { ...formData.value });
 };
 </script>

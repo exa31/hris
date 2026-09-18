@@ -26,7 +26,7 @@
           Data Recovery Center
         </h1>
         <p class="text-slate-400 dark:text-slate-500 font-medium text-sm">
-          Restore soft-deleted employee records or user login credentials back to active status.
+          Restore soft-deleted talent profiles and their linked system access accounts back to active status.
         </p>
       </Motion>
 
@@ -36,7 +36,7 @@
           icon="bi bi-arrow-clockwise"
           class="!rounded-xl !px-6 !py-3.5 !bg-white dark:!bg-slate-800 border border-slate-200 dark:border-slate-700 !text-slate-700 dark:!text-slate-200 !font-black !uppercase !text-[10px] !tracking-widest shadow-xs hover:!bg-slate-50 dark:hover:!bg-slate-700 transition-colors"
           @click="refreshData"
-          :loading="loading"
+          :loading="employeesLoading"
         />
       </Motion>
     </div>
@@ -52,13 +52,13 @@
             Data Integrity Protection (Soft-Delete Guard)
           </h4>
           <p class="text-xs text-amber-800/80 dark:text-amber-300/80 leading-relaxed font-medium">
-            Entities deleted in NexusHR are safely archived in the backup repository. Restoring an entity revitalizes all related records, including attendance and leave histories.
+            Talent records in NexusHR are safely archived when deleted. Restoring an archived talent revitalizes their employee profile, attendance logs, and system login credentials simultaneously.
           </p>
         </div>
       </div>
     </Motion>
 
-    <!-- Main Tabs & Table Container -->
+    <!-- Main Table Container -->
     <Motion
       :initial="{ opacity: 0, y: 20 }"
       :animate="{ opacity: 1, y: 0 }"
@@ -67,55 +67,32 @@
       <div
         class="bg-white dark:bg-slate-900 rounded-3xl shadow-xs border border-slate-100 dark:border-slate-800 overflow-hidden"
       >
-        <!-- Modern Tabs Switcher -->
-        <div class="flex border-b border-slate-100 dark:border-slate-800 p-2 gap-2 bg-slate-50/50 dark:bg-slate-950/30">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            :class="[
-              'flex-1 flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl transition-all duration-300 font-black text-xs uppercase tracking-widest cursor-pointer',
-              activeTab === tab.id
-                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-100 dark:border-slate-700'
-                : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300',
-            ]"
-          >
-            <i :class="tab.icon"></i>
-            <span>{{ tab.label }}</span>
-            <span
-              class="px-2 py-0.5 rounded-full text-[10px] font-black"
-              :class="activeTab === tab.id ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400' : 'bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-400'"
-            >
-              {{ tab.id === 'employees' ? deletedEmployees.length : deletedUsers.length }}
-            </span>
-          </button>
-        </div>
-
         <!-- Filter & Search Toolbar -->
         <div
-          class="p-4 sm:p-5 flex flex-wrap items-center gap-4 border-b border-slate-100 dark:border-slate-800"
+          class="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-950/20"
         >
-          <div class="flex-1 min-w-[280px] relative group">
+          <div class="flex-1 min-w-[280px] max-w-md relative group">
             <i
               class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors"
             ></i>
             <InputText
-              v-model="searchQuery"
-              :placeholder="
-                activeTab === 'employees'
-                  ? 'Search deleted employee name or NIP...'
-                  : 'Search username or employee name...'
-              "
-              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800/60 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white focus:!ring-2 focus:!ring-indigo-500/20"
+              v-model="employeeSearch"
+              placeholder="Search deleted talent by name, NIP, or username..."
+              class="w-full !pl-11 !py-3 !bg-white dark:!bg-slate-800/80 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-white focus:!ring-2 focus:!ring-indigo-500/20 shadow-xs"
             />
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              {{ totalEmployees }} Talent Record(s) in Archive
+            </span>
           </div>
         </div>
 
         <!-- Data Table -->
         <DataTable
-          :value="displayData"
+          :value="deletedEmployees"
           class="p-datatable-overhaul"
-          :loading="loading"
+          :loading="employeesLoading"
           :pt="{
             wrapper: { class: '!bg-transparent' },
             footer: { class: '!bg-transparent' },
@@ -123,85 +100,72 @@
             footerCell: { class: '!bg-transparent !p-0 !border-none' },
           }"
         >
-          <!-- Employees Tab Columns -->
-          <template v-if="activeTab === 'employees'">
-            <Column header="Employee Identity">
-              <template #body="slotProps">
-                <div class="flex items-center gap-3">
-                  <Avatar
-                    :label="slotProps.data.name?.charAt(0) || 'P'"
-                    shape="circle"
-                    class="!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:!text-rose-400 !font-black !w-10 !h-10 border border-rose-100 dark:border-rose-900/30"
-                  />
-                  <div>
-                    <div
-                      class="text-sm font-black text-slate-800 dark:text-slate-200 leading-tight"
-                    >
-                      {{ slotProps.data.name }}
-                    </div>
-                    <div
-                      class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5"
-                    >
-                      NIP: {{ slotProps.data.nip }}
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Column>
-
-            <Column header="Position & Department">
-              <template #body="slotProps">
-                <div class="flex flex-col gap-1">
-                  <span
-                    class="text-xs font-black text-slate-700 dark:text-slate-300"
-                    >{{ slotProps.data.position || "Staff" }}</span
-                  >
-                  <Tag
-                    :value="slotProps.data.department === 'Umum' ? 'General' : (slotProps.data.department || 'General')"
-                    class="!bg-slate-100 dark:!bg-slate-800 !text-slate-500 dark:!text-slate-400 !font-bold !text-[9px] !w-fit !rounded-md"
-                  />
-                </div>
-              </template>
-            </Column>
-          </template>
-
-          <!-- Users Tab Columns -->
-          <template v-else>
-            <Column header="Account Login Identity">
-              <template #body="slotProps">
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm"
-                  >
-                    <i class="bi bi-person-lock"></i>
-                  </div>
-                  <div>
-                    <div
-                      class="text-sm font-black text-indigo-600 dark:text-indigo-400 leading-tight"
-                    >
-                      @{{ slotProps.data.username }}
-                    </div>
-                    <div
-                      class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-0.5"
-                    >
-                      {{ slotProps.data.employee_name || "No Linked Employee" }}
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Column>
-
-            <Column header="Authorized Role">
-              <template #body="slotProps">
-                <Tag
-                  :value="slotProps.data.role_name || 'User'"
-                  class="!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400 !font-black !text-[9px] !rounded-md"
+          <Column header="Talent Identity">
+            <template #body="slotProps">
+              <div class="flex items-center gap-3">
+                <Avatar
+                  :label="slotProps.data.name?.charAt(0) || 'T'"
+                  shape="circle"
+                  class="!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600 dark:!text-rose-400 !font-black !w-10 !h-10 border border-rose-100 dark:border-rose-900/30"
                 />
-              </template>
-            </Column>
-          </template>
+                <div>
+                  <div
+                    class="text-sm font-black text-slate-800 dark:text-slate-200 leading-tight"
+                  >
+                    {{ slotProps.data.name }}
+                  </div>
+                  <div
+                    class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5"
+                  >
+                    NIP: {{ slotProps.data.nip }}
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Column>
 
-          <!-- Shared Columns -->
+          <Column header="Designation & Department">
+            <template #body="slotProps">
+              <div class="flex flex-col gap-1">
+                <span
+                  class="text-xs font-black text-slate-700 dark:text-slate-300"
+                  >{{ slotProps.data.position_name || slotProps.data.position || "Staff" }}</span
+                >
+                <Tag
+                  :value="slotProps.data.department_name || slotProps.data.department || 'General'"
+                  class="!bg-slate-100 dark:!bg-slate-800 !text-slate-500 dark:!text-slate-400 !font-bold !text-[9px] !w-fit !rounded-md"
+                />
+              </div>
+            </template>
+          </Column>
+
+          <Column header="Linked Account & Role">
+            <template #body="slotProps">
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center gap-1.5">
+                  <span
+                    v-if="slotProps.data.username"
+                    class="text-xs font-black text-indigo-600 dark:text-indigo-400"
+                  >
+                    @{{ slotProps.data.username }}
+                  </span>
+                  <span v-else class="text-xs font-medium text-slate-400 italic">No account</span>
+                </div>
+                <Tag
+                  :value="slotProps.data.role_name || 'Pegawai'"
+                  class="!rounded-md !px-2 !py-0.5 !text-[9px] !font-black !uppercase !tracking-widest !w-fit"
+                  :class="
+                    slotProps.data.role_name?.toLowerCase().includes('admin')
+                      ? '!bg-purple-50 dark:!bg-purple-500/10 !text-purple-600 dark:!text-purple-400'
+                      : slotProps.data.role_name?.toLowerCase().includes('manager')
+                      ? '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400'
+                      : '!bg-slate-100 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-400'
+                  "
+                />
+              </div>
+            </template>
+          </Column>
+
           <Column header="Deletion Time">
             <template #body="slotProps">
               <div class="flex flex-col">
@@ -221,8 +185,8 @@
             <template #body="slotProps">
               <Button
                 icon="bi bi-arrow-counterclockwise"
-                label="Restore Record"
-                @click="handleRestore(slotProps.data.id)"
+                label="Restore Talent & Account"
+                @click="handleRestore(slotProps.data.id, slotProps.data.name)"
                 class="!rounded-xl !text-[10px] !font-black !uppercase !tracking-wider !px-4 !py-2.5 !bg-emerald-600 hover:!bg-emerald-700 !text-white !border-none transition-all shadow-sm"
               />
             </template>
@@ -243,14 +207,14 @@
               <p
                 class="text-xs font-medium text-slate-400 dark:text-slate-500 max-w-sm mb-4"
               >
-                No deleted records awaiting recovery in this category.
+                No archived talent records awaiting recovery.
               </p>
               <Button
-                v-if="searchQuery"
+                v-if="employeeSearch"
                 label="Clear Search Filter"
                 icon="bi bi-x-circle"
                 class="!rounded-xl !px-5 !py-2.5 !bg-indigo-600 !border-none !text-[10px] !font-black !uppercase !tracking-widest"
-                @click="searchQuery = ''"
+                @click="employeeSearch = ''"
               />
             </div>
           </template>
@@ -261,15 +225,11 @@
             >
               <span
                 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                >Total {{ displayData.length }} Archived Records</span
+                >Total {{ totalEmployees }} Archived Records</span
               >
               <Paginator
                 :rows="itemsPerPage"
-                :totalRecords="
-                  activeTab === 'employees'
-                    ? deletedEmployees.length
-                    : deletedUsers.length
-                "
+                :totalRecords="totalEmployees"
                 template="PrevPageLink PageLinks NextPageLink"
                 class="!bg-transparent !p-0"
                 @page="onPageChange"
@@ -295,74 +255,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useRecovery } from "~/composables/useRecovery";
 
 definePageMeta({ layout: "default" });
 
-const activeTab = ref("employees");
-const tabs = [
-  { id: "employees", label: "Employee Records", icon: "bi bi-person-badge" },
-  { id: "users", label: "User Accounts", icon: "bi bi-shield-lock" },
-];
-
 const {
   deletedEmployees,
+  totalEmployees,
   employeesLoading,
   employeePage,
   employeeSearch,
   fetchDeletedEmployees,
   restoreEmployee,
-  deletedUsers,
-  usersLoading,
-  userPage,
-  userSearch,
-  fetchDeletedUsers,
-  restoreUser,
   itemsPerPage,
 } = useRecovery();
 
 const { showSuccess } = useNotification();
 
-const searchQuery = computed({
-  get: () =>
-    activeTab.value === "employees" ? employeeSearch.value : userSearch.value,
-  set: (val) => {
-    if (activeTab.value === "employees") employeeSearch.value = val;
-    else userSearch.value = val;
-  },
-});
-
-const displayData = computed(() =>
-  activeTab.value === "employees" ? deletedEmployees.value : deletedUsers.value,
-);
-const loading = computed(() =>
-  activeTab.value === "employees" ? employeesLoading.value : usersLoading.value,
-);
-
 onMounted(() => {
   fetchDeletedEmployees();
-  fetchDeletedUsers();
 });
 
-const refreshData = () =>
-  activeTab.value === "employees"
-    ? fetchDeletedEmployees()
-    : fetchDeletedUsers();
+const refreshData = () => fetchDeletedEmployees();
 
 const onPageChange = (event: any) => {
-  if (activeTab.value === "employees") employeePage.value = event.page + 1;
-  else userPage.value = event.page + 1;
+  employeePage.value = event.page + 1;
 };
 
-const handleRestore = (id: number) => {
-  const type = activeTab.value === "employees" ? "employee" : "user account";
+const handleRestore = (id: number, name?: string) => {
   showSuccess(
     "Recovery Confirmation",
-    `Are you sure you want to restore this ${type} to active status? All associated records will be fully accessible.`,
+    `Are you sure you want to restore ${name || 'this talent'}? Their employee profile, attendance logs, and user login credentials will be revitalized to active status.`,
     async () => {
-      if (activeTab.value === "employees") await restoreEmployee(id);
-      else await restoreUser(id);
+      await restoreEmployee(id);
       refreshData();
     },
   );

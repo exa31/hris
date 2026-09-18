@@ -291,12 +291,6 @@ const managementMenu = [
     permission: { module: "transport", action: "read" },
   },
   {
-    label: "Identity Hub",
-    to: "/user-management",
-    icon: "bi bi-person-badge-fill",
-    permission: { module: "users", action: "read" },
-  },
-  {
     label: "Access Permissions",
     to: "/roles",
     icon: "bi bi-shield-lock-fill",
@@ -313,6 +307,18 @@ const managementMenu = [
     to: "/recovery",
     icon: "bi bi-arrow-counterclockwise",
     permission: { module: "employees", action: "read" },
+  },
+  {
+    label: "Work Schedule",
+    to: "/settings/work-schedule",
+    icon: "bi bi-clock-history",
+    permission: { module: "attendance", action: "read" },
+  },
+  {
+    label: "Holidays",
+    to: "/settings/holidays",
+    icon: "bi bi-calendar-event-fill",
+    permission: { module: "attendance", action: "read" },
   },
   {
     label: "System Config",

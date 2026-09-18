@@ -78,23 +78,23 @@ export async function getUsers(client: PoolClient, params: SearchUsersInput) {
 
 export async function getUserById(client: PoolClient, id: number) {
   const query = `
-        SELECT u.*, e.name as employee_name, e.photo_url as employee_photo_url, r.name as role_name 
+        SELECT u.*, e.name as employee_name, e.email as employee_email, e.photo_url as employee_photo_url, r.name as role_name 
         FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
         INNER JOIN roles r ON u.role_id = r.id
         WHERE u.id = $1 AND u.deleted_at IS NULL
     `;
   const { rows } = await client.query(query, [id]);
-  return (rows[0] as User) || null;
+  return (rows[0] as User & { employee_email?: string }) || null;
 }
 
 export async function getUserByUsername(client: PoolClient, username: string) {
-  const query = `SELECT u.*, e.name as employee_name, e.photo_url as employee_photo_url, r.name as role_name FROM users u
+  const query = `SELECT u.*, e.name as employee_name, e.email as employee_email, e.photo_url as employee_photo_url, r.name as role_name FROM users u
         INNER JOIN employees e ON u.employee_id = e.id
         INNER JOIN roles r ON u.role_id = r.id 
         WHERE (u.username = $1 OR e.email = $1 OR e.phone = $1) AND u.deleted_at IS NULL`;
   const { rows } = await client.query(query, [username]);
-  return (rows[0] as User) || null;
+  return (rows[0] as User & { employee_email?: string }) || null;
 }
 
 export async function createUser(

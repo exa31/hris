@@ -68,6 +68,13 @@ import { ref, onMounted } from "vue";
 import { useUsers } from "~/composables/useUsers";
 import { useAuth } from "~/composables/useAuth";
 
+definePageMeta({
+  layout: "default",
+  middleware: [
+    () => navigateTo("/employees", { redirectCode: 301 }),
+  ],
+});
+
 const route = useRoute();
 const { user: currentUser } = useAuth();
 const { showSuccess, showError, notificationModal } = useNotification();
@@ -116,6 +123,4 @@ const handleSubmit = async (formData: any) => {
     );
   }
 };
-
-definePageMeta({ layout: "default" });
 </script>

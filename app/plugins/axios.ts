@@ -4,7 +4,7 @@ import axios, { AxiosError, type AxiosInstance } from "axios";
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
 
-  // ✅ AMAN: dipanggil di dalam plugin
+  // SSR: forward cookie
   const headers = import.meta.server ? useRequestHeaders(["cookie"]) : {};
 
   // Use useCookie for consistent cookie handling
@@ -33,8 +33,18 @@ export default defineNuxtPlugin((nuxtApp) => {
     withCredentials: true,
   });
 
-  let isRefreshing = false;
-  let refreshPromise: Promise<void> | null = null;
+  const setAuthHeader = (reqConfig: any, token: string) => {
+    if (!reqConfig) return;
+    if (!reqConfig.headers) reqConfig.headers = {};
+    if (typeof reqConfig.headers.set === "function") {
+      reqConfig.headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      reqConfig.headers["Authorization"] = `Bearer ${token}`;
+    }
+  };
+
+  // Shared refresh promise for all concurrent requests
+  let refreshPromise: Promise<string> | null = null;
 
   // =========================
   // REQUEST INTERCEPTOR
@@ -51,8 +61,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       // Client: Authorization
       const token = tokenCookie.value;
       if (token) {
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Bearer ${token}`;
+        setAuthHeader(config, token);
       }
     }
 
@@ -77,10 +86,18 @@ export default defineNuxtPlugin((nuxtApp) => {
     async (error: AxiosError) => {
       const originalRequest: any = error.config;
 
+      // Do not retry or refresh if:
+      // - Not a 401 Unauthorized
+      // - No config
+      // - Already retried once
+      // - Request is to auth endpoints
       if (
+        !originalRequest ||
         error.response?.status !== 401 ||
-        originalRequest?._retry ||
-        originalRequest?.url?.includes("/api/auth/refresh")
+        originalRequest._retry ||
+        originalRequest.url?.includes("/api/auth/refresh") ||
+        originalRequest.url?.includes("/api/auth/credentials") ||
+        originalRequest.url?.includes("/api/auth/login")
       ) {
         return Promise.reject(error);
       }
@@ -88,41 +105,42 @@ export default defineNuxtPlugin((nuxtApp) => {
       originalRequest._retry = true;
 
       try {
-        if (!isRefreshing) {
-          isRefreshing = true;
+        if (!refreshPromise) {
+          refreshPromise = (async () => {
+            try {
+              const res = await axios.post(
+                `${baseURL}/api/auth/refresh`,
+                {},
+                { withCredentials: true },
+              );
 
-          refreshPromise = api
-            .post(
-              "/api/auth/refresh",
-              {},
-              {
-                withCredentials: true,
-              },
-            )
-            .then((res) => {
-              // Extract token correctly based on backend response signature
-              tokenCookie.value = res.data.accessToken;
-            })
-            .finally(() => {
-              isRefreshing = false;
+              const newToken =
+                res.data?.data?.accessToken ||
+                res.data?.accessToken;
+
+              if (!newToken) {
+                throw new Error("No access token returned from refresh");
+              }
+
+              tokenCookie.value = newToken;
+              return newToken;
+            } catch (refreshErr) {
+              tokenCookie.value = null;
+              if (import.meta.client) {
+                navigateTo("/login");
+              }
+              throw refreshErr;
+            } finally {
               refreshPromise = null;
-            });
+            }
+          })();
         }
 
-        await refreshPromise;
-
-        const token = tokenCookie.value;
-        if (token) {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-        }
-
-        // 🔁 retry request asli
+        const newToken = await refreshPromise;
+        setAuthHeader(originalRequest, newToken);
         return api(originalRequest);
       } catch (err) {
-        if (import.meta.client) {
-          navigateTo("/login");
-        }
-        return Promise.reject(error);
+        return Promise.reject(err);
       }
     },
   );

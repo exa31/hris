@@ -49,6 +49,8 @@ const routeLabels: Record<string, string> = {
   recovery: "Data Recovery",
   settings: "System Config",
   "transport-settings": "Transport Settings",
+  "work-schedule": "Work Schedule",
+  holidays: "Holidays Calendar",
   employee: "Employee Portal",
 };
 

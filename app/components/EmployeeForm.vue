@@ -100,9 +100,7 @@
                 <Avatar
                   :image="
                     form.photo_url ||
-                    'https://ui-avatars.com/api/?name=' +
-                      (form.name || 'User') +
-                      '&background=fff&color=4f46e5&size=200'
+                    getAvatarUrl(form.name || 'User', 'ffffff', '4f46e5')
                   "
                   shape="circle"
                   class="!w-32 !h-32 border-4 border-white/10 shadow-2xl ring-4 ring-white/5 relative z-10"
@@ -149,16 +147,19 @@
                   <span class="text-rose-500 ml-0.5">*</span></label
                 >
                 <div
-                  class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 group-focus-within:border-indigo-200 transition-colors"
-                  :class="{
-                    'border-rose-200 ring-4 ring-rose-500/5': errors.email,
-                  }"
+                  class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border transition-all"
+                  :class="
+                    errors.email
+                      ? '!border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : 'border-slate-100 dark:border-slate-700 group-focus-within:border-indigo-200'
+                  "
                 >
                   <i
                     class="bi bi-envelope text-slate-300 group-focus-within:text-indigo-500"
                   ></i>
                   <InputText
                     v-model="form.email"
+                    @input="errors.email = undefined"
                     class="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300"
                     placeholder="talent@nexushr.io"
                   />
@@ -176,14 +177,17 @@
                   <span class="text-rose-500 ml-0.5">*</span></label
                 >
                 <div
-                  class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 group-focus-within:border-emerald-200 transition-colors"
-                  :class="{
-                    'border-rose-200 ring-4 ring-rose-500/5': errors.phone,
-                  }"
+                  class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border transition-all"
+                  :class="
+                    errors.phone
+                      ? '!border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : 'border-slate-100 dark:border-slate-700 group-focus-within:border-emerald-200'
+                  "
                 >
                   <i class="bi bi-whatsapp text-emerald-400"></i>
                   <InputText
                     v-model="form.phone"
+                    @input="errors.phone = undefined"
                     class="!bg-transparent !border-none !p-0 !text-xs !font-bold !w-full dark:!text-slate-300"
                     placeholder="+62 812-xxxx-xxxx"
                   />
@@ -319,8 +323,13 @@
                 >
                 <InputText
                   v-model="form.name"
-                  :class="{ 'p-invalid': errors.name }"
-                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
+                  @input="errors.name = undefined"
+                  :class="
+                    errors.name
+                      ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : '!border-none'
+                  "
+                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
                   placeholder="e.g. John Doe"
                   required
                 />
@@ -341,8 +350,13 @@
                 >
                 <InputText
                   v-model="form.nip"
-                  :class="{ 'p-invalid': errors.nip }"
-                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
+                  @input="errors.nip = undefined"
+                  :class="
+                    errors.nip
+                      ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : '!border-none'
+                  "
+                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
                   placeholder="e.g. 19900101 202401 1 001"
                   required
                 />
@@ -371,12 +385,15 @@
                   placeholder="Search city/regency..."
                   :minLength="3"
                   class="!w-full"
-                  :class="{ 'p-invalid': errors.birth_place_id }"
                   :pt="{
                     pcInputText: {
                       root: {
-                        class:
-                          '!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white',
+                        class: [
+                          '!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold dark:!text-white transition-all',
+                          errors.birth_place_id
+                            ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                            : '!border-none',
+                        ],
                       },
                     },
                   }"
@@ -398,15 +415,19 @@
                 >
                 <DatePicker
                   v-model="form.birth_date"
+                  @update:model-value="errors.birth_date = undefined"
                   class="!w-full"
                   :max-date="new Date()"
                   placeholder="Select Birth Date"
-                  :class="{ 'p-invalid': errors.birth_date }"
                   :pt="{
                     pcInputText: {
                       root: {
-                        class:
-                          '!rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold',
+                        class: [
+                          '!rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold transition-all',
+                          errors.birth_date
+                            ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                            : '!border-none',
+                        ],
                       },
                     },
                   }"
@@ -509,12 +530,17 @@
                 >
                 <Select
                   v-model="form.position_id"
+                  @change="errors.position_id = undefined"
                   :options="posOptions"
                   optionLabel="name"
                   optionValue="id"
                   placeholder="Select Position"
-                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12 flex items-center px-4"
-                  :class="{ 'p-invalid': errors.position_id }"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold h-12 flex items-center px-4 transition-all"
+                  :class="
+                    errors.position_id
+                      ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : '!border-none'
+                  "
                 />
                 <Transition name="p-message-content">
                   <small
@@ -535,12 +561,17 @@
                 >
                 <Select
                   v-model="form.department_id"
+                  @change="errors.department_id = undefined"
                   :options="deptOptions"
                   optionLabel="name"
                   optionValue="id"
                   placeholder="Select Department"
-                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12 flex items-center px-4"
-                  :class="{ 'p-invalid': errors.department_id }"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold h-12 flex items-center px-4 transition-all"
+                  :class="
+                    errors.department_id
+                      ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : '!border-none'
+                  "
                 />
                 <Transition name="p-message-content">
                   <small
@@ -634,12 +665,15 @@
                   placeholder="Search district..."
                   :minLength="3"
                   class="!w-full"
-                  :class="{ 'p-invalid': errors.district_id }"
                   :pt="{
                     pcInputText: {
                       root: {
-                        class:
-                          '!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white',
+                        class: [
+                          '!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold dark:!text-white transition-all',
+                          errors.district_id
+                            ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                            : '!border-none',
+                        ],
                       },
                     },
                   }"
@@ -684,17 +718,21 @@
                 >
                 <InputNumber
                   v-model="form.distance_km"
+                  @input="errors.distance_km = undefined"
                   :min="0"
                   :max="250"
                   suffix=" KM"
                   class="!w-full"
                   placeholder="0 KM"
-                  :class="{ 'p-invalid': errors.distance_km }"
                   :pt="{
                     pcInputText: {
                       root: {
-                        class:
-                          '!rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold h-12',
+                        class: [
+                          '!rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold h-12 transition-all',
+                          errors.distance_km
+                            ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                            : '!border-none',
+                        ],
                       },
                     },
                   }"
@@ -717,9 +755,14 @@
                 >
                 <Textarea
                   v-model="form.full_address"
+                  @input="errors.full_address = undefined"
                   rows="3"
-                  :class="{ 'p-invalid': errors.full_address }"
-                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !border-none !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
+                  :class="
+                    errors.full_address
+                      ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : '!border-none'
+                  "
+                  class="!w-full !rounded-xl !p-4 !bg-slate-50 dark:!bg-slate-800/50 !text-xs !font-bold dark:!text-white focus:!ring-2 focus:!ring-indigo-500/10 transition-all"
                   placeholder="e.g. Jl. Melati No. 123, RT 01/RW 02"
                 />
                 <small
@@ -863,6 +906,120 @@
               </div>
             </div>
           </div>
+
+          <!-- System Access & Login Credentials -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm space-y-8"
+          >
+            <div
+              class="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-6"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400"
+                >
+                  <i class="bi bi-shield-lock-fill text-lg"></i>
+                </div>
+                <div>
+                  <h3
+                    class="text-lg font-black text-slate-800 dark:text-white tracking-tight"
+                  >
+                    System Access & Login Credentials
+                  </h3>
+                  <p
+                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+                  >
+                    Portal authentication, RBAC authorization role, and system access
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Account Access</span>
+                <ToggleSwitch v-model="form.user_is_active" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Username -->
+              <div class="space-y-1">
+                <label
+                  class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 block"
+                  >System Username <span class="text-rose-500">*</span></label
+                >
+                <div
+                  class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border transition-all"
+                  :class="
+                    errors.username
+                      ? '!border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                      : 'border-slate-100 dark:border-slate-700/60 focus-within:border-indigo-300 dark:focus-within:border-indigo-500/50'
+                  "
+                >
+                  <i class="bi bi-person-badge text-slate-400"></i>
+                  <InputText
+                    v-model="form.username"
+                    class="!w-full !border-none !bg-transparent !p-0 !text-xs !font-bold dark:!text-white focus:!outline-none"
+                    placeholder="e.g. jdoe or candidate nip"
+                    @input="onUsernameInput"
+                  />
+                </div>
+                <small
+                  v-if="errors.username"
+                  class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest"
+                  >{{ errors.username }}</small
+                >
+              </div>
+
+              <!-- Role & Permissions -->
+              <div class="space-y-1">
+                <label
+                  class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 block"
+                  >Authorization Role <span class="text-rose-500">*</span></label
+                >
+                <Select
+                  v-model="form.role_id"
+                  :options="roleOptions"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="Select system role..."
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-100 dark:!border-slate-700/60 !text-xs !font-bold h-12 flex items-center px-3"
+                  :class="errors.role_id ? '!border-rose-500 !ring-2 !ring-rose-500/20' : ''"
+                  @change="errors.role_id = undefined"
+                />
+                <small
+                  v-if="errors.role_id"
+                  class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest"
+                  >{{ errors.role_id }}</small
+                >
+              </div>
+
+              <!-- Password -->
+              <div class="space-y-1 md:col-span-2">
+                <label
+                  class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 block"
+                  >Access Password <span v-if="!isEdit" class="text-rose-500">*</span>
+                  <span v-else class="text-slate-400 font-normal ml-1 lowercase">(leave blank to keep current)</span>
+                </label
+                >
+                <Password
+                  v-model="form.password"
+                  :feedback="false"
+                  :toggleMask="true"
+                  fluid
+                  :placeholder="isEdit ? 'Retain current password...' : 'Minimum 6 characters secure password'"
+                  :inputClass="[
+                    '!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !p-3.5 !text-xs !font-bold dark:!text-white transition-all',
+                    errors.password ? '!border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10' : '!border-slate-100 dark:!border-slate-700/60'
+                  ]"
+                  @input="errors.password = undefined"
+                />
+                <small
+                  v-if="errors.password"
+                  class="text-[9px] font-black text-rose-500 ml-2 uppercase tracking-widest"
+                  >{{ errors.password }}</small
+                >
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </form>
@@ -884,6 +1041,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useEmployees } from "~/composables/useEmployees";
 import { useRegion } from "~/composables/useRegion";
 import { useEducations } from "~/composables/useEducations";
+import { z } from "zod";
 
 const route = useRoute();
 const router = useRouter();
@@ -922,6 +1080,8 @@ const photoInput = ref<HTMLInputElement | null>(null);
 
 const deptOptions = ref<any[]>([]);
 const posOptions = ref<any[]>([]);
+const roleOptions = ref<any[]>([]);
+const usernameManuallyEdited = ref(false);
 
 const employmentTypeOptions = [
   { label: "Permanent", value: "Tetap" },
@@ -952,16 +1112,41 @@ const form = ref<any>({
   photo_url: "",
   educations: [],
   distance_km: 0,
+
+  // Account credentials
+  username: "",
+  password: "",
+  role_id: 4, // Default Pegawai
+  user_is_active: true,
 });
+
+const onUsernameInput = () => {
+  usernameManuallyEdited.value = true;
+  errors.value.username = undefined;
+};
+
+// Auto-suggest username from email for new onboarding
+watch(
+  () => form.value.email,
+  (newEmail) => {
+    if (!isEdit && !usernameManuallyEdited.value && typeof newEmail === "string") {
+      const prefix = newEmail.split("@")[0]?.toLowerCase().replace(/[^a-z0-9_]/g, "") || "";
+      if (prefix.length >= 3) {
+        form.value.username = prefix;
+      }
+    }
+  }
+);
 
 onMounted(async () => {
   const { $axios } = useNuxtApp();
-  const [regData, distData, eduData, deptRes, posRes] = await Promise.all([
+  const [regData, distData, eduData, deptRes, posRes, rolesRes] = await Promise.all([
     getKabupaten(),
     getKecamatan(),
     fetchEducations(),
     $axios.get("/api/departments"),
     $axios.get("/api/positions"),
+    $axios.get("/api/roles").catch(() => ({ data: [] })),
   ]);
 
   allRegencies.value = regData;
@@ -969,6 +1154,13 @@ onMounted(async () => {
   educationOptions.value = eduData;
   deptOptions.value = deptRes.data;
   posOptions.value = posRes.data;
+  roleOptions.value = rolesRes.data?.data || rolesRes.data || [];
+
+  // If roleOptions fetched, make sure a default role is selected if none
+  if (!isEdit && !form.value.role_id && roleOptions.value.length > 0) {
+    const pegawaiRole = roleOptions.value.find((r: any) => r.name?.toLowerCase().includes("pegawai"));
+    form.value.role_id = pegawaiRole ? pegawaiRole.id : roleOptions.value[0].id;
+  }
 
   if (isEdit) {
     try {
@@ -1007,6 +1199,10 @@ onMounted(async () => {
           join_date: parseUTCDate(data.join_date) || new Date(),
           educations: Array.isArray(data.educations) ? data.educations : [],
           distance_km: data.distance_km !== null && data.distance_km !== undefined ? Number(data.distance_km) : 0,
+          username: data.username || "",
+          password: "",
+          role_id: data.role_id || 4,
+          user_is_active: data.user_is_active !== undefined && data.user_is_active !== null ? !!data.user_is_active : true,
         };
 
         // Initialize display names and search inputs using API response data
@@ -1210,9 +1406,20 @@ const validateForm = () => {
   } else if (!String(form.value.nip).replace(/\D/g, "")) {
     errors.value.nip = "NIP must contain valid numbers";
   }
-  if (!form.value.email) errors.value.email = "Email is required";
-  else if (!/^\S+@\S+\.\S+$/.test(form.value.email))
-    errors.value.email = "Invalid email protocol";
+  // Email validation matching backend Zod email schema
+  const emailVal = typeof form.value.email === "string" ? form.value.email.trim() : "";
+  if (!emailVal) {
+    errors.value.email = "Email wajib diisi";
+  } else {
+    const emailParsed = z
+      .string()
+      .trim()
+      .email("Format email tidak valid")
+      .safeParse(emailVal);
+    if (!emailParsed.success) {
+      errors.value.email = emailParsed.error.issues[0]?.message || "Format email tidak valid";
+    }
+  }
   if (!form.value.phone) errors.value.phone = "Phone is required";
   if (!form.value.birth_place_id)
     errors.value.birth_place_id = "Birth city is required";
@@ -1230,6 +1437,23 @@ const validateForm = () => {
     errors.value.distance_km = "Distance cannot be negative";
   if (!form.value.full_address || form.value.full_address.length < 5)
     errors.value.full_address = "Full address is required (min 5 chars)";
+
+  // System credentials validation
+  if (!form.value.username || form.value.username.trim().length < 3) {
+    errors.value.username = "Username minimum 3 characters";
+  }
+  if (!form.value.role_id) {
+    errors.value.role_id = "Role is required";
+  }
+  if (!isEdit) {
+    if (!form.value.password || form.value.password.length < 6) {
+      errors.value.password = "Password minimum 6 characters";
+    }
+  } else {
+    if (form.value.password && form.value.password.length < 6) {
+      errors.value.password = "Password minimum 6 characters";
+    }
+  }
 
   return Object.keys(errors.value).length === 0;
 };
@@ -1259,6 +1483,7 @@ const handleSubmit = async () => {
 
     const payload = {
       ...form.value,
+      email: typeof form.value.email === "string" ? form.value.email.trim() : form.value.email,
       nip: Number(String(form.value.nip).replace(/\D/g, "")),
       birth_date: formatToUTCDate(form.value.birth_date),
       join_date: formatToUTCDate(form.value.join_date),
@@ -1266,6 +1491,12 @@ const handleSubmit = async () => {
       children_count: Number(form.value.children_count),
       educationIds: form.value.educations.map((e: any) => e.id),
       distance_km: Number(form.value.distance_km || 0),
+
+      // Account credentials
+      username: form.value.username ? form.value.username.trim() : undefined,
+      password: form.value.password && form.value.password.trim() ? form.value.password.trim() : undefined,
+      role_id: form.value.role_id ? Number(form.value.role_id) : undefined,
+      user_is_active: form.value.user_is_active !== undefined ? !!form.value.user_is_active : true,
     };
 
     if (isEdit) {
@@ -1273,7 +1504,7 @@ const handleSubmit = async () => {
       toast.add({
         severity: "success",
         summary: "Profile Updated",
-        detail: "Talent matrix successfully refined",
+        detail: "Talent matrix and account successfully refined",
         life: 3000,
       });
     } else {
@@ -1281,14 +1512,35 @@ const handleSubmit = async () => {
       toast.add({
         severity: "success",
         summary: "Talent Onboarded",
-        detail: "New record initialized in central database",
+        detail: "New record and login account initialized in central database",
         life: 3000,
       });
     }
     router.push("/employees");
   } catch (e: any) {
     console.error(e);
-    const detail = e.response?.data?.message || "Interface connection failure";
+    const serverData = e.response?.data;
+    const errorData = serverData?.data;
+
+    // Handle field-specific backend errors (duplicate email/phone/nip/username or validation errors)
+    if (errorData) {
+      if (errorData.field === "email" || errorData.constraint === "employees_email_key") {
+        errors.value.email = "Email sudah digunakan oleh karyawan lain";
+      } else if (errorData.field === "nip" || errorData.constraint === "employees_nip_key") {
+        errors.value.nip = "NIP sudah terdaftar";
+      } else if (errorData.field === "phone" || errorData.constraint === "employees_phone_key") {
+        errors.value.phone = "Nomor telepon sudah terdaftar";
+      } else if (errorData.email?.errors?.[0]) {
+        errors.value.email = errorData.email.errors[0];
+      }
+    }
+    if (errorData?.code === "USERNAME_TAKEN" || serverData?.code === "USERNAME_TAKEN" || serverData?.message?.toLowerCase().includes("username")) {
+      errors.value.username = "Username sudah digunakan oleh akun lain";
+    } else if (serverData?.message?.toLowerCase().includes("email")) {
+      errors.value.email = "Email sudah terdaftar atau format tidak valid";
+    }
+
+    const detail = serverData?.message || "Interface connection failure";
     toast.add({
       severity: "error",
       summary: "Execution Error",

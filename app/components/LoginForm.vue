@@ -143,9 +143,14 @@
               <InputText
                 id="credential"
                 v-model="credential"
+                @input="credentialError = ''"
                 placeholder="e.g. superadmin or user@company.com"
-                class="w-full !pl-11 !py-3.5 !bg-white/5 !border-white/10 !text-white !rounded-xl focus:!border-indigo-500 focus:!ring-2 focus:!ring-indigo-500/20 text-sm transition-all"
-                :class="{ 'p-invalid !border-rose-500': !!credentialError }"
+                class="w-full !pl-11 !py-3.5 !bg-white/5 !text-white !rounded-xl focus:!border-indigo-500 focus:!ring-2 focus:!ring-indigo-500/20 text-sm transition-all"
+                :class="[
+                  credentialError
+                    ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-500/10'
+                    : '!border !border-white/10',
+                ]"
               />
             </div>
             <small v-if="credentialError" class="text-rose-400 text-xs font-medium ml-1 flex items-center gap-1">
@@ -162,13 +167,18 @@
               <Password
                 id="password"
                 v-model="password"
+                @input="passwordError = ''"
                 placeholder="••••••••"
                 :toggleMask="true"
                 :feedback="false"
                 fluid
                 class="w-full"
-                inputClass="w-full !pl-11 !py-3.5 !bg-white/5 !border-white/10 !text-white !rounded-xl focus:!border-indigo-500 focus:!ring-2 focus:!ring-indigo-500/20 text-sm transition-all"
-                :class="{ 'p-invalid !border-rose-500': !!passwordError }"
+                :inputClass="[
+                  'w-full !pl-11 !py-3.5 !bg-white/5 !text-white !rounded-xl focus:!border-indigo-500 focus:!ring-2 focus:!ring-indigo-500/20 text-sm transition-all',
+                  passwordError
+                    ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-500/10'
+                    : '!border !border-white/10',
+                ]"
               />
               <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10">
                 <i class="bi bi-lock text-lg"></i>
@@ -211,11 +221,20 @@
 
             <InputText
               v-model="userCaptcha"
+              @input="captchaError = ''"
               placeholder="Enter code above"
               maxlength="6"
-              class="w-full !py-2.5 !bg-white/5 !border-white/10 !text-white !rounded-xl text-center font-bold tracking-widest text-sm focus:!border-indigo-500"
+              class="w-full !py-2.5 !bg-white/5 !text-white !rounded-xl text-center font-bold tracking-widest text-sm focus:!border-indigo-500 transition-all"
+              :class="[
+                captchaError
+                  ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-500/10'
+                  : '!border !border-white/10',
+              ]"
               @keyup="userCaptcha = userCaptcha.toUpperCase()"
             />
+            <small v-if="captchaError" class="text-rose-400 text-xs font-medium ml-1 flex items-center justify-center gap-1">
+              <i class="bi bi-exclamation-circle"></i> {{ captchaError }}
+            </small>
           </div>
 
           <!-- Remember Me & Forgot Password -->
@@ -295,6 +314,7 @@ const rememberMe = ref(false);
 
 const credentialError = ref("");
 const passwordError = ref("");
+const captchaError = ref("");
 
 onMounted(() => {
   generateCaptcha();
@@ -308,6 +328,7 @@ const generateCaptcha = () => {
   }
   captchaCode.value = result;
   userCaptcha.value = "";
+  captchaError.value = "";
 };
 
 const fillDemo = (user: string, pass: string) => {
@@ -316,11 +337,13 @@ const fillDemo = (user: string, pass: string) => {
   userCaptcha.value = captchaCode.value;
   credentialError.value = "";
   passwordError.value = "";
+  captchaError.value = "";
 };
 
 const handleLogin = async () => {
   credentialError.value = "";
   passwordError.value = "";
+  captchaError.value = "";
 
   if (!credential.value) {
     credentialError.value = "Username or email is required";
@@ -338,6 +361,7 @@ const handleLogin = async () => {
   if (credentialError.value || passwordError.value) return;
 
   if (userCaptcha.value.toUpperCase() !== captchaCode.value) {
+    captchaError.value = "Captcha security code does not match";
     toast.add({
       severity: "error",
       summary: "Verification Failed",

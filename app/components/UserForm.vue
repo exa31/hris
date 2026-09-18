@@ -13,7 +13,7 @@
           <!-- Profile Preview Card -->
           <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center text-center">
             <Avatar 
-              :image="selectedEmployeePhoto || 'https://ui-avatars.com/api/?name=' + (form.username || 'U') + '&background=6366f1&color=fff&size=200'" 
+              :image="selectedEmployeePhoto || getAvatarUrl(form.username || 'U', '6366f1')" 
               shape="circle" 
               class="!w-32 !h-32 border-4 border-white dark:border-slate-800 shadow-lg mb-6" 
             />
@@ -73,8 +73,9 @@
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Username <span class="text-rose-500">*</span></label>
                 <InputText 
                   v-model="form.username" 
-                  :class="{ 'p-invalid border border-rose-500': errors.username }"
-                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 focus:!ring-indigo-500" 
+                  @input="errors.username = undefined"
+                  :class="errors.username ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10' : '!border-slate-200 dark:!border-slate-700'"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 focus:!ring-indigo-500 transition-all" 
                   placeholder="Enter username" 
                 />
                 <Transition name="p-message-content">
@@ -88,13 +89,14 @@
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Role & Permissions <span class="text-rose-500">*</span></label>
                 <Select 
                   v-model="form.role_id" 
+                  @change="errors.role_id = undefined"
                   :options="roles" 
                   optionLabel="name" 
                   optionValue="id" 
                   placeholder="Select a role"
                   :disabled="!canManageRoles"
-                  :class="{ 'p-invalid border border-rose-500': errors.role_id }"
-                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700" 
+                  :class="errors.role_id ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10' : '!border-slate-200 dark:!border-slate-700'"
+                  class="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 transition-all" 
                 />
                 <Transition name="p-message-content">
                   <small v-if="errors.role_id" class="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
@@ -107,11 +109,14 @@
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Password <span v-if="!isEdit" class="text-rose-500">*</span></label>
                 <Password 
                   v-model="form.password" 
+                  @input="errors.password = undefined"
                   :feedback="false"
                   :toggleMask="true"
                   fluid
-                  :class="{ 'p-invalid': errors.password }"
-                  inputClass="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 focus:!ring-indigo-500 !py-3 !text-sm" 
+                  :inputClass="[
+                    '!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/50 focus:!ring-indigo-500 !py-3 !text-sm transition-all',
+                    errors.password ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10' : '!border-slate-200 dark:!border-slate-700'
+                  ]"
                   :placeholder="isEdit ? 'Leave blank to retain current password' : 'Enter new secure password'" 
                 />
                 <Transition name="p-message-content">
@@ -146,18 +151,20 @@
                 optionLabel="name" 
                 placeholder="Search and select an employee..." 
                 class="!w-full"
-                :class="{ 'p-invalid border border-rose-500 rounded-xl': errors.employee_id }"
                 :pt="{
                   pcInputText: {
                     root: {
-                      class: '!w-full !rounded-xl !p-3.5 !bg-slate-50 dark:!bg-slate-800/50 !border-slate-200 dark:!border-slate-700 !text-sm font-medium focus:!ring-indigo-500'
+                      class: [
+                        '!w-full !rounded-xl !p-3.5 !bg-slate-50 dark:!bg-slate-800/50 !text-sm font-medium focus:!ring-indigo-500 transition-all',
+                        errors.employee_id ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10' : '!border-slate-200 dark:!border-slate-700'
+                      ]
                     }
                   }
                 }"
               >
                 <template #option="slotProps">
                   <div class="flex items-center gap-3">
-                    <Avatar :image="slotProps.option.photo_url || 'https://ui-avatars.com/api/?name=' + slotProps.option.name" shape="circle" class="!w-6 !h-6" />
+                    <Avatar :image="slotProps.option.photo_url || getAvatarUrl(slotProps.option.name, 'random')" shape="circle" class="!w-6 !h-6" />
                     <div>
                       <div class="font-bold text-sm">{{ slotProps.option.name }}</div>
                       <div class="text-xs text-slate-500">{{ slotProps.option.nip }}</div>

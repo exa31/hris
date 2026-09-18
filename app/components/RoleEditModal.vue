@@ -37,16 +37,23 @@
         >
         <InputText
           v-model="formData.name"
+          @input="delete errors.name"
           placeholder="Enter role title..."
           :disabled="isSuperAdmin"
-          class="w-full !py-3.5 !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !rounded-2xl focus:!bg-white dark:focus:!bg-slate-900 focus:!ring-4 focus:!ring-indigo-500/10 transition-all font-bold text-slate-700 dark:text-white"
-          :class="{ 'p-invalid': errors.name, 'opacity-60 cursor-not-allowed': isSuperAdmin }"
+          class="w-full !py-3.5 !bg-slate-50 dark:!bg-slate-800 !rounded-2xl focus:!bg-white dark:focus:!bg-slate-900 focus:!ring-4 focus:!ring-indigo-500/10 transition-all font-bold text-slate-700 dark:text-white"
+          :class="[
+            errors.name
+              ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+              : '!border !border-slate-100 dark:!border-slate-700',
+            isSuperAdmin ? 'opacity-60 cursor-not-allowed' : '',
+          ]"
         />
         <small
           v-if="errors.name"
-          class="text-rose-500 text-xs font-bold ml-1"
-          >{{ errors.name }}</small
+          class="text-rose-500 text-xs font-bold ml-1 flex items-center gap-1"
         >
+          <i class="bi bi-exclamation-circle"></i> {{ errors.name }}
+        </small>
       </div>
 
       <!-- Permissions List -->

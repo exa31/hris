@@ -72,3 +72,24 @@ export const searchUsersSchema = z.object({
 })
 
 export type SearchUsersInput = z.infer<typeof searchUsersSchema>
+
+export const checkUsernameQuerySchema = z.object({
+    username: z.string().min(1, 'Username harus diisi'),
+    excludeId: z.coerce.number().int().positive().optional(),
+})
+
+export type CheckUsernameQueryInput = z.infer<typeof checkUsernameQuerySchema>
+
+export const employeeSearchQuerySchema = z.object({
+    search: z.string().optional().default(''),
+})
+
+export type EmployeeSearchQueryInput = z.infer<typeof employeeSearchQuerySchema>
+
+export const searchDeletedUsersSchema = z.object({
+    limit: z.coerce.number().int().positive().default(10),
+    offset: z.coerce.number().int().nonnegative().default(0),
+    search: z.string().trim().optional(),
+})
+
+export type SearchDeletedUsersInput = z.infer<typeof searchDeletedUsersSchema>

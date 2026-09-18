@@ -29,23 +29,24 @@
     </div>
 
     <!-- Quick Stats Bar -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
       <Motion
         v-for="(st, idx) in userStats"
         :key="st.label"
         :initial="{ opacity: 0, y: 15 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ delay: idx * 0.08 }"
+        class="h-full flex flex-col"
       >
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex items-center gap-4 group hover:border-indigo-100 dark:hover:border-indigo-900 transition-all">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex items-center gap-4 group hover:border-indigo-100 dark:hover:border-indigo-900 transition-all h-full">
           <div :class="[st.color, 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-xs']">
             <i :class="st.icon"></i>
           </div>
-          <div>
-            <div class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
+            <div class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center line-clamp-2 leading-tight">
               {{ st.label }}
             </div>
-            <div class="text-2xl font-black text-slate-800 dark:text-white mt-0.5">
+            <div class="text-2xl font-black text-slate-800 dark:text-white mt-0.5 truncate">
               {{ st.value }}
             </div>
           </div>
@@ -130,18 +131,17 @@
           :initial="{ opacity: 0, y: 15 }"
           :animate="{ opacity: 1, y: 0 }"
           :transition="{ delay: idx * 0.05 }"
+          class="h-full flex flex-col"
         >
           <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full group">
-            <div class="space-y-4">
+            <div class="space-y-4 flex-grow flex flex-col justify-between">
               <!-- Top Row: Avatar & Status -->
               <div class="flex items-start justify-between">
                 <div class="relative">
                   <Avatar
                     :image="
                       u.employee?.photo_url ||
-                      'https://ui-avatars.com/api/?name=' +
-                        (u.username || 'U') +
-                        '&background=6366f1&color=fff&size=100'
+                      getAvatarUrl(u.username || 'U', '6366f1')
                     "
                     shape="circle"
                     class="!w-14 !h-14 border-2 border-white dark:border-slate-800 shadow-xs"
@@ -186,7 +186,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 mt-4">
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 mt-auto">
               <NuxtLink v-if="hasPermission('users', 'update')" :to="`/user-management/${u.id}`">
                 <Button
                   icon="bi bi-pencil-square"
@@ -248,9 +248,7 @@
               <Avatar
                 :image="
                   slotProps.data.employee?.photo_url ||
-                  'https://ui-avatars.com/api/?name=' +
-                    (slotProps.data.username || 'U') +
-                    '&background=6366f1&color=fff'
+                  getAvatarUrl(slotProps.data.username || 'U', '6366f1')
                 "
                 shape="circle"
                 class="!w-10 !h-10 border-2 border-slate-100 dark:border-slate-700 shadow-xs"
@@ -387,7 +385,12 @@ import { useUsers } from "~/composables/useUsers";
 import { useAuth } from "~/composables/useAuth";
 import { useConfirm } from "primevue/useconfirm";
 
-definePageMeta({ layout: "default" });
+definePageMeta({
+  layout: "default",
+  middleware: [
+    () => navigateTo("/employees", { redirectCode: 301 }),
+  ],
+});
 
 const {
   users,

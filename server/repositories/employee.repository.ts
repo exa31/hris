@@ -23,24 +23,38 @@ export const getEmployees = async (
     tenureOperator?: string;
     tenureValue?: number;
     type?: string;
+    role_id?: number;
   },
 ): Promise<{ rows: Employee[]; total: number }> => {
   let query = `
         SELECT e.*, 
+               u.id as user_id,
+               u.username,
+               u.role_id,
+               u.is_active as user_is_active,
                r.name as role_name,
                d.name as department_name,
                p.name as position_name
         FROM employees e
-        LEFT JOIN users u ON e.id = u.employee_id
+        LEFT JOIN users u ON e.id = u.employee_id AND u.deleted_at IS NULL
         LEFT JOIN roles r ON u.role_id = r.id
         LEFT JOIN departments d ON e.department_id = d.id
         LEFT JOIN positions p ON e.position_id = p.id
         WHERE e.deleted_at IS NULL
     `;
   let countQuery =
-    "SELECT COUNT(*) as total FROM employees e LEFT JOIN users u ON e.id = u.employee_id LEFT JOIN roles r ON u.role_id = r.id LEFT JOIN departments d ON e.department_id = d.id LEFT JOIN positions p ON e.position_id = p.id WHERE e.deleted_at IS NULL";
+    "SELECT COUNT(*) as total FROM employees e LEFT JOIN users u ON e.id = u.employee_id AND u.deleted_at IS NULL LEFT JOIN roles r ON u.role_id = r.id LEFT JOIN departments d ON e.department_id = d.id LEFT JOIN positions p ON e.position_id = p.id WHERE e.deleted_at IS NULL";
   const params: any[] = [];
   let paramCount = 1;
+
+  // Filter by role_id
+  if (options?.role_id) {
+    const cond = ` AND u.role_id = $${paramCount}`;
+    query += cond;
+    countQuery += cond;
+    params.push(options.role_id);
+    paramCount++;
+  }
 
   // Filter by type
   if (options?.type) {
@@ -97,9 +111,9 @@ export const getEmployees = async (
     paramCount++;
   }
 
-  // Search by name, email, NIP, or joined names
+  // Search by name, email, NIP, username, or joined names
   if (options?.search) {
-    const cond = ` AND (e.name ILIKE $${paramCount} OR e.email ILIKE $${paramCount} OR e.nip::text ILIKE $${paramCount} OR p.name ILIKE $${paramCount} OR d.name ILIKE $${paramCount})`;
+    const cond = ` AND (e.name ILIKE $${paramCount} OR e.email ILIKE $${paramCount} OR e.nip::text ILIKE $${paramCount} OR u.username ILIKE $${paramCount} OR p.name ILIKE $${paramCount} OR d.name ILIKE $${paramCount})`;
     query += cond;
     countQuery += cond;
     params.push(`%${options.search}%`);
@@ -157,6 +171,11 @@ export const getEmployeeById = async (
 ): Promise<any | null> => {
   const query = `
         SELECT e.*, 
+               u.id as user_id,
+               u.username,
+               u.role_id,
+               u.is_active as user_is_active,
+               r.name as role_name,
                ea.full_address, ea.district_id, 
                d_loc.name as "districtName", 
                r_loc.name as "regencyName", 
@@ -165,6 +184,8 @@ export const getEmployeeById = async (
                dept.name as department_name,
                pos.name as position_name
         FROM employees e
+        LEFT JOIN users u ON e.id = u.employee_id AND u.deleted_at IS NULL
+        LEFT JOIN roles r ON u.role_id = r.id
         LEFT JOIN employee_addresses ea ON e.id = ea.employee_id
         LEFT JOIN districts d_loc ON ea.district_id = d_loc.id
         LEFT JOIN regencies r_loc ON d_loc.regency_id = r_loc.id
@@ -255,6 +276,10 @@ export const createEmployee = async (
     full_address,
     educations,
     educationIds,
+    username,
+    password,
+    role_id,
+    user_is_active,
     ...employeeData
   } = data;
 
@@ -311,6 +336,10 @@ export const updateEmployee = async (
     educations,
     educationIds,
     id: _tempId,
+    username,
+    password,
+    role_id,
+    user_is_active,
     ...employeeData
   } = data;
 
@@ -396,14 +425,30 @@ export const getDeletedEmployees = async (
   client: PoolClient,
   options?: { limit?: number; offset?: number; search?: string },
 ): Promise<{ rows: any[]; total: number }> => {
-  let query = `SELECT * FROM employees WHERE deleted_at IS NOT NULL`;
+  let query = `
+        SELECT e.*, 
+               u.id as user_id,
+               u.username,
+               u.is_active as user_is_active,
+               r.name as role_name,
+               d.name as department_name,
+               p.name as position_name
+        FROM employees e
+        LEFT JOIN users u ON e.id = u.employee_id
+        LEFT JOIN roles r ON u.role_id = r.id
+        LEFT JOIN departments d ON e.department_id = d.id
+        LEFT JOIN positions p ON e.position_id = p.id
+        WHERE e.deleted_at IS NOT NULL
+  `;
   let countQuery =
-    "SELECT COUNT(*) as total FROM employees WHERE deleted_at IS NOT NULL";
+    `SELECT COUNT(*) as total FROM employees e
+     LEFT JOIN users u ON e.id = u.employee_id
+     WHERE e.deleted_at IS NOT NULL`;
   const params: any[] = [];
   let paramCount = 1;
 
   if (options?.search) {
-    const cond = ` AND (name ILIKE $${paramCount} OR nip::text ILIKE $${paramCount})`;
+    const cond = ` AND (e.name ILIKE $${paramCount} OR e.nip::text ILIKE $${paramCount} OR u.username ILIKE $${paramCount})`;
     query += cond;
     countQuery += cond;
     params.push(`%${options.search}%`);
@@ -413,7 +458,7 @@ export const getDeletedEmployees = async (
   const { rows: countRows } = await client.query(countQuery, params);
   const total = parseInt(countRows[0].total);
 
-  query += ` ORDER BY deleted_at DESC`;
+  query += ` ORDER BY e.deleted_at DESC`;
 
   if (options?.limit) {
     query += ` LIMIT $${paramCount}`;
@@ -431,16 +476,23 @@ export const getDeletedEmployees = async (
 };
 
 /**
- * Restore deleted employee
+ * Restore deleted employee and linked user account
  */
 export const restoreEmployee = async (
   client: PoolClient,
   id: number,
 ): Promise<boolean> => {
   const query =
-    "UPDATE employees SET deleted_at = NULL, status = true WHERE id = $1";
+    "UPDATE employees SET deleted_at = NULL, status = true, updated_at = NOW() WHERE id = $1";
   const result = await client.query(query, [id]);
-  return result.rowCount! > 0;
+  if (result.rowCount && result.rowCount > 0) {
+    await client.query(
+      "UPDATE users SET deleted_at = NULL, is_active = true, updated_at = NOW() WHERE employee_id = $1",
+      [id],
+    );
+    return true;
+  }
+  return false;
 };
 
 /**

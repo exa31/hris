@@ -51,6 +51,10 @@ export const employeeModel = z.object({
   type: employmentTypeEnum,
   birth_place_id: z.number(),
   role_name: z.string().optional().nullable(),
+  user_id: z.number().optional().nullable(),
+  username: z.string().optional().nullable(),
+  role_id: z.number().optional().nullable(),
+  user_is_active: z.boolean().optional().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
   photo_url: z.string().nullable().optional(),
@@ -100,6 +104,12 @@ export const createEmployeeSchema = z.object({
   educationIds: z.array(z.number()).optional(),
   photo_url: z.string().optional().nullable(),
   distance_km: z.coerce.number().min(0, "Jarak tidak boleh negatif").default(0),
+
+  // Linked User Account fields
+  username: z.string().min(3, "Username minimal 3 karakter").max(255).optional().nullable(),
+  password: z.string().min(6, "Password minimal 6 karakter").optional().nullable(),
+  role_id: z.number().optional().nullable(),
+  user_is_active: z.boolean().optional().default(true),
 });
 
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
@@ -135,8 +145,13 @@ export const updateEmployeeSchema = z.object({
   educationIds: z.array(z.number()).optional(),
   photo_url: z.string().optional().nullable(),
   distance_km: z.coerce.number().min(0, "Jarak tidak boleh negatif").optional(),
-});
 
+  // Linked User Account fields
+  username: z.string().min(3, "Username minimal 3 karakter").max(255).optional().nullable(),
+  password: z.string().min(6, "Password minimal 6 karakter").optional().nullable(),
+  role_id: z.number().optional().nullable(),
+  user_is_active: z.boolean().optional(),
+});
 
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
@@ -158,11 +173,28 @@ export const searchEmployeesSchema = z.object({
   tenureOperator: z.enum([">", "<", ">=", "<=", "="]).optional(),
   tenureValue: z.coerce.number().int().nonnegative().optional(),
   type: z.string().optional(),
+  role_id: z.coerce.number().int().optional(),
 });
 
 
 
 export type SearchEmployeesInput = z.infer<typeof searchEmployeesSchema>;
+
+export const exportEmployeesSchema = searchEmployeesSchema.extend({
+  limit: z.coerce.number().int().positive().default(10000),
+});
+
+export type ExportEmployeesInput = z.infer<typeof exportEmployeesSchema>;
+
+export const searchDeletedEmployeesSchema = z.object({
+  limit: z.coerce.number().int().positive().default(10),
+  offset: z.coerce.number().int().nonnegative().default(0),
+  search: z.string().trim().optional(),
+});
+
+export type SearchDeletedEmployeesInput = z.infer<typeof searchDeletedEmployeesSchema>;
+
+
 
 export const bulkDeleteEmployeesSchema = z.object({
   ids: z.array(z.number().int().positive()).min(1, "Minimal 1 ID pegawai"),

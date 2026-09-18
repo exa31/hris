@@ -18,9 +18,7 @@
           <Avatar
             :image="
               employee.photo_url ||
-              'https://ui-avatars.com/api/?name=' +
-                employee.name +
-                '&background=random&size=200'
+              getAvatarUrl(employee.name, 'random')
             "
             shape="circle"
             class="!w-44 !h-44 shadow-2xl ring-4 ring-white dark:ring-slate-900 relative z-10 transition-transform hover:scale-105 duration-500"
@@ -288,39 +286,59 @@
           </div>
         </Motion>
 
-        <!-- Profile QR Card -->
+        <!-- System Access & Security Credentials -->
         <Motion
-          :initial="{ opacity: 0, y: 20 }"
-          :animate="{ opacity: 1, y: 0 }"
+          :initial="{ opacity: 0, x: 20 }"
+          :animate="{ opacity: 1, x: 0 }"
           :transition="{ delay: 0.6 }"
-          class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-6"
+          class="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm space-y-6"
         >
-          <div
-            class="p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-500/20 group cursor-pointer"
-          >
-            <i
-              class="bi bi-qr-code text-4xl text-emerald-500 group-hover:scale-110 transition-transform block"
-            ></i>
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                <i class="bi bi-shield-lock-fill text-lg"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-black text-slate-800 dark:text-white">System Access</h4>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Portal Identity Hub</p>
+              </div>
+            </div>
+            <Tag
+              :value="employee.user_is_active !== false ? 'Active' : 'Disabled'"
+              class="!rounded-lg !px-2.5 !py-0.5 !text-[9px] !font-black !uppercase !tracking-wider"
+              :class="employee.user_is_active !== false ? '!bg-emerald-50 dark:!bg-emerald-500/10 !text-emerald-600 dark:!text-emerald-400' : '!bg-rose-50 dark:!bg-rose-500/10 !text-rose-600'"
+            />
           </div>
-          <div class="space-y-2">
-            <h4
-              class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight"
-            >
-              Digital Talent Key
-            </h4>
-            <p
-              class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed max-w-[200px]"
-            >
-              Authentication token for biometric & check-in terminals
-            </p>
+
+          <div class="space-y-4">
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+              <div class="flex items-center gap-3">
+                <i class="bi bi-person-badge text-slate-400"></i>
+                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Username</span>
+              </div>
+              <span class="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                {{ employee.username ? `@${employee.username}` : 'Not assigned' }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+              <div class="flex items-center gap-3">
+                <i class="bi bi-shield-check text-slate-400"></i>
+                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Authorized Role</span>
+              </div>
+              <Tag
+                :value="employee.role_name || 'Pegawai'"
+                class="!rounded-lg !px-2.5 !py-0.5 !text-[9px] !font-black !uppercase !tracking-widest"
+                :class="
+                  employee.role_name?.toLowerCase().includes('admin')
+                    ? '!bg-purple-50 dark:!bg-purple-500/10 !text-purple-600 dark:!text-purple-400'
+                    : employee.role_name?.toLowerCase().includes('manager')
+                    ? '!bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400'
+                    : '!bg-slate-100 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-400'
+                "
+              />
+            </div>
           </div>
-          <Button
-            label="Generate Badge"
-            icon="bi bi-download"
-            severity="secondary"
-            text
-            class="!rounded-xl !px-6 !py-2.5 !text-[9px] !font-black !uppercase !tracking-widest !bg-slate-50 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-300 hover:!bg-slate-100 dark:hover:!bg-slate-700 transition-colors"
-          />
         </Motion>
       </div>
     </div>
