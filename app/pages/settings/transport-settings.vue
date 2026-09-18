@@ -68,15 +68,28 @@
               >
               <InputNumber
                 v-model="localSettings.base_fare"
+                @update:model-value="baseFareError = null"
                 placeholder="Enter rate amount..."
                 class="w-full"
-                :inputClass="'!pl-16 !py-5 !bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700 !rounded-2xl !text-2xl !font-black !text-slate-700 dark:!text-white focus:!bg-white dark:focus:!bg-slate-900 focus:!ring-4 focus:!ring-indigo-500/10 transition-all'"
+                :inputClass="[
+                  '!pl-16 !py-5 !rounded-2xl !text-2xl !font-black !text-slate-700 dark:!text-white focus:!bg-white dark:focus:!bg-slate-900 focus:!ring-4 focus:!ring-indigo-500/10 transition-all',
+                  baseFareError
+                    ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                    : '!bg-slate-50 dark:!bg-slate-800 !border-slate-100 dark:!border-slate-700'
+                ]"
                 :disabled="
                   !hasPermission('transport_setting', 'update') || saving
                 "
               />
             </div>
+            <small
+              v-if="baseFareError"
+              class="text-rose-500 text-xs font-bold ml-1 flex items-center gap-1"
+            >
+              <i class="bi bi-exclamation-circle"></i> {{ baseFareError }}
+            </small>
             <p
+              v-else
               class="text-[10px] font-bold text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-tighter italic"
             >
               Base fare is calculated per kilometer per employee working day.
@@ -250,6 +263,7 @@ const localSettings = ref({ base_fare: 2000, is_active: true });
 const saving = ref(false);
 const saveError = ref<string | null>(null);
 const saveSuccess = ref(false);
+const baseFareError = ref<string | null>(null);
 
 const rules = [
   "Applies exclusively to Permanent employees.",
@@ -271,8 +285,15 @@ onMounted(async () => {
 });
 
 const saveSettings = async () => {
+  baseFareError.value = null;
   saveError.value = null;
   saveSuccess.value = false;
+
+  if (!localSettings.value.base_fare || localSettings.value.base_fare <= 0) {
+    baseFareError.value = "Base fare must be greater than Rp 0";
+    return;
+  }
+
   saving.value = true;
 
   try {
@@ -297,6 +318,7 @@ const resetForm = () => {
     base_fare: settings.value.base_fare || 2000,
     is_active: settings.value.is_active ?? true,
   };
+  baseFareError.value = null;
   saveError.value = null;
 };
 

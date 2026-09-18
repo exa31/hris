@@ -201,8 +201,18 @@ async function processDate(
   const targetDate = new Date(targetDateStr)
   const dayOfWeek = targetDate.getDay() // 0: Sun, 6: Sat
 
-  if ((dayOfWeek === 0 || dayOfWeek === 6) && !options.includeWeekends) {
-    return { date: targetDateStr, skipped: true, reason: 'weekend' }
+  // Check weekly work schedule
+  const scheduleRes = await query(`SELECT is_work_day FROM work_schedules WHERE day_of_week = $1`, [dayOfWeek])
+  const isWorkDay = scheduleRes.rows.length > 0 ? scheduleRes.rows[0].is_work_day : (dayOfWeek !== 0 && dayOfWeek !== 6)
+
+  if (!isWorkDay && !options.includeWeekends) {
+    return { date: targetDateStr, skipped: true, reason: 'off_day' }
+  }
+
+  // Check company / national holiday
+  const holidayRes = await query(`SELECT name FROM holidays WHERE date = $1`, [targetDateStr])
+  if (holidayRes.rows.length > 0 && !options.force) {
+    return { date: targetDateStr, skipped: true, reason: `holiday: ${holidayRes.rows[0].name}` }
   }
 
   // 1. Fetch active employees
