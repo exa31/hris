@@ -39,9 +39,15 @@ export const updateRefreshTokenSchema = z.object({
 export type UpdateRefreshTokenInput = z.infer<typeof updateRefreshTokenSchema>
 
 export interface TokenPayload extends JwtPayload {
-    id: number
-    typ: string
-    user_id: number
-    username: string
-    role_id: number
+    id?: number
+    typ?: string
+    sub?: string
+    user_id?: number
+    username?: string
+    name?: string
+    email?: string
+    role_id?: number
+    role?: string
+    roles?: string[]
+    employee_id?: number
 }

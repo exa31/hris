@@ -18,4 +18,4 @@ export default withPermission(async (event) => {
 
         return sendSuccess(event, data)
     })
-}, [{ module: 'roles', action: 'manage' }])
+})

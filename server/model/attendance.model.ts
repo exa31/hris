@@ -62,3 +62,30 @@ export const attendanceClockSchema = z.object({
 })
 
 export type AttendanceClockInput = z.infer<typeof attendanceClockSchema>
+
+export const searchEmployeeAttendanceSchema = z.object({
+    limit: z.coerce.number().int().positive().default(10),
+    offset: z.coerce.number().int().nonnegative().default(0),
+    search: z.string().optional(),
+    status: z.string().optional(),
+    month: z.coerce.number().int().min(1).max(12).optional(),
+    year: z.coerce.number().int().optional(),
+})
+
+export type SearchEmployeeAttendanceInput = z.infer<typeof searchEmployeeAttendanceSchema>
+
+export const searchEmployeeAttendanceStatsSchema = z.object({
+    month: z.coerce.number().int().min(1).max(12).optional(),
+    year: z.coerce.number().int().optional(),
+})
+
+export type SearchEmployeeAttendanceStatsInput = z.infer<typeof searchEmployeeAttendanceStatsSchema>
+
+export const attendanceSummarySchema = z.object({
+    month: z.coerce.number().int().min(1).max(12).default(() => new Date().getMonth() + 1),
+    year: z.coerce.number().int().min(2000).max(2100).default(() => new Date().getFullYear()),
+})
+
+export type AttendanceSummaryInput = z.infer<typeof attendanceSummarySchema>
+
+

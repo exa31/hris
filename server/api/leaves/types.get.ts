@@ -8,4 +8,4 @@ export default withPermission(async (event) => {
         const data = await leaveService.getLeaveTypes(client)
         return sendSuccess(event, data)
     })
-}, [{ module: 'leaves', action: 'read' }])
+}, [])

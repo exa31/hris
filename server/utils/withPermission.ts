@@ -36,33 +36,42 @@ export function withPermission<T extends EventHandlerRequest = EventHandlerReque
                 return sendErrorResponse(event, 401, 'invalid_token', 'Access token is invalid')
             }
 
-            // payload.sub = role_id, payload.email = user_id (see auth.service.ts: signAccessToken(username, userId, roleId))
-            const roleId = Number(payload.sub)
-            const userId = payload.email // user_id stored in 'email' field
+            // Prioritize standard JWT fields (user_id / sub for user, role_id for role)
+            const userId = payload.user_id 
+                ? Number(payload.user_id) 
+                : (payload.email && !isNaN(Number(payload.email)) ? Number(payload.email) : Number(payload.sub))
+            const roleId = payload.role_id 
+                ? Number(payload.role_id) 
+                : Number(payload.sub)
 
             // 3️⃣ Cek user masih aktif
             const { query: dbQuery } = await import('~~/server/db/postgres')
-            const dbUser = await dbQuery('SELECT is_active, employee_id FROM users WHERE id = $1', [userId])
+            const dbUser = await dbQuery('SELECT is_active, employee_id, role_id FROM users WHERE id = $1', [userId])
             if (dbUser.rows.length === 0 || !dbUser.rows[0].is_active) {
                 return sendErrorResponse(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus.')
             }
+
+            const effectiveRoleId = roleId || dbUser.rows[0].role_id
 
             // 4️⃣ Attach user ke context
             event.context.user = {
                 id: userId,
                 employee_id: dbUser.rows[0].employee_id,
-                role_id: roleId,
+                role_id: effectiveRoleId,
+                role: payload.role,
+                roles: payload.roles || (payload.role ? [payload.role] : []),
+                username: payload.username || payload.name,
                 raw: payload,
             }
 
             // 5️⃣ Cek permission jika ada yang diwajibkan (Bypass untuk role_id 1 / Superadmin)
-            if (requiredPermissions.length > 0 && roleId !== 1) {
+            if (requiredPermissions.length > 0 && effectiveRoleId !== 1) {
                 const permResult = await dbQuery(
                     `SELECT p.module, p.action
                      FROM permissions p
                      INNER JOIN role_permissions rp ON p.id = rp.permission_id
                      WHERE rp.role_id = $1`,
-                    [roleId]
+                    [effectiveRoleId]
                 )
 
                 const userPermissions: { module: string; action: string }[] = permResult.rows

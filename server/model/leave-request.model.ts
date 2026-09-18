@@ -75,3 +75,13 @@ export const employeeLeaveRequestSchema = z.object({
 })
 
 export type EmployeeLeaveRequestInput = z.infer<typeof employeeLeaveRequestSchema>
+
+export const searchEmployeeLeaveRequestSchema = z.object({
+  limit: z.coerce.number().int().positive().default(10),
+  offset: z.coerce.number().int().nonnegative().default(0),
+  search: z.string().optional(),
+  status: z.string().optional(),
+})
+
+export type SearchEmployeeLeaveRequestInput = z.infer<typeof searchEmployeeLeaveRequestSchema>
+

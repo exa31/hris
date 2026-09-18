@@ -56,3 +56,14 @@ export const transportGenerateSchema = z.object({
 })
 
 export type TransportGenerateInput = z.infer<typeof transportGenerateSchema>
+
+export const searchTransportAllowanceSchema = z.object({
+  limit: z.coerce.number().int().positive().default(10),
+  offset: z.coerce.number().int().nonnegative().default(0),
+  search: z.string().trim().optional(),
+  month: z.coerce.number().int().min(1).max(12).optional(),
+  year: z.coerce.number().int().min(2000).max(2100).optional(),
+})
+
+export type SearchTransportAllowanceInput = z.infer<typeof searchTransportAllowanceSchema>
+

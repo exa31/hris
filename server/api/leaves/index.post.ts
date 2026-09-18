@@ -21,7 +21,7 @@ export default withPermission(async (event) => {
     }
 
     return withTransaction(async (client) => {
-        const data = await leaveService.createLeaveRequest(client, validation.data)
+        const data = await leaveService.createLeaveRequest(client, parsed.data)
 
         await logActivity(client, {
             user_id: event.context.user.id,

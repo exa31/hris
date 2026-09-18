@@ -41,14 +41,24 @@ export function withAuth<T extends EventHandlerRequest = EventHandlerRequest, D 
             // 3.5 Check if user is still active in DB
             const { query: dbQuery } = await import('~~/server/db/postgres')
             
-            const dbUser = await dbQuery('SELECT is_active FROM users WHERE id = $1', [payload.sub])
+            // Prioritize user_id if present; fallback to numeric sub or email
+            const userId = payload.user_id 
+                ? Number(payload.user_id) 
+                : (payload.sub && !isNaN(Number(payload.sub)) ? Number(payload.sub) : Number(payload.email))
+
+            const dbUser = await dbQuery('SELECT is_active, employee_id, role_id FROM users WHERE id = $1', [userId])
             if (dbUser.rows.length === 0 || !dbUser.rows[0].is_active) {
                 return sendErrorResponse(event, 401, 'user_inactive', 'Akun Anda tidak aktif atau telah dihapus. Silakan hubungi admin.')
             }
 
             // 4️⃣ Attach ke context (SOURCE OF TRUTH)
             event.context.user = {
-                id: payload.sub,
+                id: userId,
+                employee_id: dbUser.rows[0].employee_id,
+                role_id: payload.role_id || dbUser.rows[0].role_id,
+                role: payload.role,
+                roles: payload.roles || (payload.role ? [payload.role] : []),
+                username: payload.username || payload.name,
                 email: payload.email,
                 raw: payload,
             }

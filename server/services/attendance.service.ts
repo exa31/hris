@@ -9,6 +9,7 @@ import * as leaveRepository from '~~/server/repositories/leave-request.repositor
 import { type CreateAttendanceInput, type UpdateAttendanceInput, type SearchAttendanceInput } from '~~/server/model/attendance.model'
 import type { PoolClient } from 'pg'
 import * as userRepository from '~~/server/repositories/user.repository'
+import * as workScheduleService from '~~/server/services/work-schedule.service'
 
 export async function getAttendances(client: PoolClient, params: SearchAttendanceInput) {
     const limit = params.limit || 10
@@ -72,12 +73,61 @@ export async function getEmployeeMonthlyStats(client: PoolClient, employeeId: nu
     return attendanceRepository.getEmployeeMonthlyAttendance(client, employeeId)
 }
 
-export async function getEmployeeAttendanceHistory(client: PoolClient, userId: number) {
-    const employeeId = await userRepository.getEmployeeIdByUserId(client, userId)
-    if (!employeeId) return { attendances: [] }
+export async function getEmployeeAttendanceHistory(
+  client: PoolClient,
+  userId: number,
+  params: attendanceRepository.EmployeeAttendanceQueryParams = {}
+) {
+  const employeeId = await userRepository.getEmployeeIdByUserId(client, userId)
+  if (!employeeId) {
+    return {
+      attendances: [],
+      pagination: { total: 0, limit: params.limit ?? 10, offset: params.offset ?? 0, pages: 0 },
+      today: null,
+    }
+  }
 
-    const rows = await attendanceRepository.getEmployeeAttendances(client, employeeId, 30)
-    return { attendances: rows }
+  const { rows, total } = await attendanceRepository.getEmployeeAttendancesPaginated(
+    client,
+    employeeId,
+    params
+  )
+
+  const now = new Date()
+  const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
+  const { row: todayAttendance } = await attendanceRepository.getTodayAttendance(client, employeeId, todayStr)
+
+  const limit = params.limit ?? 10
+  const offset = params.offset ?? 0
+
+  return {
+    attendances: rows,
+    pagination: {
+      total,
+      limit,
+      offset,
+      pages: Math.ceil(total / limit),
+    },
+    today: todayAttendance ? {
+      hasClockedIn: !!todayAttendance.clock_in,
+      hasClockedOut: !!todayAttendance.clock_out,
+      clock_in: todayAttendance.clock_in,
+      clock_out: todayAttendance.clock_out,
+    } : null,
+  }
+}
+
+export async function getEmployeeAttendanceStats(
+  client: PoolClient,
+  userId: number,
+  params: { month?: number; year?: number } = {}
+) {
+  const employeeId = await userRepository.getEmployeeIdByUserId(client, userId)
+  if (!employeeId) {
+    return { on_time: 0, late: 0, leave: 0, sick: 0, absent: 0, total: 0 }
+  }
+
+  return attendanceRepository.getEmployeeAttendanceStats(client, employeeId, params)
 }
 
 export async function clockIn(client: PoolClient, userId: number) {
@@ -112,9 +162,20 @@ export async function clockOut(client: PoolClient, userId: number) {
 }
 
 export async function getEmployeeDashboard(client: PoolClient, userId: number) {
+    const workSchedule = await workScheduleService.getWorkSchedulePolicy(client)
+
     const employeeId = await userRepository.getEmployeeIdByUserId(client, userId)
     if (!employeeId) {
-        return { attendancePercentage: 100, leavesRemaining: 12, pendingLeaves: 0 }
+        return {
+            attendancePercentage: 100,
+            leavesRemaining: 12,
+            pendingLeaves: 0,
+            workSchedule,
+            annualLeavePolicy: {
+                maxDays: 12,
+                text: 'Annual leave applications should ideally be submitted at least 3 business days in advance for management approval.'
+            }
+        }
     }
 
     const { total, present } = await attendanceRepository.getEmployeeMonthlyAttendance(client, employeeId)
@@ -125,5 +186,14 @@ export async function getEmployeeDashboard(client: PoolClient, userId: number) {
     const approvedLeaves = leaves.filter((r: any) => r.status === 'Approved').length
     const leavesRemaining = Math.max(0, 12 - approvedLeaves)
 
-    return { attendancePercentage, leavesRemaining, pendingLeaves }
+    return {
+        attendancePercentage,
+        leavesRemaining,
+        pendingLeaves,
+        workSchedule,
+        annualLeavePolicy: {
+            maxDays: 12,
+            text: 'Annual leave applications should ideally be submitted at least 3 business days in advance for management approval.'
+        }
+    }
 }

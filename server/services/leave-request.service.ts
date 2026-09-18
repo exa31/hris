@@ -6,6 +6,9 @@
 import { HttpError } from '~~/server/errors/HttpError'
 import * as leaveRepository from '~~/server/repositories/leave-request.repository'
 import * as userRepository from '~~/server/repositories/user.repository'
+import * as attendanceRepository from '~~/server/repositories/attendance.repository'
+import * as workScheduleRepo from '~~/server/repositories/work-schedule.repository'
+import * as holidayRepo from '~~/server/repositories/holiday.repository'
 import { type CreateLeaveRequestInput, type ApproveLeaveInput, type SearchLeaveRequestInput } from '~~/server/model/leave-request.model'
 import type { PoolClient } from 'pg'
 
@@ -79,6 +82,56 @@ export async function approveLeaveRequest(client: PoolClient, id: number, data: 
         data.rejection_reason
     )
 
+    if (data.status === 'Approved') {
+        const start = new Date(existing.start_date)
+        const end = new Date(existing.end_date)
+        const leaveTypeName = (existing.leave_type_name || '').toLowerCase()
+        
+        let attendanceStatus = 'Izin'
+        if (leaveTypeName.includes('sakit') || leaveTypeName.includes('sick')) {
+            attendanceStatus = 'Sakit'
+        }
+
+        const startStr = typeof existing.start_date === 'string' ? existing.start_date : existing.start_date.toISOString().slice(0, 10)
+        const endStr = typeof existing.end_date === 'string' ? existing.end_date : existing.end_date.toISOString().slice(0, 10)
+
+        const scheduleMap = await workScheduleRepo.getWorkScheduleMap(client)
+        const holidays = await holidayRepo.getHolidaysBetweenDates(client, startStr, endStr)
+        const holidayDates = new Set(holidays.map(h => h.date))
+
+        let currentDate = new Date(start)
+        while (currentDate <= end) {
+            const dayOfWeek = currentDate.getDay()
+            const daySchedule = scheduleMap.get(dayOfWeek)
+            const isWeeklyWorkDay = daySchedule ? daySchedule.is_work_day : (dayOfWeek !== 0 && dayOfWeek !== 6)
+
+            const y = currentDate.getFullYear()
+            const m = String(currentDate.getMonth() + 1).padStart(2, '0')
+            const d = String(currentDate.getDate()).padStart(2, '0')
+            const dateStr = `${y}-${m}-${d}`
+
+            // Only generate attendance if it is an active work day AND not a holiday
+            if (isWeeklyWorkDay && !holidayDates.has(dateStr)) {
+                const { row: existingAttendance } = await attendanceRepository.getTodayAttendance(client, existing.employee_id, dateStr)
+                
+                if (existingAttendance) {
+                    await attendanceRepository.updateAttendance(client, existingAttendance.id, {
+                        status: attendanceStatus,
+                        notes: `Leave: ${existing.reason}`
+                    })
+                } else {
+                    await attendanceRepository.createAttendance(client, {
+                        employee_id: existing.employee_id,
+                        date: dateStr,
+                        status: attendanceStatus,
+                        notes: `Leave: ${existing.reason}`
+                    })
+                }
+            }
+            currentDate.setDate(currentDate.getDate() + 1)
+        }
+    }
+
     return updated
 }
 
@@ -112,12 +165,38 @@ export async function getLeaveBalance(client: PoolClient, employeeId: number, le
     return balance
 }
 
-export async function getEmployeeLeaveRequests(client: PoolClient, userId: number) {
+export async function getEmployeeLeaveRequests(
+    client: PoolClient,
+    userId: number,
+    params: leaveRepository.EmployeeLeaveQueryParams = {}
+) {
     const employeeId = await userRepository.getEmployeeIdByUserId(client, userId)
-    if (!employeeId) return { leaves: [] }
+    if (!employeeId) {
+        return {
+            leaves: [],
+            pagination: { total: 0, limit: params.limit ?? 10, offset: params.offset ?? 0, pages: 0 },
+            stats: { pending: 0, approved: 0, rejected: 0, used_annual: 0, annual_balance: 12 },
+        }
+    }
 
-    const rows = await leaveRepository.getEmployeeLeaveRequests(client, employeeId)
-    return { leaves: rows }
+    const [{ rows, total }, stats] = await Promise.all([
+        leaveRepository.getEmployeeLeaveRequests(client, employeeId, params),
+        leaveRepository.getEmployeeLeaveStats(client, employeeId),
+    ])
+
+    const limit = params.limit ?? 10
+    const offset = params.offset ?? 0
+
+    return {
+        leaves: rows,
+        pagination: {
+            total,
+            limit,
+            offset,
+            pages: Math.ceil(total / limit),
+        },
+        stats,
+    }
 }
 
 export async function createEmployeeLeaveRequest(client: PoolClient, userId: number, data: Omit<CreateLeaveRequestInput, 'employee_id'>) {

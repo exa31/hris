@@ -12,8 +12,8 @@ export async function getLeaveRequests(client: PoolClient, params: SearchLeaveRe
     let paramIndex = 1
 
     if (params.search) {
-        conditions.push(`e.name ILIKE $${paramIndex}`)
-        values.push(`%${params.search}%`)
+        conditions.push(`(e.name ILIKE $${paramIndex} OR e.nip::text ILIKE $${paramIndex})`)
+        values.push(`%${params.search.trim()}%`)
         paramIndex++
     }
 
@@ -163,15 +163,97 @@ export async function getLeaveBalance(client: PoolClient, employeeId: number, le
     }
 }
 
-export async function getEmployeeLeaveRequests(client: PoolClient, employeeId: number) {
-    const result = await client.query(
-        `SELECT id, leave_type_id, start_date, end_date, total_days, reason, status, created_at
-         FROM leave_requests
-         WHERE employee_id = $1
-         ORDER BY created_at DESC`,
-        [employeeId]
+export interface EmployeeLeaveQueryParams {
+    limit?: number
+    offset?: number
+    search?: string
+    status?: string
+}
+
+export async function getEmployeeLeaveRequests(
+    client: PoolClient,
+    employeeId: number,
+    params: EmployeeLeaveQueryParams = {}
+) {
+    const conditions: string[] = ['lr.employee_id = $1']
+    const values: any[] = [employeeId]
+    let paramIndex = 2
+
+    if (params.status && params.status !== 'All') {
+        conditions.push(`lr.status = $${paramIndex}`)
+        values.push(params.status)
+        paramIndex++
+    }
+
+    if (params.search && params.search.trim()) {
+        conditions.push(`(lr.reason ILIKE $${paramIndex} OR lt.name ILIKE $${paramIndex})`)
+        values.push(`%${params.search.trim()}%`)
+        paramIndex++
+    }
+
+    const whereClause = conditions.join(' AND ')
+
+    const countResult = await client.query(
+        `SELECT COUNT(*)::int as total
+         FROM leave_requests lr
+         LEFT JOIN leave_types lt ON lt.id = lr.leave_type_id
+         WHERE ${whereClause}`,
+        values
     )
-    return result.rows
+    const total = countResult.rows[0]?.total || 0
+
+    const limit = params.limit ?? 10
+    const offset = params.offset ?? 0
+
+    const dataResult = await client.query(
+        `SELECT lr.id, lr.leave_type_id, lt.name as leave_type_name, lt.max_days, lr.start_date, lr.end_date, lr.total_days, lr.reason, lr.status, lr.rejection_reason, lr.created_at
+         FROM leave_requests lr
+         LEFT JOIN leave_types lt ON lt.id = lr.leave_type_id
+         WHERE ${whereClause}
+         ORDER BY lr.created_at DESC
+         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        [...values, limit, offset]
+    )
+
+    return {
+        rows: dataResult.rows,
+        total,
+    }
+}
+
+export async function getEmployeeLeaveStats(client: PoolClient, employeeId: number) {
+    const currentYear = new Date().getFullYear()
+    const result = await client.query(
+        `SELECT 
+            COUNT(*) FILTER (WHERE lr.status = 'Pending')::int as pending,
+            COUNT(*) FILTER (WHERE lr.status = 'Approved')::int as approved,
+            COUNT(*) FILTER (WHERE lr.status = 'Rejected')::int as rejected,
+            COALESCE(SUM(lr.total_days) FILTER (
+                WHERE lr.status = 'Approved' 
+                AND EXTRACT(YEAR FROM lr.start_date) = $2
+                AND (lr.leave_type_id = 1 OR lt.name ILIKE '%tahunan%' OR lt.name ILIKE '%annual%')
+            ), 0)::int as used_annual
+         FROM leave_requests lr
+         LEFT JOIN leave_types lt ON lt.id = lr.leave_type_id
+         WHERE lr.employee_id = $1`,
+        [employeeId, currentYear]
+    )
+    const row = result.rows[0] || { pending: 0, approved: 0, rejected: 0, used_annual: 0 }
+
+    const annualTypeResult = await client.query(
+        `SELECT max_days FROM leave_types WHERE id = 1 OR name ILIKE '%tahunan%' OR name ILIKE '%annual%' LIMIT 1`
+    )
+    const maxAnnualDays = annualTypeResult.rows[0]?.max_days ?? 12
+    const usedAnnual = Number(row.used_annual) || 0
+    const remainingAnnual = Math.max(0, maxAnnualDays - usedAnnual)
+
+    return {
+        pending: Number(row.pending) || 0,
+        approved: Number(row.approved) || 0,
+        rejected: Number(row.rejected) || 0,
+        used_annual: usedAnnual,
+        annual_balance: remainingAnnual,
+    }
 }
 
 export async function getEmployeeYearlyLeaves(client: PoolClient, employeeId: number) {
@@ -190,8 +272,8 @@ export async function getLeaveSummary(client: PoolClient, params: SearchLeaveReq
     let paramIndex = 1
 
     if (params.search) {
-        conditions.push(`e.name ILIKE $${paramIndex}`)
-        values.push(`%${params.search}%`)
+        conditions.push(`(e.name ILIKE $${paramIndex} OR e.nip::text ILIKE $${paramIndex})`)
+        values.push(`%${params.search.trim()}%`)
         paramIndex++
     }
 

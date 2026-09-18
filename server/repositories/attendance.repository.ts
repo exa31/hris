@@ -19,8 +19,10 @@ export async function getAttendances(
   let paramIndex = 1;
 
   if (params.search) {
-    conditions.push(`e.name ILIKE $${paramIndex}`);
-    values.push(`%${params.search}%`);
+    conditions.push(
+      `(e.name ILIKE $${paramIndex} OR e.nip::text ILIKE $${paramIndex} OR d.name ILIKE $${paramIndex} OR p.name ILIKE $${paramIndex})`,
+    );
+    values.push(`%${params.search.trim()}%`);
     paramIndex++;
   }
 
@@ -59,6 +61,8 @@ export async function getAttendances(
   const countResult = await client.query(
     `SELECT COUNT(*) as total FROM attendances a
          JOIN employees e ON a.employee_id = e.id
+         LEFT JOIN departments d ON e.department_id = d.id
+         LEFT JOIN positions p ON e.position_id = p.id
          WHERE ${whereClause}`,
     values,
   );
@@ -212,13 +216,174 @@ export async function updateClockOut(
 export async function getEmployeeAttendances(
   client: PoolClient,
   employeeId: number,
-  limit: number = 30,
+  limitOrParams: number | { limit?: number; month?: number; year?: number } = 100,
 ) {
-  const result = await client.query(
-    `SELECT id, date, clock_in, clock_out, status FROM attendances WHERE employee_id = $1 ORDER BY date DESC LIMIT $2`,
-    [employeeId, limit],
-  );
+  let limit: number | undefined = 100;
+  let month: number | undefined;
+  let year: number | undefined;
+
+  if (typeof limitOrParams === 'number') {
+    limit = limitOrParams;
+  } else if (limitOrParams) {
+    limit = limitOrParams.limit ?? 100;
+    month = limitOrParams.month;
+    year = limitOrParams.year;
+  }
+
+  const conditions = ['employee_id = $1'];
+  const values: any[] = [employeeId];
+  let paramIndex = 2;
+
+  if (month && month > 0) {
+    conditions.push(`EXTRACT(MONTH FROM date) = $${paramIndex}`);
+    values.push(month);
+    paramIndex++;
+  }
+
+  if (year && year > 0) {
+    conditions.push(`EXTRACT(YEAR FROM date) = $${paramIndex}`);
+    values.push(year);
+    paramIndex++;
+  }
+
+  let query = `SELECT id, date, clock_in, clock_out, status, notes FROM attendances WHERE ${conditions.join(' AND ')} ORDER BY date DESC`;
+
+  if (limit) {
+    query += ` LIMIT $${paramIndex}`;
+    values.push(limit);
+  }
+
+  const result = await client.query(query, values);
   return result.rows;
+}
+
+export interface EmployeeAttendanceQueryParams {
+  limit?: number;
+  offset?: number;
+  month?: number;
+  year?: number;
+  status?: string;
+  search?: string;
+}
+
+export async function getEmployeeAttendancesPaginated(
+  client: PoolClient,
+  employeeId: number,
+  params: EmployeeAttendanceQueryParams = {}
+): Promise<{
+  rows: any[];
+  total: number;
+}> {
+  const limit = params.limit ?? 10;
+  const offset = params.offset ?? 0;
+
+  const conditions = ['a.employee_id = $1'];
+  const values: any[] = [employeeId];
+  let paramIndex = 2;
+
+  if (params.month && params.month > 0) {
+    conditions.push(`EXTRACT(MONTH FROM a.date) = $${paramIndex}`);
+    values.push(params.month);
+    paramIndex++;
+  }
+
+  if (params.year && params.year > 0) {
+    conditions.push(`EXTRACT(YEAR FROM a.date) = $${paramIndex}`);
+    values.push(params.year);
+    paramIndex++;
+  }
+
+  if (params.status && params.status !== 'All') {
+    const s = params.status.toLowerCase();
+    if (s === 'present' || s === 'hadir') {
+      conditions.push(`a.status = 'Hadir'`);
+    } else if (s === 'late' || s === 'terlambat') {
+      conditions.push(`a.status = 'Hadir' AND a.clock_in > '08:15:00'`);
+    } else if (s === 'leave' || s === 'izin') {
+      conditions.push(`a.status = 'Izin'`);
+    } else if (s === 'sick' || s === 'sakit') {
+      conditions.push(`a.status = 'Sakit'`);
+    } else if (s === 'absent' || s === 'alpa' || s === 'alpha') {
+      conditions.push(`a.status = 'Alpha'`);
+    }
+  }
+
+  if (params.search && params.search.trim()) {
+    const q = `%${params.search.trim()}%`;
+    conditions.push(`(
+      a.notes ILIKE $${paramIndex} OR
+      to_char(a.date, 'Day') ILIKE $${paramIndex} OR
+      to_char(a.date, 'YYYY-MM-DD') ILIKE $${paramIndex} OR
+      to_char(a.date, 'DD Mon YYYY') ILIKE $${paramIndex} OR
+      to_char(a.date, 'Month') ILIKE $${paramIndex}
+    )`);
+    values.push(q);
+    paramIndex++;
+  }
+
+  const whereClause = conditions.join(' AND ');
+
+  // Total count matching the filters
+  const countResult = await client.query(
+    `SELECT COUNT(*) as total FROM attendances a WHERE ${whereClause}`,
+    values
+  );
+  const total = parseInt(countResult.rows[0]?.total || '0', 10);
+
+  // Query paginated records
+  const queryValues = [...values, limit, offset];
+  const dataResult = await client.query(
+    `SELECT a.id, a.date, a.clock_in, a.clock_out, a.status, a.notes
+     FROM attendances a
+     WHERE ${whereClause}
+     ORDER BY a.date DESC
+     LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+    queryValues
+  );
+
+  return { rows: dataResult.rows, total };
+}
+
+export async function getEmployeeAttendanceStats(
+  client: PoolClient,
+  employeeId: number,
+  params: { month?: number; year?: number } = {}
+): Promise<{ on_time: number; late: number; leave: number; sick: number; absent: number; total: number }> {
+  const statsConditions = ['employee_id = $1'];
+  const statsValues: any[] = [employeeId];
+  let sIndex = 2;
+  if (params.month && params.month > 0) {
+    statsConditions.push(`EXTRACT(MONTH FROM date) = $${sIndex}`);
+    statsValues.push(params.month);
+    sIndex++;
+  }
+  if (params.year && params.year > 0) {
+    statsConditions.push(`EXTRACT(YEAR FROM date) = $${sIndex}`);
+    statsValues.push(params.year);
+    sIndex++;
+  }
+
+  const statsResult = await client.query(
+    `SELECT
+       COUNT(*) FILTER (WHERE status = 'Hadir' AND (clock_in IS NULL OR clock_in <= '08:15:00')) as on_time,
+       COUNT(*) FILTER (WHERE status = 'Hadir' AND clock_in > '08:15:00') as late,
+       COUNT(*) FILTER (WHERE status = 'Izin') as leave,
+       COUNT(*) FILTER (WHERE status = 'Sakit') as sick,
+       COUNT(*) FILTER (WHERE status = 'Alpha') as absent,
+       COUNT(*) as total_records
+     FROM attendances
+     WHERE ${statsConditions.join(' AND ')}`,
+    statsValues
+  );
+  const sRow = statsResult.rows[0];
+  return {
+    on_time: parseInt(sRow?.on_time || '0', 10),
+    late: parseInt(sRow?.late || '0', 10),
+    leave: parseInt(sRow?.leave || '0', 10),
+    sick: parseInt(sRow?.sick || '0', 10),
+    absent: parseInt(sRow?.absent || '0', 10),
+    total: parseInt(sRow?.total_records || '0', 10),
+  };
 }
 
 export async function getAttendanceSummary(

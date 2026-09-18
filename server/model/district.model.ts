@@ -27,3 +27,10 @@ export const updateDistrictSchema = z.object({
 })
 
 export type UpdateDistrictInput = z.infer<typeof updateDistrictSchema>
+
+export const searchDistrictQuerySchema = z.object({
+    q: z.string().optional().default(''),
+})
+
+export type SearchDistrictQueryInput = z.infer<typeof searchDistrictQuerySchema>
+

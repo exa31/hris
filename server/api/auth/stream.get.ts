@@ -27,8 +27,12 @@ export default defineEventHandler(async (event) => {
         return { error: 'Invalid Token' };
     }
     
-    const userId = payload.email; // user_id is stored in 'email' field based on setup
-    const roleId = Number(payload.sub); // role_id is stored in 'sub' field based on setup
+    const userId = payload.user_id 
+        ? Number(payload.user_id) 
+        : (payload.email && !isNaN(Number(payload.email)) ? Number(payload.email) : Number(payload.sub));
+    const roleId = payload.role_id 
+        ? Number(payload.role_id) 
+        : Number(payload.sub);
 
     // Provide SSE Headers
     setHeader(event, 'Content-Type', 'text/event-stream');

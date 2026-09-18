@@ -6,19 +6,26 @@ import { withPermission } from '~~/server/utils/withPermission'
 import { withTransaction } from '~~/server/db/postgres'
 import * as transportService from '~~/server/services/transport-allowance.service'
 import { sendSuccess } from '~~/server/utils/response'
+import { searchTransportAllowanceSchema } from '~~/server/model/transport-allowance.model'
+import { HttpError } from '~~/server/errors/HttpError'
+import z from 'zod'
 
 export default withPermission(async (event) => {
-    const query = getQuery(event)
-    const options = {
-        month: query.month ? parseInt(query.month as string) : undefined,
-        year: query.year ? parseInt(query.year as string) : undefined,
-        search: query.search as string,
-        limit: query.limit ? parseInt(query.limit as string) : 10,
-        offset: query.offset ? parseInt(query.offset as string) : 0,
+    const parsed = await getValidatedQuery(event, (query) =>
+        searchTransportAllowanceSchema.safeParse(query)
+    )
+
+    if (!parsed.success) {
+        throw new HttpError(
+            400,
+            'INVALID_QUERY',
+            'Satu atau lebih parameter query tidak valid',
+            z.treeifyError(parsed.error).properties
+        )
     }
 
     return withTransaction(async (client) => {
-        const data = await transportService.getTransportAllowances(client, options)
+        const data = await transportService.getTransportAllowances(client, parsed.data)
         return sendSuccess(event, data)
     })
 }, [{ module: 'transport', action: 'read' }])

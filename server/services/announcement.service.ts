@@ -5,6 +5,7 @@
 
 import { HttpError } from '~~/server/errors/HttpError'
 import * as announcementRepository from '~~/server/repositories/announcement.repository'
+import * as notificationRepo from '~~/server/repositories/notification.repository'
 import { type CreateAnnouncementInput, type UpdateAnnouncementInput, type SearchAnnouncementInput } from '~~/server/model/announcement.model'
 import type { PoolClient } from 'pg'
 
@@ -39,6 +40,16 @@ export async function getAnnouncementById(client: PoolClient, id: number) {
 
 export async function createAnnouncement(client: PoolClient, data: CreateAnnouncementInput, createdBy: number) {
     const announcement = await announcementRepository.createAnnouncement(client, data, createdBy)
+    if (announcement.is_active) {
+        await notificationRepo.createNotification(client, {
+            user_id: null,
+            title: announcement.title,
+            message: announcement.content,
+            type: 'broadcast',
+            icon: 'bi bi-megaphone-fill',
+            link: '/announcements',
+        }).catch(err => console.error('Failed to create notification from announcement:', err));
+    }
     return announcement
 }
 

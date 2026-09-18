@@ -27,3 +27,10 @@ export const updateRegencySchema = z.object({
 })
 
 export type UpdateRegencyInput = z.infer<typeof updateRegencySchema>
+
+export const searchRegencyQuerySchema = z.object({
+    q: z.string().optional().default(''),
+})
+
+export type SearchRegencyQueryInput = z.infer<typeof searchRegencyQuerySchema>
+
