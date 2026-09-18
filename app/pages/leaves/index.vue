@@ -41,16 +41,17 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
       <Motion
         v-for="(stat, idx) in leaveStats"
         :key="stat.label"
         :initial="{ opacity: 0, y: 20 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ delay: idx * 0.1 }"
+        class="h-full flex flex-col"
       >
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-5 hover:shadow-lg transition-all"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-5 hover:shadow-lg transition-all h-full"
         >
           <div
             :class="[
@@ -60,13 +61,13 @@
           >
             <i :class="stat.icon"></i>
           </div>
-          <div>
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
             <div
-              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center line-clamp-2 leading-tight"
             >
               {{ stat.label }}
             </div>
-            <div class="text-3xl font-black text-slate-800 dark:text-white">
+            <div class="text-3xl font-black text-slate-800 dark:text-white mt-0.5 truncate">
               {{ stat.value }}
             </div>
           </div>
@@ -164,12 +165,7 @@
             <template #body="slotProps">
               <div class="flex items-center gap-3">
                 <Avatar
-                  :image="
-                    slotProps.data.photo_url ||
-                    'https://ui-avatars.com/api/?name=' +
-                      slotProps.data.employee_name +
-                      '&background=random&size=40'
-                  "
+                  :image="slotProps.data.photo_url || getAvatarUrl(slotProps.data.employee_name, 'random')"
                   shape="circle"
                   class="shadow-sm"
                 />
@@ -280,7 +276,8 @@
                     severity="success"
                     text
                     rounded
-                    class="!w-10 !h-10 hover:!bg-emerald-50"
+                    v-tooltip.top="'Approve'"
+                    class="!w-10 !h-10 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10"
                   />
                   <Button
                     v-if="hasPermission('leaves', 'approve')"
@@ -289,7 +286,8 @@
                     severity="danger"
                     text
                     rounded
-                    class="!w-10 !h-10 hover:!bg-rose-50"
+                    v-tooltip.top="'Reject'"
+                    class="!w-10 !h-10 hover:!bg-rose-50 dark:hover:!bg-rose-500/10"
                   />
                   <Button
                     v-if="hasPermission('leaves', 'delete')"
@@ -298,7 +296,8 @@
                     severity="secondary"
                     text
                     rounded
-                    class="!w-10 !h-10 hover:!bg-slate-100"
+                    v-tooltip.top="'Delete'"
+                    class="!w-10 !h-10 hover:!bg-slate-100 dark:hover:!bg-slate-800"
                   />
                 </template>
                 <span
@@ -421,14 +420,17 @@
           >
           <Select
             v-model="createForm.employee_id"
+            @change="formErrors.employee_id = ''"
             :options="employeeOptions"
             optionLabel="label"
             optionValue="value"
             placeholder="Select Employee"
             filter
+            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !text-slate-800 dark:!text-slate-200 transition-all"
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200',
-              formErrors.employee_id ? '!border !border-rose-500' : '',
+              formErrors.employee_id
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
             ]"
           />
           <small
@@ -446,13 +448,16 @@
             >
             <Select
               v-model="createForm.leave_type_id"
+              @change="formErrors.leave_type_id = ''"
               :options="leaveTypeOptions.slice(1)"
               optionLabel="label"
               optionValue="value"
               placeholder="Select Type"
+              class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !text-slate-800 dark:!text-slate-200 transition-all"
               :class="[
-                'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-slate-200',
-                formErrors.leave_type_id ? '!border !border-rose-500' : '',
+                formErrors.leave_type_id
+                  ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                  : '!border-none',
               ]"
             />
             <small
@@ -474,49 +479,64 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-1.5">
-            <label
-              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >Start Date <span class="text-rose-500">*</span></label
-            >
-            <DatePicker
-              v-model="createForm.start_date"
-              dateFormat="yy-mm-dd"
-              placeholder="Select Start Date"
-              class="w-full"
-              inputClass="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white"
-              :class="[
-                formErrors.start_date ? '!border !border-rose-500' : '',
-              ]"
-            />
-            <small
-              v-if="formErrors.start_date"
-              class="text-rose-500 text-xs mt-1 ml-1 block"
-              >{{ formErrors.start_date }}</small
-            >
+        <div class="space-y-1.5">
+          <label
+            class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
+            >Date / Date Range <span class="text-rose-500">*</span></label
+          >
+          <DatePicker
+            v-model="createForm.date_range"
+            @update:model-value="formErrors.date_range = ''"
+            selectionMode="range"
+            dateFormat="yy-mm-dd"
+            placeholder="Select single date or date range"
+            class="w-full"
+            :inputClass="[
+              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !text-slate-800 dark:!text-white transition-all',
+              formErrors.date_range
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
+            ]"
+          />
+
+          <!-- Info banner for working days & off-days -->
+          <div
+            v-if="dateRangeInfo.calendarDays > 0"
+            class="p-3 rounded-xl text-xs font-bold border transition-all mt-2"
+            :class="[
+              dateRangeInfo.workingDays > 0
+                ? 'bg-indigo-50/70 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300'
+                : 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400'
+            ]"
+          >
+            <div class="flex items-center gap-2.5">
+              <i
+                class="bi text-sm mt-0.5"
+                :class="dateRangeInfo.workingDays > 0 ? 'bi-info-circle-fill text-indigo-500' : 'bi-exclamation-triangle-fill text-rose-500'"
+              ></i>
+              <div>
+                <div>
+                  <span class="font-black">{{ dateRangeInfo.calendarDays }} Calendar Days</span>:
+                  <span class="font-black text-emerald-600 dark:text-emerald-400"> {{ dateRangeInfo.workingDays }} Work Days </span>
+                  <span v-if="dateRangeInfo.offDays + dateRangeInfo.holidayDays > 0" class="text-slate-500 dark:text-slate-400">
+                    ({{ dateRangeInfo.offDays + dateRangeInfo.holidayDays }} holidays / off-days automatically skipped)
+                  </span>
+                </div>
+                <div v-if="dateRangeInfo.holidayNames.length > 0" class="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5">
+                  Public Holidays: {{ dateRangeInfo.holidayNames.join(', ') }}
+                </div>
+                <div v-if="dateRangeInfo.workingDays === 0" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+                  All selected dates are holidays / off-days. Cannot submit leave request.
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="space-y-1.5">
-            <label
-              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-              >End Date <span class="text-rose-500">*</span></label
-            >
-            <DatePicker
-              v-model="createForm.end_date"
-              dateFormat="yy-mm-dd"
-              placeholder="Select End Date"
-              class="w-full"
-              inputClass="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white"
-              :class="[
-                formErrors.end_date ? '!border !border-rose-500' : '',
-              ]"
-            />
-            <small
-              v-if="formErrors.end_date"
-              class="text-rose-500 text-xs mt-1 ml-1 block"
-              >{{ formErrors.end_date }}</small
-            >
-          </div>
+
+          <small
+            v-if="formErrors.date_range"
+            class="text-rose-500 text-xs mt-1 ml-1 block"
+            >{{ formErrors.date_range }}</small
+          >
         </div>
 
         <div class="space-y-1.5">
@@ -526,11 +546,14 @@
           >
           <Textarea
             v-model="createForm.reason"
+            @input="formErrors.reason = ''"
             rows="3"
             placeholder="Briefly explain your leave reason..."
+            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500 transition-all"
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
-              formErrors.reason ? '!border !border-rose-500' : '',
+              formErrors.reason
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
             ]"
           />
           <small
@@ -590,11 +613,14 @@
           >
           <Textarea
             v-model="rejectionReason"
+            @input="formErrors.rejectionReason = ''"
             rows="3"
             placeholder="Enter rejection reason..."
+            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500 transition-all"
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
-              formErrors.rejectionReason ? '!border !border-rose-500' : '',
+              formErrors.rejectionReason
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
             ]"
           />
           <small
@@ -625,14 +651,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, computed } from "vue";
+import { ref, reactive, onMounted, watch, computed, nextTick } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useLeaveRequests } from "~/composables/useLeaveRequests";
 import { useEmployees } from "~/composables/useEmployees";
 import { useAuth } from "~/composables/useAuth";
+import { useWorkSchedule } from "~/composables/useWorkSchedule";
+import { useHolidays } from "~/composables/useHolidays";
 
 const confirm = useConfirm();
 const { hasPermission } = useAuth();
+const { schedules: workSchedules, fetchWorkSchedules } = useWorkSchedule();
+const { holidays: allHolidays, fetchHolidays } = useHolidays();
 const {
   leaveRequests,
   leaveTypes,
@@ -665,8 +695,7 @@ const rejectionReason = ref("");
 const createForm = reactive({
   employee_id: null as number | null,
   leave_type_id: null as number | null,
-  start_date: "",
-  end_date: "",
+  date_range: null as Date[] | null,
   total_days: 1,
   reason: "",
 });
@@ -674,18 +703,82 @@ const createForm = reactive({
 const formErrors = reactive({
   employee_id: "",
   leave_type_id: "",
-  start_date: "",
-  end_date: "",
+  date_range: "",
   reason: "",
   rejectionReason: "",
+});
+
+const dateRangeInfo = computed(() => {
+  const range = createForm.date_range;
+  if (!range || !range[0]) {
+    return { calendarDays: 0, workingDays: 0, offDays: 0, holidayDays: 0, holidayNames: [] as string[] };
+  }
+
+  const start = new Date(range[0]);
+  const end = range[1] ? new Date(range[1]) : new Date(range[0]);
+  if (end < start) {
+    return { calendarDays: 0, workingDays: 0, offDays: 0, holidayDays: 0, holidayNames: [] as string[] };
+  }
+
+  const scheduleMap = new Map<number, boolean>();
+  workSchedules.value.forEach((s) => {
+    scheduleMap.set(s.day_of_week, s.is_work_day);
+  });
+
+  const holidayMap = new Map<string, string>();
+  allHolidays.value.forEach((h) => {
+    holidayMap.set(h.date, h.name);
+  });
+
+  let calendarDays = 0;
+  let workingDays = 0;
+  let offDays = 0;
+  let holidayDays = 0;
+  const holidayNames: string[] = [];
+
+  const cur = new Date(start);
+  while (cur <= end) {
+    calendarDays++;
+    const dayOfWeek = cur.getDay();
+    const isWeeklyWorkDay = scheduleMap.has(dayOfWeek)
+      ? scheduleMap.get(dayOfWeek)!
+      : dayOfWeek !== 0 && dayOfWeek !== 6;
+
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, "0");
+    const d = String(cur.getDate()).padStart(2, "0");
+    const curDateStr = `${y}-${m}-${d}`;
+
+    const holidayName = holidayMap.get(curDateStr);
+
+    if (!isWeeklyWorkDay) {
+      offDays++;
+    } else if (holidayName) {
+      holidayDays++;
+      if (!holidayNames.includes(holidayName)) {
+        holidayNames.push(holidayName);
+      }
+    } else {
+      workingDays++;
+    }
+
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  return {
+    calendarDays,
+    workingDays,
+    offDays,
+    holidayDays,
+    holidayNames,
+  };
 });
 
 const validateForm = () => {
   let valid = true;
   formErrors.employee_id = "";
   formErrors.leave_type_id = "";
-  formErrors.start_date = "";
-  formErrors.end_date = "";
+  formErrors.date_range = "";
   formErrors.reason = "";
 
   if (!createForm.employee_id) {
@@ -696,12 +789,11 @@ const validateForm = () => {
     formErrors.leave_type_id = "Leave type must be selected";
     valid = false;
   }
-  if (!createForm.start_date) {
-    formErrors.start_date = "Start date is required";
+  if (!createForm.date_range || !createForm.date_range[0]) {
+    formErrors.date_range = "Date selection is required";
     valid = false;
-  }
-  if (!createForm.end_date) {
-    formErrors.end_date = "End date is required";
+  } else if (dateRangeInfo.value.workingDays <= 0) {
+    formErrors.date_range = "Selected dates are all holidays / off-days (0 work days)";
     valid = false;
   }
   if (!createForm.reason) {
@@ -716,19 +808,19 @@ const summaryStats = ref({ pending: 0, approved: 0, rejected: 0 });
 const leaveStats = computed(() => [
   {
     label: "Pending",
-    value: summaryStats.value.pending,
+    value: summaryStats.value?.pending ?? 0,
     icon: "bi bi-hourglass-split",
     color: "bg-amber-50 text-amber-500",
   },
   {
     label: "Approved",
-    value: summaryStats.value.approved,
+    value: summaryStats.value?.approved ?? 0,
     icon: "bi bi-check2-circle",
     color: "bg-emerald-50 text-emerald-500",
   },
   {
     label: "Rejected",
-    value: summaryStats.value.rejected,
+    value: summaryStats.value?.rejected ?? 0,
     icon: "bi bi-x-circle",
     color: "bg-rose-50 text-rose-500",
   },
@@ -765,7 +857,13 @@ const countByStatus = (status: string) => {
 
 const loadSummary = async () => {
   const data = await fetchSummary();
-  summaryStats.value = data;
+  if (data) {
+    summaryStats.value = {
+      pending: Number(data.pending) || 0,
+      approved: Number(data.approved) || 0,
+      rejected: Number(data.rejected) || 0,
+    };
+  }
 };
 
 const formatDate = (d: string) => {
@@ -813,15 +911,13 @@ const leaveStatusLabel = (status: string) => {
 const openCreateModal = () => {
   createForm.employee_id = null;
   createForm.leave_type_id = null;
-  createForm.start_date = "";
-  createForm.end_date = "";
+  createForm.date_range = null;
   createForm.total_days = 1;
   createForm.reason = "";
 
   formErrors.employee_id = "";
   formErrors.leave_type_id = "";
-  formErrors.start_date = "";
-  formErrors.end_date = "";
+  formErrors.date_range = "";
   formErrors.reason = "";
 
   createModalOpen.value = true;
@@ -844,8 +940,8 @@ const handleCreate = async () => {
     await createLeaveRequest({
       employee_id: createForm.employee_id || undefined,
       leave_type_id: createForm.leave_type_id || undefined,
-      start_date: formatToYMD(createForm.start_date),
-      end_date: formatToYMD(createForm.end_date),
+      start_date: formatToYMD(createForm.date_range![0]),
+      end_date: formatToYMD(createForm.date_range![1] || createForm.date_range![0]),
       total_days: createForm.total_days,
       reason: createForm.reason,
     });
@@ -942,26 +1038,29 @@ const resetFilters = () => {
   loadSummary();
 };
 
-watch([() => createForm.start_date, () => createForm.end_date], () => {
-  if (createForm.start_date && createForm.end_date) {
-    const start = new Date(createForm.start_date);
-    const end = new Date(createForm.end_date);
-    const diff =
-      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    createForm.total_days = diff > 0 ? diff : 1;
-  }
+watch(dateRangeInfo, (info) => {
+  createForm.total_days = info.workingDays;
 });
 
 let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+let isMounted = false;
 
-onMounted(() => {
-  fetchLeaveRequests();
-  loadSummary();
-  fetchLeaveTypes();
-  fetchEmps();
+onMounted(async () => {
+  await Promise.all([
+    fetchLeaveRequests(),
+    loadSummary(),
+    fetchLeaveTypes(),
+    fetchEmps(),
+    fetchWorkSchedules(),
+    fetchHolidays(),
+  ]);
+  nextTick(() => {
+    isMounted = true;
+  });
 });
 
 watch(searchQuery, (newVal) => {
+  if (!isMounted) return;
   if (searchDebounce) clearTimeout(searchDebounce);
   const delay = newVal ? 400 : 0;
   searchDebounce = setTimeout(() => {
@@ -972,10 +1071,13 @@ watch(searchQuery, (newVal) => {
 });
 
 watch([currentPage], () => {
+  if (!isMounted) return;
   fetchLeaveRequests();
 });
 
 watch([selectedStatus, selectedLeaveType], () => {
+  if (!isMounted) return;
+  currentPage.value = 1;
   fetchLeaveRequests();
   loadSummary();
 });
@@ -991,7 +1093,7 @@ definePageMeta({ layout: "default" });
   @apply !px-12 !py-8 !border-b !border-slate-50 dark:!border-slate-800 !bg-white dark:!bg-slate-900 transition-all duration-300;
 }
 .p-datatable-overhaul .p-datatable-tbody > tr:hover > td {
-  @apply !bg-slate-50/30 dark:!bg-slate-800/30;
+  @apply !bg-slate-50 dark:!bg-slate-800/80;
 }
 
 .p-paginator {

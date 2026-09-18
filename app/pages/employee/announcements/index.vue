@@ -133,32 +133,35 @@
           :initial="{ opacity: 0, y: 15 }"
           :animate="{ opacity: 1, y: 0 }"
           :transition="{ delay: idx * 0.06 }"
+          class="h-full flex flex-col"
         >
           <div
-            class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group cursor-pointer flex flex-col h-full"
+            class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group cursor-pointer flex flex-col h-full justify-between"
             @click="openDetail(ann)"
           >
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-[9px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-lg uppercase tracking-wider border border-indigo-100 dark:border-indigo-500/20">
-                {{ ann.priority || 'General' }}
-              </span>
-              <span class="text-[10px] font-bold text-slate-400">
-                {{ formatDate(ann.created_at) }}
-              </span>
+            <div class="flex flex-col flex-grow">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-[9px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-lg uppercase tracking-wider border border-indigo-100 dark:border-indigo-500/20">
+                  {{ ann.priority || 'General' }}
+                </span>
+                <span class="text-[10px] font-bold text-slate-400">
+                  {{ formatDate(ann.created_at) }}
+                </span>
+              </div>
+
+              <h3 class="text-base font-black text-slate-800 dark:text-white leading-snug mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 min-h-[2.75rem]">
+                {{ ann.title }}
+              </h3>
+
+              <p class="text-xs font-medium text-slate-500 dark:text-slate-400 line-clamp-3 mb-6 flex-grow leading-relaxed">
+                {{ ann.content }}
+              </p>
             </div>
-
-            <h3 class="text-base font-black text-slate-800 dark:text-white leading-snug mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-              {{ ann.title }}
-            </h3>
-
-            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 line-clamp-3 mb-6 flex-grow leading-relaxed">
-              {{ ann.content }}
-            </p>
 
             <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 mt-auto">
               <div class="flex items-center gap-2">
                 <Avatar
-                  :image="ann.author?.photo_url || `https://ui-avatars.com/api/?name=${ann.author?.name || 'HR'}&background=6366f1&color=fff`"
+                  :image="ann.author?.photo_url || getAvatarUrl(ann.author?.name || 'HR', '6366f1')"
                   shape="circle"
                   class="!w-7 !h-7"
                 />
@@ -209,7 +212,7 @@
         <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-3">
             <Avatar
-              :image="selectedAnnouncement.author?.photo_url || `https://ui-avatars.com/api/?name=${selectedAnnouncement.author?.name || 'HR'}&background=6366f1&color=fff`"
+              :image="selectedAnnouncement.author?.photo_url || getAvatarUrl(selectedAnnouncement.author?.name || 'HR', '6366f1')"
               shape="circle"
               class="!w-9 !h-9"
             />
@@ -302,11 +305,13 @@ const regularAnnouncements = computed(() => {
   return filteredAnnouncements.value.slice(1);
 });
 
+const { $axios } = useNuxtApp();
+
 const fetchAnnouncements = async () => {
   loading.value = true;
   try {
-    const res = await $fetch<any>('/api/employee/announcements');
-    announcements.value = res.data.announcements || [];
+    const res = await $axios.get('/api/employee/announcements');
+    announcements.value = res.data?.announcements || res.data?.data?.announcements || [];
   } catch (error) {
     console.error('Failed to fetch announcements', error);
   } finally {

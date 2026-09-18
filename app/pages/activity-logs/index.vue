@@ -42,23 +42,24 @@
     </div>
 
     <!-- Quick Telemetry Stats Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
       <Motion
         v-for="(st, idx) in auditStats"
         :key="st.label"
         :initial="{ opacity: 0, y: 15 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ delay: idx * 0.08 }"
+        class="h-full flex flex-col"
       >
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex items-center gap-4 group hover:border-indigo-100 dark:hover:border-indigo-900 transition-all">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex items-center gap-4 group hover:border-indigo-100 dark:hover:border-indigo-900 transition-all h-full">
           <div :class="[st.color, 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-xs']">
             <i :class="st.icon"></i>
           </div>
-          <div>
-            <div class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
+            <div class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center line-clamp-2 leading-tight">
               {{ st.label }}
             </div>
-            <div class="text-2xl font-black text-slate-800 dark:text-white mt-0.5">
+            <div class="text-2xl font-black text-slate-800 dark:text-white mt-0.5 truncate">
               {{ st.value }}
             </div>
           </div>

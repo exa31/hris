@@ -139,7 +139,7 @@ export const useLeaveRequests = () => {
           leave_type_id: selectedLeaveType.value || undefined,
         },
       });
-      return response.data.data;
+      return response.data?.data ?? response.data ?? { pending: 0, approved: 0, rejected: 0 };
     } catch (err: any) {
       console.error("Error fetching leave summary:", err);
       return { pending: 0, approved: 0, rejected: 0 };

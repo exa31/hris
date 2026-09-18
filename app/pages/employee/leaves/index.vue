@@ -46,16 +46,17 @@
     </div>
 
     <!-- Quick Bento Metric Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
       <Motion
         v-for="(stat, idx) in leaveStats"
         :key="stat.label"
         :initial="{ opacity: 0, y: 15 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ delay: idx * 0.08 }"
+        class="h-full flex flex-col"
       >
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex items-center gap-4 group hover:border-indigo-200 dark:hover:border-indigo-800 transition-all"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex items-center gap-4 group hover:border-indigo-200 dark:hover:border-indigo-800 transition-all h-full"
         >
           <div
             :class="[
@@ -65,14 +66,14 @@
           >
             <i :class="stat.icon"></i>
           </div>
-          <div>
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
             <div
-              class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+              class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center line-clamp-2 leading-tight"
             >
               {{ stat.label }}
             </div>
             <div
-              class="text-2xl font-black text-slate-800 dark:text-white mt-0.5"
+              class="text-2xl font-black text-slate-800 dark:text-white mt-0.5 truncate"
             >
               {{ stat.value }}
             </div>
@@ -98,8 +99,17 @@
             <InputText
               v-model="searchQuery"
               placeholder="Search reason or leave type..."
-              class="w-full !pl-11 !py-3 !bg-slate-50 dark:!bg-slate-800/60 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-slate-200 focus:!ring-2 focus:!ring-indigo-500/20"
+              class="w-full !pl-11 !pr-10 !py-3 !bg-slate-50 dark:!bg-slate-800/60 !border-none !rounded-xl !text-xs !font-bold !text-slate-800 dark:!text-slate-200 focus:!ring-2 focus:!ring-indigo-500/20"
             />
+            <button
+              v-if="searchQuery"
+              @click="searchQuery = ''"
+              type="button"
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
+              title="Clear search"
+            >
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
           </div>
         </div>
 
@@ -147,12 +157,12 @@
         <span
           class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
         >
-          Total {{ filteredLeaves.length }} Requests
+          Total {{ totalLeaves }} Requests
         </span>
       </div>
 
       <DataTable
-        :value="filteredLeaves"
+        :value="leaves"
         :loading="loading"
         class="p-datatable-overhaul"
         :pt="{
@@ -162,23 +172,17 @@
           footerCell: { class: '!bg-transparent !p-0 !border-none' },
         }"
       >
-        <Column header="Leave Type">
+        <Column header="Type & Duration">
           <template #body="slotProps">
-            <div class="flex items-center gap-3">
+            <div class="space-y-1">
+              <Tag
+                :value="slotProps.data.leave_type_name || slotProps.data.type || 'Leave'"
+                class="!rounded-lg !px-2 !py-0.5 !text-[10px] !font-bold !bg-indigo-50 dark:!bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400"
+              />
               <div
-                class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold"
+                class="text-sm font-black text-slate-700 dark:text-slate-300 ml-1"
               >
-                <i :class="getLeaveTypeIcon(slotProps.data.type)"></i>
-              </div>
-              <div>
-                <div class="font-black text-sm text-slate-800 dark:text-white">
-                  {{ slotProps.data.type }}
-                </div>
-                <span
-                  class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-                >
-                  ID: #LV-{{ slotProps.data.id }}
-                </span>
+                {{ slotProps.data.total_days }} DAYS
               </div>
             </div>
           </template>
@@ -188,27 +192,27 @@
           <template #body="slotProps">
             <div class="flex items-center gap-2">
               <div class="flex flex-col">
-                <span class="text-[9px] font-bold text-slate-400 uppercase"
+                <span
+                  class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase"
                   >Start</span
                 >
                 <span
                   class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                  >{{ formatDate(slotProps.data.start_date) }}</span
                 >
-                  {{ formatDate(slotProps.data.start_date) }}
-                </span>
               </div>
               <i
                 class="bi bi-arrow-right text-slate-300 dark:text-slate-600 text-xs"
               ></i>
               <div class="flex flex-col">
-                <span class="text-[9px] font-bold text-slate-400 uppercase"
+                <span
+                  class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase"
                   >End</span
                 >
                 <span
                   class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                  >{{ formatDate(slotProps.data.end_date) }}</span
                 >
-                  {{ formatDate(slotProps.data.end_date) }}
-                </span>
               </div>
             </div>
           </template>
@@ -218,27 +222,27 @@
           <template #body="slotProps">
             <div class="max-w-xs">
               <p
-                class="text-xs font-medium text-slate-600 dark:text-slate-300 truncate"
+                class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate"
                 :title="slotProps.data.reason"
               >
                 {{ slotProps.data.reason }}
               </p>
               <div
                 v-if="slotProps.data.rejection_reason"
-                class="mt-1 text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1 w-fit"
+                class="mt-1 text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1"
               >
-                <i class="bi bi-info-circle-fill"></i>
-                Note: {{ slotProps.data.rejection_reason }}
+                <i class="bi bi-x-circle"></i>
+                {{ slotProps.data.rejection_reason }}
               </div>
             </div>
           </template>
         </Column>
 
-        <Column header="Application Status">
+        <Column header="Status">
           <template #body="slotProps">
             <Tag
               :value="statusLabel(slotProps.data.status)"
-              class="!rounded-lg !px-3 !py-1 !text-[10px] !font-black !uppercase !tracking-wider flex items-center gap-1.5 w-fit"
+              class="!rounded-lg !px-3 !py-1 !text-[10px] !font-bold flex items-center gap-1.5"
               :class="statusClass(slotProps.data.status)"
             >
               <template #icon>
@@ -276,311 +280,396 @@
               label="Reset Filters"
               icon="bi bi-arrow-counterclockwise"
               class="!rounded-xl !px-5 !py-2.5 !bg-indigo-600 !border-none !text-[10px] !font-black !uppercase !tracking-widest"
-              @click="
-                searchQuery = '';
-                selectedFilterStatus = 'All';
-              "
+              @click="resetFilters"
             />
           </div>
         </template>
       </DataTable>
+
+      <!-- Table Pagination -->
+      <div
+        v-if="totalLeaves > itemsPerPage"
+        class="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-wrap gap-3"
+      >
+        <div class="text-xs font-bold text-slate-400">
+          Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalLeaves) }} of {{ totalLeaves }}
+        </div>
+        <Paginator
+          :rows="itemsPerPage"
+          :totalRecords="totalLeaves"
+          :first="(currentPage - 1) * itemsPerPage"
+          template="PrevPageLink PageLinks NextPageLink"
+          @page="(e) => (currentPage = e.page + 1)"
+          class="!bg-transparent !p-0"
+        />
+      </div>
     </Motion>
 
-    <!-- Request Leave Dialog (PrimeVue 4 Form Components) -->
+    <!-- Request Leave Dialog -->
     <Dialog
-      v-model:visible="showRequestModal"
+      v-model:visible="createModalOpen"
       modal
-      header="Self-Service Leave Request Form"
-      class="w-full max-w-lg"
+      header="Apply Leave Request"
+      :style="{ width: '38rem' }"
       :pt="{
         root: {
           class:
-            '!rounded-3xl !border !border-slate-100 dark:!border-slate-800 !bg-white dark:!bg-slate-900 !shadow-2xl overflow-hidden',
+            '!rounded-2xl !border !border-slate-100 dark:!border-slate-800 !shadow-2xl overflow-hidden !bg-white dark:!bg-slate-900',
         },
         header: {
           class:
-            'px-7 pt-7 pb-4 !bg-transparent !border-b !border-slate-100 dark:!border-slate-800 !text-slate-800 dark:!text-white',
+            'px-8 pt-8 pb-4 !bg-transparent !border-b !border-slate-100 dark:!border-slate-800 !text-slate-800 dark:!text-white',
         },
-        content: { class: 'px-7 py-6 !bg-transparent' },
-        footer: { class: 'px-7 pb-7 pt-2 !bg-transparent !border-none' },
+        content: { class: 'px-8 py-6 !bg-transparent' },
+        footer: { class: 'px-8 pb-8 !bg-transparent !border-none' },
       }"
     >
-      <form @submit.prevent="submitRequest" class="space-y-5">
-        <!-- Tipe Cuti Select -->
+      <div class="space-y-5">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label
+              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
+              >Leave Type <span class="text-rose-500">*</span></label
+            >
+            <Select
+              v-model="createForm.leave_type_id"
+              @change="formErrors.leave_type_id = ''"
+              :options="leaveTypeOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select Type"
+              class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !text-slate-800 dark:!text-slate-200 transition-all"
+              :class="[
+                formErrors.leave_type_id
+                  ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                  : '!border-none',
+              ]"
+            />
+            <small
+              v-if="formErrors.leave_type_id"
+              class="text-rose-500 text-xs mt-1 ml-1 block"
+              >{{ formErrors.leave_type_id }}</small
+            >
+          </div>
+          <div class="space-y-1.5">
+            <label
+              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
+              >Total Days</label
+            >
+            <div
+              class="p-3.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-black text-center text-sm"
+            >
+              {{ dateRangeInfo.workingDays }} DAYS
+            </div>
+          </div>
+        </div>
+
         <div class="space-y-1.5">
           <label
             class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
+            >Date / Date Range <span class="text-rose-500">*</span></label
           >
-            Leave Type <span class="text-rose-500">*</span>
-          </label>
-          <Select
-            v-model="form.type"
-            :options="leaveTypeOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select Leave Type"
-            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/80 !border-none !text-xs !font-bold !text-slate-800 dark:!text-slate-200"
-            :class="{ '!ring-2 !ring-rose-500/20': errors.type }"
+          <DatePicker
+            v-model="createForm.date_range"
+            @update:model-value="formErrors.date_range = ''"
+            selectionMode="range"
+            dateFormat="yy-mm-dd"
+            placeholder="Select single date or date range"
+            class="w-full"
+            :inputClass="[
+              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !text-slate-800 dark:!text-white transition-all',
+              formErrors.date_range
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
+            ]"
+          />
+
+          <!-- Info banner for working days & off-days -->
+          <div
+            v-if="dateRangeInfo.calendarDays > 0"
+            class="p-3 rounded-xl text-xs font-bold border transition-all mt-2"
+            :class="[
+              dateRangeInfo.workingDays > 0
+                ? 'bg-indigo-50/70 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300'
+                : 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400'
+            ]"
+          >
+            <div class="flex items-center gap-2.5">
+              <i
+                class="bi text-sm mt-0.5"
+                :class="dateRangeInfo.workingDays > 0 ? 'bi-info-circle-fill text-indigo-500' : 'bi-exclamation-triangle-fill text-rose-500'"
+              ></i>
+              <div>
+                <div>
+                  <span class="font-black">{{ dateRangeInfo.calendarDays }} Calendar Days</span>:
+                  <span class="font-black text-emerald-600 dark:text-emerald-400"> {{ dateRangeInfo.workingDays }} Work Days </span>
+                  <span v-if="dateRangeInfo.offDays + dateRangeInfo.holidayDays > 0" class="text-slate-500 dark:text-slate-400">
+                    ({{ dateRangeInfo.offDays + dateRangeInfo.holidayDays }} holidays / off-days automatically skipped)
+                  </span>
+                </div>
+                <div v-if="dateRangeInfo.holidayNames.length > 0" class="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5">
+                  Public Holidays: {{ dateRangeInfo.holidayNames.join(', ') }}
+                </div>
+                <div v-if="dateRangeInfo.workingDays === 0" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+                  All selected dates are holidays / off-days. Cannot submit leave request.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <small
+            v-if="formErrors.date_range"
+            class="text-rose-500 text-xs mt-1 ml-1 block"
+            >{{ formErrors.date_range }}</small
+          >
+        </div>
+
+        <div class="space-y-1.5">
+          <label
+            class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
+            >Reason for Request <span class="text-rose-500">*</span></label
+          >
+          <Textarea
+            v-model="createForm.reason"
+            @input="formErrors.reason = ''"
+            rows="3"
+            placeholder="Briefly explain your leave reason..."
+            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500 transition-all"
+            :class="[
+              formErrors.reason
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
+            ]"
           />
           <small
-            v-if="errors.type"
-            class="text-[10px] font-black text-rose-500 ml-1 flex items-center gap-1"
-          >
-            <i class="bi bi-exclamation-circle"></i> {{ errors.type }}
-          </small>
-        </div>
-
-        <!-- Date Pickers Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-1.5">
-            <label
-              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >
-              Start Date <span class="text-rose-500">*</span>
-            </label>
-            <DatePicker
-              v-model="form.start_date"
-              dateFormat="yy-mm-dd"
-              placeholder="Select Date"
-              showIcon
-              iconDisplay="input"
-              class="w-full"
-              inputClass="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/80 !border-none !text-xs !font-bold !py-3 !text-slate-800 dark:!text-slate-200"
-            />
-            <small
-              v-if="errors.start_date"
-              class="text-[10px] font-black text-rose-500 ml-1 flex items-center gap-1"
-            >
-              <i class="bi bi-exclamation-circle"></i> {{ errors.start_date }}
-            </small>
-          </div>
-
-          <div class="space-y-1.5">
-            <label
-              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-            >
-              End Date <span class="text-rose-500">*</span>
-            </label>
-            <DatePicker
-              v-model="form.end_date"
-              dateFormat="yy-mm-dd"
-              :minDate="form.start_date || undefined"
-              placeholder="Select Date"
-              showIcon
-              iconDisplay="input"
-              class="w-full"
-              inputClass="!w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/80 !border-none !text-xs !font-bold !py-3 !text-slate-800 dark:!text-slate-200"
-            />
-            <small
-              v-if="errors.end_date"
-              class="text-[10px] font-black text-rose-500 ml-1 flex items-center gap-1"
-            >
-              <i class="bi bi-exclamation-circle"></i> {{ errors.end_date }}
-            </small>
-          </div>
-        </div>
-
-        <!-- Duration calculation preview -->
-        <div
-          v-if="calculatedDays > 0"
-          class="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-between"
-        >
-          <div class="flex items-center gap-2">
-            <i
-              class="bi bi-clock-history text-indigo-600 dark:text-indigo-400"
-            ></i>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
-              >Estimated Duration:</span
-            >
-          </div>
-          <span class="text-xs font-black text-indigo-600 dark:text-indigo-400"
-            >{{ calculatedDays }} Days</span
+            v-if="formErrors.reason"
+            class="text-rose-500 text-xs mt-1 ml-1 block"
+            >{{ formErrors.reason }}</small
           >
         </div>
+      </div>
 
-        <!-- Reason Input -->
-        <div class="space-y-1.5">
-          <label
-            class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1"
-          >
-            Reason for Request <span class="text-rose-500">*</span>
-          </label>
-          <Textarea
-            v-model="form.reason"
-            rows="3"
-            placeholder="Briefly explain the reason for your time-off request..."
-            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800/80 !border-none !text-xs !font-medium !p-3 !text-slate-800 dark:!text-slate-200 resize-none focus:!ring-2 focus:!ring-indigo-500/20"
-            :class="{ '!ring-2 !ring-rose-500/20': errors.reason }"
-          />
-          <div class="flex items-center justify-between">
-            <small
-              v-if="errors.reason"
-              class="text-[10px] font-black text-rose-500 ml-1 flex items-center gap-1"
-            >
-              <i class="bi bi-exclamation-circle"></i> {{ errors.reason }}
-            </small>
-            <span v-else class="text-[9px] font-medium text-slate-400 ml-1"
-              >Min. 5 characters</span
-            >
-            <span class="text-[9px] font-bold text-slate-400"
-              >{{ form.reason.length }} characters</span
-            >
-          </div>
-        </div>
-
-        <div
-          class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800"
-        >
+      <template #footer>
+        <div class="flex items-center justify-end gap-3">
           <Button
-            type="button"
             label="Cancel"
-            severity="secondary"
             text
-            @click="showRequestModal = false"
-            class="!rounded-xl !px-5 !py-2.5 !font-bold !text-xs"
+            severity="secondary"
+            @click="createModalOpen = false"
+            class="!rounded-xl !font-black !uppercase !text-[10px] !tracking-widest dark:!text-slate-400"
           />
           <Button
-            type="submit"
             label="Submit Request"
-            icon="bi bi-send-fill"
             :loading="submitting"
-            class="!rounded-xl !px-6 !py-2.5 !bg-indigo-600 hover:!bg-indigo-700 !border-none !font-black !text-xs !tracking-widest shadow-md shadow-indigo-100 dark:shadow-none"
+            @click="handleCreate"
+            class="!rounded-xl !px-6 !py-3 !bg-indigo-600 !border-none !text-white !font-black !uppercase !text-[10px] !tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:!bg-indigo-500 transition-colors"
           />
         </div>
-      </form>
+      </template>
     </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useNotificationStore } from "~/stores/notification";
+import { useWorkSchedule } from "~/composables/useWorkSchedule";
+import { useHolidays } from "~/composables/useHolidays";
+import { useLeaveRequests } from "~/composables/useLeaveRequests";
 
 definePageMeta({ layout: "default" });
 
 const notificationStore = useNotificationStore();
+const { $axios } = useNuxtApp();
+const { schedules: workSchedules, fetchWorkSchedules } = useWorkSchedule();
+const { holidays: allHolidays, fetchHolidays } = useHolidays();
+const { leaveTypes, fetchLeaveTypes } = useLeaveRequests();
 
 const loading = ref(false);
 const submitting = ref(false);
-const showRequestModal = ref(false);
+const createModalOpen = ref(false);
 const leaves = ref<any[]>([]);
 const searchQuery = ref("");
 const selectedFilterStatus = ref("All");
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const totalLeaves = ref(0);
 
-const leaveTypeOptions = [
-  { label: "Annual Leave", value: "Tahunan" },
-  { label: "Sick Leave", value: "Sakit" },
-  { label: "Maternity Leave", value: "Melahirkan" },
-  { label: "Urgent Personal Leave", value: "Penting" },
-  { label: "Other Leave", value: "Lainnya" },
-];
+const serverStats = ref({
+  pending: 0,
+  approved: 0,
+  rejected: 0,
+  used_annual: 0,
+  annual_balance: 12,
+});
 
-const errors = ref<any>({});
+const leaveTypeOptions = computed(() => {
+  return leaveTypes.value.map((lt) => ({
+    label: `${lt.name} (max. ${lt.max_days} days)`,
+    value: lt.id,
+  }));
+});
 
-const form = ref<{
-  type: string;
-  start_date: Date | null;
-  end_date: Date | null;
-  reason: string;
-}>({
-  type: "",
-  start_date: null,
-  end_date: null,
+const createForm = reactive({
+  leave_type_id: null as number | null,
+  date_range: null as Date[] | null,
+  reason: "",
+});
+
+const formErrors = reactive({
+  leave_type_id: "",
+  date_range: "",
   reason: "",
 });
 
 const openRequestModal = () => {
-  errors.value = {};
-  form.value = {
-    type: "",
-    start_date: null,
-    end_date: null,
-    reason: "",
-  };
-  showRequestModal.value = true;
+  formErrors.leave_type_id = "";
+  formErrors.date_range = "";
+  formErrors.reason = "";
+  createForm.leave_type_id = null;
+  createForm.date_range = null;
+  createForm.reason = "";
+  createModalOpen.value = true;
 };
 
-// Calculate requested days
-const calculatedDays = computed(() => {
-  if (!form.value.start_date || !form.value.end_date) return 0;
-  const start = new Date(form.value.start_date).getTime();
-  const end = new Date(form.value.end_date).getTime();
-  if (end < start) return 0;
-  const diffTime = Math.abs(end - start);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-  return diffDays;
+// Calculate requested work days and off days matching admin
+const dateRangeInfo = computed(() => {
+  const range = createForm.date_range;
+  if (!range || !range[0]) {
+    return {
+      calendarDays: 0,
+      workingDays: 0,
+      offDays: 0,
+      holidayDays: 0,
+      holidayNames: [] as string[],
+    };
+  }
+
+  const start = new Date(range[0]);
+  const end = range[1] ? new Date(range[1]) : new Date(range[0]);
+  if (end < start) {
+    return {
+      calendarDays: 0,
+      workingDays: 0,
+      offDays: 0,
+      holidayDays: 0,
+      holidayNames: [] as string[],
+    };
+  }
+
+  const scheduleMap = new Map<number, boolean>();
+  workSchedules.value.forEach((s) => {
+    scheduleMap.set(s.day_of_week, s.is_work_day);
+  });
+
+  const holidayMap = new Map<string, string>();
+  allHolidays.value.forEach((h) => {
+    holidayMap.set(h.date, h.name);
+  });
+
+  let calendarDays = 0;
+  let workingDays = 0;
+  let offDays = 0;
+  let holidayDays = 0;
+  const holidayNames: string[] = [];
+
+  const cur = new Date(start);
+  while (cur <= end) {
+    calendarDays++;
+    const dayOfWeek = cur.getDay();
+    const isWeeklyWorkDay = scheduleMap.has(dayOfWeek)
+      ? scheduleMap.get(dayOfWeek)!
+      : dayOfWeek !== 0 && dayOfWeek !== 6;
+
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, "0");
+    const d = String(cur.getDate()).padStart(2, "0");
+    const curDateStr = `${y}-${m}-${d}`;
+
+    const holidayName = holidayMap.get(curDateStr);
+
+    if (!isWeeklyWorkDay) {
+      offDays++;
+    } else if (holidayName) {
+      holidayDays++;
+      if (!holidayNames.includes(holidayName)) {
+        holidayNames.push(holidayName);
+      }
+    } else {
+      workingDays++;
+    }
+
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  return {
+    calendarDays,
+    workingDays,
+    offDays,
+    holidayDays,
+    holidayNames,
+  };
 });
 
-// Leave Quick Stats
+// Leave Quick Stats from Server
 const leaveStats = computed(() => {
-  const approved = leaves.value.filter((l) => l.status === "Approved").length;
-  const pending = leaves.value.filter((l) => l.status === "Pending").length;
-  const rejected = leaves.value.filter((l) => l.status === "Rejected").length;
-  // Standard annual allowance is 12 days minus approved annual leaves
-  const usedAnnual = leaves.value
-    .filter((l) => l.status === "Approved" && l.type === "Tahunan")
-    .reduce((acc, curr) => acc + (curr.total_days || 1), 0);
-  const remainingAnnual = Math.max(0, 12 - usedAnnual);
-
   return [
     {
       label: "Annual Leave Balance",
-      value: `${remainingAnnual} Days`,
+      value: `${serverStats.value.annual_balance} Days`,
       icon: "bi bi-calendar-heart-fill",
       color:
         "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
     },
     {
       label: "Pending Approval",
-      value: pending,
+      value: serverStats.value.pending,
       icon: "bi bi-hourglass-split",
       color:
         "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400",
     },
     {
       label: "Approved Leaves",
-      value: approved,
+      value: serverStats.value.approved,
       icon: "bi bi-check-circle-fill",
       color:
         "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     },
     {
       label: "Rejected Requests",
-      value: rejected,
+      value: serverStats.value.rejected,
       icon: "bi bi-x-circle-fill",
       color: "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400",
     },
   ];
 });
 
-// Filtered Leaves List
+// Watchers for Server-side Filtering & Pagination
 const debouncedSearchQuery = useDebouncedRef(searchQuery, 300);
+let isMounted = false;
 
-const filteredLeaves = computed(() => {
-  return leaves.value.filter((leave) => {
-    const matchStatus =
-      selectedFilterStatus.value === "All" ||
-      leave.status?.toLowerCase() === selectedFilterStatus.value.toLowerCase();
-    const query = debouncedSearchQuery.value.toLowerCase().trim();
-    const matchQuery =
-      !query ||
-      leave.reason?.toLowerCase().includes(query) ||
-      leave.type?.toLowerCase().includes(query);
-    return matchStatus && matchQuery;
-  });
+watch(debouncedSearchQuery, () => {
+  if (!isMounted) return;
+  currentPage.value = 1;
+  fetchLeaves();
 });
 
-const getLeaveTypeIcon = (type: string) => {
-  switch (type?.toLowerCase()) {
-    case "sakit":
-      return "bi-bandaid-fill";
-    case "melahirkan":
-      return "bi-heart-pulse-fill";
-    case "penting":
-      return "bi-exclamation-octagon-fill";
-    default:
-      return "bi-briefcase-fill";
-  }
+watch(selectedFilterStatus, () => {
+  if (!isMounted) return;
+  currentPage.value = 1;
+  fetchLeaves();
+});
+
+watch(currentPage, () => {
+  if (!isMounted) return;
+  fetchLeaves();
+});
+
+const resetFilters = () => {
+  searchQuery.value = "";
+  selectedFilterStatus.value = "All";
+  currentPage.value = 1;
+  fetchLeaves();
 };
 
 const statusLabel = (status: string) => {
@@ -611,35 +700,56 @@ const statusIcon = (status: string) => {
       return "bi bi-check-circle-fill";
     case "Rejected":
       return "bi bi-x-circle-fill";
-    default:
-      return "bi bi-clock-history";
   }
+  return "bi bi-clock-history";
 };
 
 const validateForm = () => {
-  errors.value = {};
-  if (!form.value.type) errors.value.type = "Leave type is required";
-  if (!form.value.start_date)
-    errors.value.start_date = "Start date is required";
-  if (!form.value.end_date) errors.value.end_date = "End date is required";
-  if (
-    form.value.start_date &&
-    form.value.end_date &&
-    form.value.end_date < form.value.start_date
-  ) {
-    errors.value.end_date = "End date cannot be earlier than start date";
+  let valid = true;
+  formErrors.leave_type_id = "";
+  formErrors.date_range = "";
+  formErrors.reason = "";
+
+  if (!createForm.leave_type_id) {
+    formErrors.leave_type_id = "Leave type must be selected";
+    valid = false;
   }
-  if (!form.value.reason || form.value.reason.length < 5) {
-    errors.value.reason = "Reason is required (min. 5 characters)";
+  if (!createForm.date_range || !createForm.date_range[0]) {
+    formErrors.date_range = "Date selection is required";
+    valid = false;
+  } else if (dateRangeInfo.value.workingDays <= 0) {
+    formErrors.date_range =
+      "Selected dates are all holidays / off-days (0 work days)";
+    valid = false;
   }
-  return Object.keys(errors.value).length === 0;
+  if (!createForm.reason || createForm.reason.trim().length === 0) {
+    formErrors.reason = "Reason cannot be empty";
+    valid = false;
+  }
+  return valid;
 };
 
 const fetchLeaves = async () => {
   loading.value = true;
   try {
-    const res = await $fetch<any>("/api/employee/leaves");
-    leaves.value = res.data.leaves || [];
+    const params: Record<string, any> = {
+      limit: itemsPerPage.value,
+      offset: (currentPage.value - 1) * itemsPerPage.value,
+    };
+    if (selectedFilterStatus.value && selectedFilterStatus.value !== "All") {
+      params.status = selectedFilterStatus.value;
+    }
+    if (searchQuery.value && searchQuery.value.trim()) {
+      params.search = searchQuery.value.trim();
+    }
+
+    const res = await $axios.get("/api/employee/leaves", { params });
+    const data = res.data?.data || res.data || {};
+    leaves.value = data.leaves || [];
+    totalLeaves.value = data.pagination?.total || 0;
+    if (data.stats) {
+      serverStats.value = data.stats;
+    }
   } catch (error) {
     console.error("Failed to fetch leaves", error);
   } finally {
@@ -647,50 +757,47 @@ const fetchLeaves = async () => {
   }
 };
 
-const submitRequest = async () => {
+const handleCreate = async () => {
   if (!validateForm()) return;
 
   submitting.value = true;
   try {
-    const formatPayloadDate = (d: Date | null) => {
-      if (!d) return null;
+    const range = createForm.date_range!;
+    const start = new Date(range[0]);
+    const end = range[1] ? new Date(range[1]) : new Date(range[0]);
+
+    const formatDateStr = (d: Date) => {
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, "0");
       const day = String(d.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     };
 
-    await $fetch("/api/employee/leaves", {
-      method: "POST",
-      body: {
-        type: form.value.type,
-        start_date: formatPayloadDate(form.value.start_date),
-        end_date: formatPayloadDate(form.value.end_date),
-        reason: form.value.reason,
-      },
-    });
+    const payload = {
+      leave_type_id: createForm.leave_type_id,
+      start_date: formatDateStr(start),
+      end_date: formatDateStr(end),
+      total_days: dateRangeInfo.value.workingDays,
+      reason: createForm.reason.trim(),
+    };
+
+    await $axios.post("/api/employee/leaves", payload);
 
     notificationStore.showSuccess(
       "Success",
-      "Leave request successfully submitted for approval",
+      "Leave request submitted successfully",
     );
-    showRequestModal.value = false;
-
-    // Reset form
-    form.value = {
-      type: "",
-      start_date: null,
-      end_date: null,
-      reason: "",
-    };
+    createModalOpen.value = false;
 
     await fetchLeaves();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to submit leave", error);
-    notificationStore.showError(
-      "Failed",
-      "An error occurred while submitting leave request",
-    );
+    const errorMsg =
+      error?.response?.data?.message ||
+      error?.data?.message ||
+      error?.message ||
+      "An error occurred while submitting leave request";
+    notificationStore.showError("Failed", errorMsg);
   } finally {
     submitting.value = false;
   }
@@ -705,7 +812,13 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-onMounted(() => {
-  fetchLeaves();
+onMounted(async () => {
+  await Promise.all([
+    fetchLeaves(),
+    fetchLeaveTypes(),
+    fetchWorkSchedules(),
+    fetchHolidays(),
+  ]);
+  isMounted = true;
 });
 </script>

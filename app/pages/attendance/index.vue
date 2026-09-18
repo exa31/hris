@@ -30,40 +30,40 @@
         </p>
       </Motion>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full lg:w-auto">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full lg:w-auto items-stretch">
         <div
-          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs text-center space-y-1"
+          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs text-center space-y-1 h-full flex flex-col justify-center"
         >
           <div
-            class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+            class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center justify-center line-clamp-2 leading-tight"
           >
             Attendance Rate
           </div>
-          <div class="text-2xl font-black text-emerald-500">
+          <div class="text-2xl font-black text-emerald-500 truncate">
             {{ summaryLoading ? "..." : (todayStats.hadir_percent || 0) + "%" }}
           </div>
         </div>
         <div
-          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs text-center space-y-1"
+          class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs text-center space-y-1 h-full flex flex-col justify-center"
         >
           <div
-            class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+            class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center justify-center line-clamp-2 leading-tight"
           >
             Present Today
           </div>
-          <div class="text-2xl font-black text-amber-500">
+          <div class="text-2xl font-black text-amber-500 truncate">
             {{ summaryLoading ? "..." : (todayStats.hadir || 0) + "/" + (todayStats.total_active || 0) }}
           </div>
         </div>
         <div
-          class="p-5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none text-center space-y-1 text-white col-span-2 sm:col-span-1"
+          class="p-5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none text-center space-y-1 text-white col-span-2 sm:col-span-1 h-full flex flex-col justify-center"
         >
           <div
-            class="text-[9px] font-black text-indigo-200 uppercase tracking-widest"
+            class="text-[9px] font-black text-indigo-200 uppercase tracking-widest min-h-[28px] flex items-center justify-center line-clamp-2 leading-tight"
           >
             Total Activity Logs
           </div>
-          <div class="text-2xl font-black">{{ totalAttendances }}</div>
+          <div class="text-2xl font-black truncate">{{ totalAttendances }}</div>
         </div>
       </div>
     </div>
@@ -158,9 +158,7 @@
               <Avatar
                 :image="
                   slotProps.data.photo_url ||
-                  'https://ui-avatars.com/api/?name=' +
-                    encodeURIComponent(slotProps.data.name || slotProps.data.employee_name || 'User') +
-                    '&background=random&size=100'
+                  getAvatarUrl(slotProps.data.name || slotProps.data.employee_name || 'User', 'random')
                 "
                 shape="circle"
                 class="!w-10 !h-10 border-2 border-white dark:border-slate-800 shadow-xs ring-2 ring-slate-100 dark:ring-slate-700"
@@ -354,7 +352,7 @@
         <!-- User Profile Card -->
         <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
           <Avatar
-            :image="selectedRecord.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedRecord.name || selectedRecord.employee_name || 'User')}&background=random`"
+            :image="selectedRecord.photo_url || getAvatarUrl(selectedRecord.name || selectedRecord.employee_name || 'User', 'random')"
             shape="circle"
             class="!w-12 !h-12 border-2 border-white dark:border-slate-700 shadow-xs"
           />
@@ -486,6 +484,7 @@ const loadSummary = async () => {
 };
 
 const monthOptions = [
+  { label: 'All Months', value: 0 },
   { label: 'January', value: 1 },
   { label: 'February', value: 2 },
   { label: 'March', value: 3 },
@@ -502,6 +501,7 @@ const monthOptions = [
 
 const currentYear = new Date().getFullYear();
 const yearOptions = [
+  { label: 'All Years', value: 0 },
   { label: currentYear.toString(), value: currentYear },
   { label: (currentYear - 1).toString(), value: currentYear - 1 },
   { label: (currentYear - 2).toString(), value: currentYear - 2 },

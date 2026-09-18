@@ -45,7 +45,7 @@
     <!-- Quick Insights -->
     <div
       v-if="allowances.length > 0"
-      class="grid grid-cols-1 md:grid-cols-4 gap-4"
+      class="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch"
     >
       <Motion
         v-for="(insight, idx) in transportInsights"
@@ -53,9 +53,10 @@
         :initial="{ opacity: 0, y: 20 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ delay: idx * 0.1 }"
+        class="h-full flex flex-col"
       >
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-5 hover:shadow-lg transition-all"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-5 hover:shadow-lg transition-all h-full"
         >
           <div
             :class="[
@@ -65,13 +66,13 @@
           >
             <i :class="insight.icon"></i>
           </div>
-          <div>
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
             <div
-              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+              class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-h-[28px] flex items-center line-clamp-2 leading-tight"
             >
               {{ insight.label }}
             </div>
-            <div class="text-2xl font-black text-slate-800 dark:text-white">
+            <div class="text-2xl font-black text-slate-800 dark:text-white mt-0.5 truncate">
               {{ insight.value }}
             </div>
           </div>
@@ -178,9 +179,7 @@
                 <Avatar
                   :image="
                     slotProps.data.photo_url ||
-                    'https://ui-avatars.com/api/?name=' +
-                      slotProps.data.employeeName +
-                      '&background=random&size=40'
+                    getAvatarUrl(slotProps.data.employeeName, 'random')
                   "
                   shape="circle"
                   class="shadow-sm"

@@ -22,34 +22,43 @@ export default withPermission(
         user_id: event.context.user.id,
         action: "ACCESS",
         module: "ATTENDANCE",
-        description: `Ekspor data presensi ke Excel (${attendances.length} data)`,
+        description: `Exported attendance records to Excel (${attendances.length} records)`,
       });
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Data Presensi");
+      const worksheet = workbook.addWorksheet("Attendance Records");
 
       worksheet.columns = [
-        { header: "NIP", key: "nip", width: 15 },
-        { header: "Nama Pegawai", key: "name", width: 30 },
-        { header: "Departemen", key: "department", width: 20 },
-        { header: "Jabatan", key: "position", width: 20 },
-        { header: "Tanggal", key: "date", width: 15 },
-        { header: "Jam Masuk", key: "clock_in", width: 15 },
-        { header: "Jam Keluar", key: "clock_out", width: 15 },
+        { header: "NIP", key: "nip", width: 18 },
+        { header: "Employee Name", key: "name", width: 30 },
+        { header: "Department", key: "department", width: 20 },
+        { header: "Position", key: "position", width: 20 },
+        { header: "Date", key: "date", width: 16 },
+        { header: "Clock In", key: "clock_in", width: 15 },
+        { header: "Clock Out", key: "clock_out", width: 15 },
         { header: "Status", key: "status", width: 15 },
-        { header: "Catatan", key: "notes", width: 30 },
+        { header: "Notes", key: "notes", width: 30 },
       ];
+
+      const formatStatus = (status: string) => {
+        if (!status) return "Present";
+        if (status === "Hadir" || status === "Present") return "Present";
+        if (status === "Izin" || status === "Permit") return "Permit";
+        if (status === "Sakit" || status === "Sick") return "Sick";
+        if (status === "Alpha" || status === "Absent") return "Absent";
+        return status;
+      };
 
       attendances.forEach((att: any) => {
         worksheet.addRow({
           nip: att.nip,
-          name: att.employee_name,
-          department: att.department,
-          position: att.position,
-          date: new Date(att.date).toLocaleDateString("id-ID"),
+          name: att.employee_name || att.name,
+          department: att.department || "-",
+          position: att.position || "-",
+          date: att.date ? new Date(att.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "-",
           clock_in: att.clock_in || "-",
           clock_out: att.clock_out || "-",
-          status: att.status,
+          status: formatStatus(att.status),
           notes: att.notes || "-",
         });
       });
@@ -71,7 +80,7 @@ export default withPermission(
       appendHeader(
         event,
         "Content-Disposition",
-        'attachment; filename="data-presensi.xlsx"',
+        'attachment; filename="attendance-records.xlsx"',
       );
 
       return buffer;

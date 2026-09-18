@@ -50,7 +50,7 @@
     <!-- Roles Grid -->
     <div
       v-else-if="roles.length > 0"
-      class="grid grid-cols-1 md:grid-cols-2 gap-8"
+      class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch"
     >
       <Motion
         v-for="(role, idx) in roles"
@@ -58,7 +58,7 @@
         :initial="{ opacity: 0, y: 20 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ delay: idx * 0.1 }"
-        class="group"
+        class="group h-full flex flex-col"
       >
         <div
           class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 relative overflow-hidden h-full flex flex-col"

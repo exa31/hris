@@ -144,10 +144,10 @@
         :initial="{ opacity: 0, y: 20 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ delay: idx * 0.1 }"
-        class="group"
+        class="group h-full flex flex-col"
       >
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 h-full flex flex-col relative overflow-hidden"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 h-full flex flex-col justify-between relative overflow-hidden"
         >
           <div
             :class="[
@@ -156,49 +156,51 @@
             ]"
           ></div>
 
-          <div class="flex items-center justify-between mb-5">
-            <Tag
-              :value="priorityLabel(ann.priority)"
-              class="!rounded-lg !px-3 !py-1 !text-[9px] !font-black !uppercase"
-              :class="priorityBadgeClass(ann.priority)"
-            />
+          <div class="flex flex-col flex-grow">
+            <div class="flex items-center justify-between mb-5">
+              <Tag
+                :value="priorityLabel(ann.priority)"
+                class="!rounded-lg !px-3 !py-1 !text-[9px] !font-black !uppercase"
+                :class="priorityBadgeClass(ann.priority)"
+              />
 
-            <div
-              class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Button
-                v-if="hasPermission('announcements', 'update')"
-                icon="bi bi-pencil"
-                @click="openEditModal(ann)"
-                text
-                rounded
-                class="!w-8 !h-8 !text-slate-400 hover:!bg-slate-50 dark:hover:!bg-slate-800 hover:!text-indigo-500"
-              />
-              <Button
-                v-if="hasPermission('announcements', 'delete')"
-                icon="bi bi-trash"
-                @click="confirmDelete(ann.id)"
-                text
-                rounded
-                class="!w-8 !h-8 !text-slate-400 hover:!bg-rose-50 dark:hover:!bg-rose-500/10 hover:!text-rose-500"
-              />
+              <div
+                class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Button
+                  v-if="hasPermission('announcements', 'update')"
+                  icon="bi bi-pencil"
+                  @click="openEditModal(ann)"
+                  text
+                  rounded
+                  class="!w-8 !h-8 !text-slate-400 hover:!bg-slate-50 dark:hover:!bg-slate-800 hover:!text-indigo-500"
+                />
+                <Button
+                  v-if="hasPermission('announcements', 'delete')"
+                  icon="bi bi-trash"
+                  @click="confirmDelete(ann.id)"
+                  text
+                  rounded
+                  class="!w-8 !h-8 !text-slate-400 hover:!bg-rose-50 dark:hover:!bg-rose-500/10 hover:!text-rose-500"
+                />
+              </div>
             </div>
+
+            <h3
+              class="text-lg font-black text-slate-800 dark:text-white leading-tight mb-3 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 min-h-[3rem]"
+            >
+              {{ ann.title }}
+            </h3>
+
+            <p
+              class="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed mb-6 flex-grow line-clamp-4"
+            >
+              {{ ann.content }}
+            </p>
           </div>
 
-          <h3
-            class="text-lg font-black text-slate-800 dark:text-white leading-tight mb-3 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors"
-          >
-            {{ ann.title }}
-          </h3>
-
-          <p
-            class="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed mb-6 flex-grow line-clamp-4"
-          >
-            {{ ann.content }}
-          </p>
-
           <div
-            class="pt-5 border-t border-slate-50 dark:border-slate-800/50 flex items-center justify-between"
+            class="pt-5 border-t border-slate-50 dark:border-slate-800/50 flex items-center justify-between mt-auto"
           >
             <div class="flex items-center gap-3">
               <Avatar
@@ -270,10 +272,13 @@
           >
           <InputText
             v-model="formData.title"
+            @input="formErrors.title = ''"
             placeholder="Enter an attention-grabbing title..."
+            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !text-slate-800 dark:!text-white transition-all"
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !text-slate-800 dark:!text-white',
-              formErrors.title ? '!border !border-rose-500' : '',
+              formErrors.title
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
             ]"
           />
           <small
@@ -320,11 +325,14 @@
           >
           <Textarea
             v-model="formData.content"
+            @input="formErrors.content = ''"
             rows="6"
             placeholder="Write full announcement details and context here..."
+            class="w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500 transition-all"
             :class="[
-              'w-full !rounded-xl !bg-slate-50 dark:!bg-slate-800 !border-none !p-4 !text-slate-800 dark:!text-white !placeholder:text-slate-400 dark:placeholder:!text-slate-500',
-              formErrors.content ? '!border !border-rose-500' : '',
+              formErrors.content
+                ? '!border !border-rose-500 !ring-2 !ring-rose-500/20 bg-rose-50/10'
+                : '!border-none',
             ]"
           />
           <small

@@ -95,33 +95,35 @@
       </Motion>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         <Motion
           v-for="(stat, idx) in statCards"
           :key="stat.label"
           :initial="{ opacity: 0, y: 15 }"
           :animate="{ opacity: 1, y: 0 }"
           :transition="{ delay: idx * 0.08 }"
-          class="group"
+          class="group h-full flex flex-col"
         >
           <div
-            class="bg-white dark:bg-slate-900 rounded-3xl p-7 shadow-xs border border-slate-200/70 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all duration-300 relative overflow-hidden h-full"
+            class="bg-white dark:bg-slate-900 rounded-3xl p-7 shadow-xs border border-slate-200/70 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all duration-300 relative overflow-hidden h-full flex flex-col justify-between"
           >
-            <div class="flex items-center justify-between mb-4">
-              <div :class="[stat.color, 'w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform']">
-                <i :class="stat.icon"></i>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div :class="[stat.color, 'w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform']">
+                  <i :class="stat.icon"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                  {{ stat.pill }}
+                </span>
               </div>
-              <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                {{ stat.pill }}
-              </span>
-            </div>
 
-            <div class="space-y-1 relative z-10">
-              <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em]">
-                {{ stat.label }}
-              </h4>
-              <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {{ stat.value }}
+              <div class="space-y-1 relative z-10">
+                <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] min-h-[28px] flex items-center line-clamp-2 leading-tight">
+                  {{ stat.label }}
+                </h4>
+                <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+                  {{ stat.value }}
+                </div>
               </div>
             </div>
 
@@ -138,26 +140,30 @@
 
       <!-- Quick Guidance Card -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-start gap-4">
+        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-start gap-4 h-full">
           <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg flex-shrink-0 mt-1">
             <i class="bi bi-clock-history"></i>
           </div>
-          <div class="space-y-1">
+          <div class="space-y-1.5 flex-1">
             <h4 class="text-sm font-black text-slate-800 dark:text-white">Work Hours & Schedule Policy</h4>
             <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Standard work hours start from 08:00 AM to 05:00 PM. Grace period for late arrivals is 15 minutes.
+              {{ stats?.workSchedule?.text || 'Standard work hours start from 08:00 AM to 05:00 PM. Grace period for late arrivals is 15 minutes.' }}
             </p>
+            <div v-if="stats?.workSchedule" class="pt-1 flex items-center gap-2 text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+              <span class="inline-block w-1.5 h-1.5 rounded-full" :class="stats.workSchedule.todayIsWorkDay ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'"></span>
+              <span>Today: {{ stats.workSchedule.todayHours }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-start gap-4">
+        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-start gap-4 h-full">
           <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg flex-shrink-0 mt-1">
             <i class="bi bi-info-circle"></i>
           </div>
-          <div class="space-y-1">
+          <div class="space-y-1.5 flex-1">
             <h4 class="text-sm font-black text-slate-800 dark:text-white">Annual Leave Policy</h4>
             <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Annual leave applications should ideally be submitted at least 3 business days in advance for management approval.
+              {{ stats?.annualLeavePolicy?.text || 'Annual leave applications should ideally be submitted at least 3 business days in advance for management approval.' }}
             </p>
           </div>
         </div>
@@ -220,11 +226,13 @@ const statCards = computed(() => [
   },
 ]);
 
+const { $axios } = useNuxtApp();
+
 const fetchDashboardData = async () => {
   loading.value = true;
   try {
-    const res = await $fetch<any>('/api/employee/dashboard');
-    stats.value = res.data;
+    const res = await $axios.get('/api/employee/dashboard');
+    stats.value = res.data?.data || res.data;
   } catch (e) {
     console.error('Failed to fetch employee dashboard data', e);
   } finally {

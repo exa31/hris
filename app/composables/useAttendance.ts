@@ -116,7 +116,7 @@ export const useAttendance = () => {
           year: year || selectedYear.value,
         },
       });
-      return response.data.data;
+      return response.data?.data ?? response.data;
     } catch (err: any) {
       error.value =
         getErrorMessageAxios(err) || "Gagal memuat ringkasan absensi";
@@ -148,7 +148,7 @@ export const useAttendance = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "data-presensi.xlsx");
+      link.setAttribute("download", "attendance-records.xlsx");
       document.body.appendChild(link);
       link.click();
       link.remove();

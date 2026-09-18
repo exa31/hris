@@ -103,17 +103,17 @@
       </Motion>
 
       <!-- ── Metric Cards Grid ───────────────────────────────────────── -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
         <Motion
           v-for="(stat, idx) in statCards"
           :key="stat.label"
           :initial="{ opacity: 0, y: 15 }"
           :animate="{ opacity: 1, y: 0 }"
           :transition="{ delay: idx * 0.06 }"
-          class="group"
+          class="group h-full flex flex-col"
         >
           <div
-            class="relative overflow-hidden h-full rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:shadow-md transition-all duration-300"
+            class="relative overflow-hidden h-full rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-xs hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:shadow-md transition-all duration-300 flex flex-col justify-between"
           >
             <!-- Hover ambient glow -->
             <div
@@ -121,21 +121,23 @@
               :class="stat.glow"
             ></div>
 
-            <div class="flex items-center justify-between mb-4">
-              <div :class="[stat.color, 'w-11 h-11 rounded-xl flex items-center justify-center text-base shadow-sm group-hover:scale-110 transition-transform']">
-                <i :class="stat.icon"></i>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div :class="[stat.color, 'w-11 h-11 rounded-xl flex items-center justify-center text-base shadow-sm group-hover:scale-110 transition-transform']">
+                  <i :class="stat.icon"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                  Realtime
+                </span>
               </div>
-              <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                Realtime
-              </span>
-            </div>
 
-            <div class="space-y-1 relative z-10">
-              <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-                {{ stat.label }}
-              </h4>
-              <div class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                {{ stat.value }}
+              <div class="space-y-1 relative z-10">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 min-h-[28px] flex items-center line-clamp-2 leading-tight">
+                  {{ stat.label }}
+                </h4>
+                <div class="text-3xl font-black tracking-tight text-slate-900 dark:text-white truncate">
+                  {{ stat.value }}
+                </div>
               </div>
             </div>
 
@@ -247,7 +249,7 @@
             <template #body="slotProps">
               <div class="flex items-center gap-3.5 py-1">
                 <Avatar
-                  :image="slotProps.data.photo_url || 'https://ui-avatars.com/api/?name=' + slotProps.data.name + '&background=random&size=100'"
+                  :image="slotProps.data.photo_url || getAvatarUrl(slotProps.data.name, 'random')"
                   shape="circle"
                   class="!w-10 !h-10 border-2 border-slate-200 dark:border-slate-700 shadow-xs flex-shrink-0"
                 />
@@ -398,12 +400,15 @@ const formatEmployeeType = (type: string) => {
   return type || "Permanent";
 };
 
+const { $axios } = useNuxtApp();
+
 const fetchDashboardData = async () => {
   loading.value = true;
   try {
-    const res = await $fetch<any>("/api/dashboard/stats");
-    stats.value = res.data.stats;
-    newEmployees.value = res.data.latestEmployees;
+    const res = await $axios.get("/api/dashboard/stats");
+    const data = res.data?.data || res.data || {};
+    stats.value = data.stats;
+    newEmployees.value = data.latestEmployees;
   } catch (e) {
     console.error("Failed to fetch dashboard data:", e);
   } finally {
