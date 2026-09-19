@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-950 text-white font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
-    <!-- Left Column: Branding Showcase & Test Credentials (Visible on Large Screens) -->
+    <!-- Left Column: Branding Showcase (Visible on Large Screens) -->
     <div class="hidden lg:flex lg:col-span-6 xl:col-span-7 relative flex-col justify-between p-12 lg:p-16 overflow-hidden bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 border-r border-white/5">
       <!-- Ambient Glow Orbs -->
       <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
@@ -62,38 +62,15 @@
           </div>
         </div>
 
-        <!-- Quick Demo Fill Pills -->
-        <div class="pt-4 space-y-3">
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-            <i class="bi bi-key-fill text-indigo-400"></i>
-            <span>Quick Demo Access (Click to auto-fill):</span>
+        <!-- Enterprise Security & Support Notice -->
+        <div class="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+          <div class="text-xs font-bold text-slate-300 flex items-center gap-2">
+            <i class="bi bi-shield-check text-emerald-400"></i>
+            <span>Enterprise Security & Compliance</span>
           </div>
-          <div class="flex flex-wrap gap-2">
-            <button
-              type="button"
-              class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/30 border border-white/10 hover:border-indigo-500/50 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 group"
-              @click="fillDemo('superadmin', 'P@ssword123')"
-            >
-              <span class="w-2 h-2 rounded-full bg-rose-400 group-hover:scale-125 transition-transform"></span>
-              <span>Super Admin</span>
-            </button>
-            <button
-              type="button"
-              class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/30 border border-white/10 hover:border-indigo-500/50 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 group"
-              @click="fillDemo('siti.nurhaliza', 'P@ssword123')"
-            >
-              <span class="w-2 h-2 rounded-full bg-amber-400 group-hover:scale-125 transition-transform"></span>
-              <span>HR Manager</span>
-            </button>
-            <button
-              type="button"
-              class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/30 border border-white/10 hover:border-indigo-500/50 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 group"
-              @click="fillDemo('ahmad.rahman', 'P@ssword123')"
-            >
-              <span class="w-2 h-2 rounded-full bg-emerald-400 group-hover:scale-125 transition-transform"></span>
-              <span>HR Officer</span>
-            </button>
-          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Portal ini dilindungi autentikasi sesi terenkripsi. Silakan gunakan akun resmi yang terdaftar oleh administrator HR atau IT departemen perusahaan Anda.
+          </p>
         </div>
       </div>
 
@@ -102,7 +79,7 @@
         <span>© 2026 NexusHR Enterprise Portal</span>
         <NuxtLink to="/" class="hover:text-indigo-400 transition-colors flex items-center gap-1 font-semibold">
           <i class="bi bi-arrow-left"></i>
-          <span>Back to Demo Home</span>
+          <span>Kembali ke Beranda</span>
         </NuxtLink>
       </div>
     </div>
@@ -144,7 +121,7 @@
                 id="credential"
                 v-model="credential"
                 @input="credentialError = ''"
-                placeholder="e.g. superadmin or user@company.com"
+                placeholder="Masukkan username atau email"
                 class="w-full !pl-11 !py-3.5 !bg-white/5 !text-white !rounded-xl focus:!border-indigo-500 focus:!ring-2 focus:!ring-indigo-500/20 text-sm transition-all"
                 :class="[
                   credentialError
@@ -265,33 +242,7 @@
           />
         </form>
 
-        <!-- Mobile Demo Credentials Help -->
-        <div class="lg:hidden p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
-          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick Demo Access:</div>
-          <div class="flex flex-wrap gap-2">
-            <button
-              type="button"
-              class="px-2.5 py-1 rounded-lg bg-white/5 text-xs text-slate-300 hover:text-white border border-white/10"
-              @click="fillDemo('superadmin', 'P@ssword123')"
-            >
-              Super Admin
-            </button>
-            <button
-              type="button"
-              class="px-2.5 py-1 rounded-lg bg-white/5 text-xs text-slate-300 hover:text-white border border-white/10"
-              @click="fillDemo('siti.nurhaliza', 'P@ssword123')"
-            >
-              HR Manager
-            </button>
-            <button
-              type="button"
-              class="px-2.5 py-1 rounded-lg bg-white/5 text-xs text-slate-300 hover:text-white border border-white/10"
-              @click="fillDemo('ahmad.rahman', 'P@ssword123')"
-            >
-              HR Officer
-            </button>
-          </div>
-        </div>
+
       </Motion>
     </div>
   </div>
@@ -331,14 +282,7 @@ const generateCaptcha = () => {
   captchaError.value = "";
 };
 
-const fillDemo = (user: string, pass: string) => {
-  credential.value = user;
-  password.value = pass;
-  userCaptcha.value = captchaCode.value;
-  credentialError.value = "";
-  passwordError.value = "";
-  captchaError.value = "";
-};
+
 
 const handleLogin = async () => {
   credentialError.value = "";
